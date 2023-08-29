@@ -2,20 +2,21 @@
     "private": true,
     "scripts": {
         "build": "turbo build",
-        "dev": "turbo dev --no-cache --continue",
-        "lint": "turbo lint",
-        "clean": "turbo clean && rm -rf node_modules",
-        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
         "changeset": "changeset",
-        "version-packages": "changeset version",
-        "release": "turbo build --filter=docs^... && changeset publish"
+        "clean": "turbo clean && rm -rf node_modules",
+        "dev": "turbo dev --no-cache --continue",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "lint": "turbo lint",
+        "release": "turbo build --filter=docs^... && changeset publish",
+        "test": "turbo test",
+        "version-packages": "changeset version"
     },
     "devDependencies": {
-        "@changesets/cli": "^2.26.2",
-        "eslint": "^8.48.0",
+        "@changesets/cli": "^2",
+        "eslint": "^8",
         "eslint-config-deroll": "workspace:*",
-        "prettier": "^3.0.2",
+        "prettier": "^3",
         "turbo": "latest"
     },
-    "packageManager": "pnpm@8.6.10"
+    "packageManager": "pnpm@8.7.0"
 }

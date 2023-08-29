@@ -1,0 +1,25 @@
+{
+    "name": "wallet",
+    "private": true,
+    "scripts": {
+        "build": "tsup",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "dev": "tsup --watch",
+        "lint": "eslint",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "@deroll/app": "workspace:*",
+        "@deroll/router": "workspace:*",
+        "@deroll/wallet": "workspace:*",
+        "viem": "^1"
+    },
+    "devDependencies": {
+        "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^20",
+        "eslint": "^8",
+        "eslint-config-deroll": "workspace:*",
+        "tsup": "^7",
+        "typescript": "^5"
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "name": "@deroll/app",
+    "version": "0.0.0",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "license": "MIT",
+    "files": [
+        "dist/**"
+    ],
+    "scripts": {
+        "build": "run-s codegen compile",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "codegen": "ts-node schema.ts",
+        "compile": "tsup",
+        "dev": "tsup --watch",
+        "lint": "eslint",
+        "test": "vitest"
+    },
+    "dependencies": {
+        "openapi-fetch": "^0.7",
+        "viem": "^1"
+    },
+    "devDependencies": {
+        "@deroll/tsconfig": "workspace:*",
+        "eslint": "^8",
+        "eslint-config-deroll": "workspace:*",
+        "npm-run-all": "^4",
+        "openapi-typescript": "^6",
+        "ts-node": "^10",
+        "tsup": "^7",
+        "typescript": "^5",
+        "vitest": "^0.34"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}
