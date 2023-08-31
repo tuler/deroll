@@ -6,7 +6,7 @@
     "private": true,
     "dependencies": {
         "@typescript-eslint/eslint-plugin": "^6",
-        "eslint-config-prettier": "^8",
+        "eslint-config-prettier": "^9",
         "eslint-config-turbo": "^1"
     },
     "publishConfig": {
