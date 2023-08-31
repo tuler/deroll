@@ -188,9 +188,6 @@ importers:
       '@deroll/app':
         specifier: workspace:*
         version: link:../app
-      abitype:
-        specifier: ^0.9
-        version: 0.9.8(typescript@5.2.2)
       viem:
         specifier: ^1
         version: 1.9.2(typescript@5.2.2)(zod@3.22.2)
@@ -207,6 +204,9 @@ importers:
       '@wagmi/cli':
         specifier: ^1
         version: 1.3.0(typescript@5.2.2)
+      abitype:
+        specifier: ^0.9
+        version: 0.9.8(typescript@5.2.2)
       eslint:
         specifier: ^8
         version: 8.48.0
@@ -1195,7 +1195,6 @@ packages:
         optional: true
     dependencies:
       typescript: 5.2.2
-    dev: false
 
   /abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
