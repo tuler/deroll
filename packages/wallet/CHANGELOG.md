@@ -1,5 +1,12 @@
 # @deroll/wallet
 
+## 0.2.2
+
+### Patch Changes
+
+-   fc2df22: fix ether balance for unexisting wallet
+    -   @deroll/app@0.2.0
+
 ## 0.2.1
 
 ### Patch Changes
