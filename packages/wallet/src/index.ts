@@ -1,6 +1,7 @@
-import { hexToBigInt, hexToBool, parseAbi, slice } from "viem";
-import { WalletApp, WalletAppImpl } from "./wallet";
 import { AdvanceRequestData, Payload } from "@deroll/app";
+import { Address, hexToBigInt, hexToBool, parseAbi, slice } from "viem";
+
+import { WalletApp, WalletAppImpl } from "./wallet";
 import { erc20PortalAddress, etherPortalAddress } from "./rollups";
 
 export type { WalletApp } from "./wallet";
@@ -15,12 +16,24 @@ export const createWallet = (): WalletApp => {
     return new WalletAppImpl();
 };
 
+export type EtherDeposit = {
+    sender: Address;
+    value: bigint;
+};
+
+export type ERC20Deposit = {
+    success: boolean;
+    token: Address;
+    sender: Address;
+    amount: bigint;
+};
+
 /**
  * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
  * @param payload input payload
  * @returns
  */
-export const parseEtherDeposit = (payload: Payload) => {
+export const parseEtherDeposit = (payload: Payload): EtherDeposit => {
     const sender = slice(payload, 0, 20); // 20 bytes for address
     const value = hexToBigInt(slice(payload, 20, 52)); // 32 bytes for uint256
     return { sender, value };
@@ -31,7 +44,7 @@ export const parseEtherDeposit = (payload: Payload) => {
  * @param payload input payload
  * @returns
  */
-export const parseERC20Deposit = (payload: Payload) => {
+export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
     const success = hexToBool(slice(payload, 0, 1)); // 1 byte for boolean
     const token = slice(payload, 1, 21); // 20 bytes for address
     const sender = slice(payload, 21, 41); // 20 bytes for address
@@ -39,8 +52,8 @@ export const parseERC20Deposit = (payload: Payload) => {
     return { success, token, sender, amount };
 };
 
-export const isEtherDeposit = (data: AdvanceRequestData) =>
+export const isEtherDeposit = (data: AdvanceRequestData): boolean =>
     data.metadata.msg_sender === etherPortalAddress;
 
-export const isERC20Deposit = (data: AdvanceRequestData) =>
+export const isERC20Deposit = (data: AdvanceRequestData): boolean =>
     data.metadata.msg_sender === erc20PortalAddress;
