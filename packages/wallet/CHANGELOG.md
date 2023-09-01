@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 0.3.2
+
+### Patch Changes
+
+-   9796d6e: fix bytes32 to bigint conversion
+
 ## 0.3.1
 
 ### Patch Changes
