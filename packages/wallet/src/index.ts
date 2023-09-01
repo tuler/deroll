@@ -41,7 +41,8 @@ export type ERC20Deposit = {
  * @returns
  */
 export const parseEtherDeposit = (payload: Payload): EtherDeposit => {
-    const sender = slice(payload, 0, 20); // 20 bytes for address
+    // normalize address, for safety
+    const sender = getAddress(slice(payload, 0, 20)); // 20 bytes for address
     const value = hexToBigInt(slice(payload, 20, 52), { size: 32 }); // 32 bytes for uint256
     return { sender, value };
 };
@@ -53,8 +54,9 @@ export const parseEtherDeposit = (payload: Payload): EtherDeposit => {
  */
 export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
     const success = hexToBool(slice(payload, 0, 1)); // 1 byte for boolean
-    const token = slice(payload, 1, 21); // 20 bytes for address
-    const sender = slice(payload, 21, 41); // 20 bytes for address
+    // normalize addresses, for safety
+    const token = getAddress(slice(payload, 1, 21)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 21, 41)); // 20 bytes for address
     const amount = hexToBigInt(slice(payload, 41, 73), { size: 32 }); // 32 bytes for uint256
     return { success, token, sender, amount };
 };

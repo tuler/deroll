@@ -64,11 +64,7 @@ export class WalletAppImpl implements WalletApp {
     public handler: AdvanceRequestHandler = async (data) => {
         if (isEtherDeposit(data)) {
             let { sender, value } = parseEtherDeposit(data.payload);
-
-            // normalize address, for safety
-            sender = getAddress(sender);
-
-            const wallet = this.wallets[sender] ?? {};
+            const wallet = this.wallets[sender] ?? { ether: 0n, erc20: {} };
             wallet.ether += value;
             this.wallets[sender] = wallet;
             return "accept";
@@ -77,18 +73,18 @@ export class WalletAppImpl implements WalletApp {
                 data.payload,
             );
 
-            // normalize addresses, for safety
-            token = getAddress(token);
-            sender = getAddress(sender);
-
-            const wallet = this.wallets[sender] ?? {};
-            wallet.erc20[token] = wallet.erc20[token]
-                ? wallet.erc20[token] + amount
-                : amount;
-            this.wallets[sender] = wallet;
+            if (success) {
+                const wallet = this.wallets[sender] ?? { ether: 0n, erc20: {} };
+                wallet.erc20[token] = wallet.erc20[token]
+                    ? wallet.erc20[token] + amount
+                    : amount;
+                this.wallets[sender] = wallet;
+            }
             return "accept";
-        } else if (data.metadata.msg_sender === dAppAddressRelayAddress) {
-            this.dapp = data.payload;
+        } else if (
+            getAddress(data.metadata.msg_sender) === dAppAddressRelayAddress
+        ) {
+            this.dapp = getAddress(data.payload);
             return "accept";
         }
         return "reject";
