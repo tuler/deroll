@@ -1,5 +1,12 @@
 # wallet
 
+## 0.1.8
+
+### Patch Changes
+
+-   Updated dependencies [d07d6b0]
+    -   @deroll/wallet@0.3.4
+
 ## 0.1.7
 
 ### Patch Changes
