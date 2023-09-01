@@ -39,23 +39,26 @@ export class Router {
         for (const route of this.routes) {
             const match = route.matcher(url);
             if (match) {
-                return route.handler(match, route);
+                try {
+                    return route.handler(match, route);
+                } catch (e) {
+                    throw new Error(`Error handling route ${url}`, {
+                        cause: e,
+                    });
+                }
             }
         }
         return undefined;
     }
 
-    public async handler(data: InspectRequestData) {
-        try {
-            const url = bytesToString(toBytes(data.payload));
-            const result = this.handle(url);
-            if (result) {
-                await this.options.app.createReport({
-                    payload: toHex(stringToBytes(result)),
-                });
-            }
-        } catch (e) {
-            console.error(e);
+    public async handler(data: InspectRequestData): Promise<void> {
+        const url = bytesToString(toBytes(data.payload));
+        const result = this.handle(url);
+        if (result) {
+            // create single report with handler result
+            await this.options.app.createReport({
+                payload: toHex(stringToBytes(result)),
+            });
         }
     }
 }

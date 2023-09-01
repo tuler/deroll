@@ -153,6 +153,9 @@ importers:
       '@deroll/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@types/node':
+        specifier: ^20
+        version: 20.5.7
       eslint:
         specifier: ^8
         version: 8.48.0
