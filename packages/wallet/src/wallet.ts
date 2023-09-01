@@ -1,19 +1,13 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/app";
-import {
-    Address,
-    encodeFunctionData,
-    hexToBigInt,
-    hexToBool,
-    slice,
-} from "viem";
+import { Address, encodeFunctionData } from "viem";
 
+import { cartesiDAppABI, dAppAddressRelayAddress, erc20ABI } from "./rollups";
 import {
-    cartesiDAppABI,
-    dAppAddressRelayAddress,
-    erc20ABI,
-    erc20PortalAddress,
-    etherPortalAddress,
-} from "./rollups";
+    isERC20Deposit,
+    isEtherDeposit,
+    parseERC20Deposit,
+    parseEtherDeposit,
+} from ".";
 
 export type Wallet = {
     ether: bigint;
@@ -54,23 +48,17 @@ export class WalletAppImpl implements WalletApp {
     }
 
     public handler: AdvanceRequestHandler = async (data) => {
-        if (data.metadata.msg_sender === etherPortalAddress) {
-            // decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
-            // address sender, uint256 value, bytes execLayerData
-            const sender = slice(data.payload, 0, 20); // 20 bytes for address
-            const value = hexToBigInt(slice(data.payload, 20, 52)); // 32 bytes for uint256
+        if (isEtherDeposit(data)) {
+            const { sender, value } = parseEtherDeposit(data.payload);
 
             const wallet = this.wallets[sender] ?? {};
             wallet.ether += value;
             this.wallets[sender] = wallet;
             return "accept";
-        } else if (data.metadata.msg_sender === erc20PortalAddress) {
-            // decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
-            // bool success, address token, address sender, uint256 amount, bytes execLayerData
-            const success = hexToBool(slice(data.payload, 0, 1)); // 1 byte for boolean
-            const token = slice(data.payload, 1, 21); // 20 bytes for address
-            const sender = slice(data.payload, 21, 41); // 20 bytes for address
-            const amount = hexToBigInt(slice(data.payload, 41, 73)); // 32 bytes for uint256
+        } else if (isERC20Deposit(data)) {
+            const { success, token, sender, amount } = parseERC20Deposit(
+                data.payload,
+            );
 
             const wallet = this.wallets[sender] ?? {};
             wallet.erc20[token] = wallet.erc20[token]
