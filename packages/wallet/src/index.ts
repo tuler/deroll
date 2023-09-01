@@ -1,5 +1,12 @@
 import { AdvanceRequestData, Payload } from "@deroll/app";
-import { Address, hexToBigInt, hexToBool, parseAbi, slice } from "viem";
+import {
+    Address,
+    getAddress,
+    hexToBigInt,
+    hexToBool,
+    parseAbi,
+    slice,
+} from "viem";
 
 import { WalletApp, WalletAppImpl } from "./wallet";
 import { erc20PortalAddress, etherPortalAddress } from "./rollups";
@@ -53,7 +60,7 @@ export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
 };
 
 export const isEtherDeposit = (data: AdvanceRequestData): boolean =>
-    data.metadata.msg_sender === etherPortalAddress;
+    getAddress(data.metadata.msg_sender) === etherPortalAddress;
 
 export const isERC20Deposit = (data: AdvanceRequestData): boolean =>
-    data.metadata.msg_sender === erc20PortalAddress;
+    getAddress(data.metadata.msg_sender) === erc20PortalAddress;
