@@ -1,5 +1,11 @@
 # @deroll/router
 
+## 0.2.1
+
+### Patch Changes
+
+-   c7b6676: fix wallet and router handle binding
+
 ## 0.2.0
 
 ### Minor Changes
