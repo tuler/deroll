@@ -14,6 +14,7 @@ import {
 
 export type AppOptions = {
     url: string;
+    broadcastAdvanceRequests?: boolean;
 };
 
 export interface App {
@@ -26,11 +27,13 @@ export interface App {
 }
 
 export class AppImpl implements App {
+    private options: AppOptions;
     private advanceHandlers: AdvanceRequestHandler[];
     private inspectHandlers: InspectRequestHandler[];
     private POST;
 
     constructor(options: AppOptions) {
+        this.options = options;
         this.advanceHandlers = [];
         this.inspectHandlers = [];
 
@@ -71,32 +74,40 @@ export class AppImpl implements App {
     }
 
     private handleAdvance: AdvanceRequestHandler = async (data) => {
-        try {
-            // initialize final result as reject, which is the case if no handler accepts the request
-            let finalResult: RequestHandlerResult = "reject";
+        // initialize final result as reject, which is the case if no handler accepts the request
+        let finalResult: RequestHandlerResult = "reject";
 
-            // present the input to all handlers
-            for (const handler of this.advanceHandlers) {
+        // present the input to all handlers
+        for (const handler of this.advanceHandlers) {
+            try {
                 const result = await handler(data);
-                if (result != "reject") {
+                if (result == "accept") {
+                    if (!this.options.broadcastAdvanceRequests) {
+                        // not broadcast, return accept immediately
+                        return result;
+                    }
+
+                    // else, store the result, and return when all handlers have been called
                     finalResult = result;
                 }
+                // here result is "reject", just continue
+            } catch (e) {
+                // one of the handlers raised an exception, just log it
+                // it will return "reject" if no handler accepts the request
+                console.error(e);
             }
-            return finalResult;
-        } catch (e) {
-            console.error(e);
-            return "reject";
         }
+        return finalResult;
     };
 
     private handleInspect: InspectRequestHandler = async (data) => {
-        try {
-            // present the input to all handlers
-            for (const handler of this.inspectHandlers) {
+        // present the input to all handlers
+        for (const handler of this.inspectHandlers) {
+            try {
                 await handler(data);
+            } catch (e) {
+                console.error(e);
             }
-        } catch (e) {
-            console.error(e);
         }
     };
 
