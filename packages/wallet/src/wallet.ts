@@ -33,6 +33,10 @@ export class WalletAppImpl implements WalletApp {
     private dapp: Address | undefined;
     private wallets: Record<string, Wallet> = {};
 
+    constructor() {
+        this.handler = this.handler.bind(this);
+    }
+
     public balanceOf(
         tokenOrAddress: string | Address,
         address?: string,

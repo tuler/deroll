@@ -23,6 +23,7 @@ export class Router {
     constructor(options: RouterOptions) {
         this.options = options;
         this.routes = [];
+        this.handler = this.handler.bind(this);
     }
 
     public add<P extends object>(path: Path, handler: Handler<P>): Route<P> {
