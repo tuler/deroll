@@ -1,5 +1,13 @@
 # wallet
 
+## 0.1.2
+
+### Patch Changes
+
+-   Updated dependencies [c7b6676]
+    -   @deroll/router@0.2.1
+    -   @deroll/wallet@0.2.1
+
 ## 0.1.1
 
 ### Patch Changes
