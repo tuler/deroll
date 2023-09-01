@@ -1,5 +1,5 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/app";
-import { Address, encodeFunctionData } from "viem";
+import { Address, encodeFunctionData, getAddress, isAddress } from "viem";
 
 import { cartesiDAppABI, dAppAddressRelayAddress, erc20ABI } from "./rollups";
 import {
@@ -42,10 +42,20 @@ export class WalletAppImpl implements WalletApp {
         address?: string,
     ): bigint {
         if (address) {
+            // if is address, normalize it
+            if (isAddress(address)) {
+                address = getAddress(address);
+            }
+
             // erc-20 balance
             const erc20: Record<Address, bigint> = this.wallets[address] ?? {};
             return erc20[tokenOrAddress as Address] ?? 0n;
         } else {
+            // if is address, normalize it
+            if (isAddress(tokenOrAddress)) {
+                tokenOrAddress = getAddress(tokenOrAddress);
+            }
+
             // ether balance
             return this.wallets[tokenOrAddress]?.ether ?? 0n;
         }
@@ -53,16 +63,23 @@ export class WalletAppImpl implements WalletApp {
 
     public handler: AdvanceRequestHandler = async (data) => {
         if (isEtherDeposit(data)) {
-            const { sender, value } = parseEtherDeposit(data.payload);
+            let { sender, value } = parseEtherDeposit(data.payload);
+
+            // normalize address, for safety
+            sender = getAddress(sender);
 
             const wallet = this.wallets[sender] ?? {};
             wallet.ether += value;
             this.wallets[sender] = wallet;
             return "accept";
         } else if (isERC20Deposit(data)) {
-            const { success, token, sender, amount } = parseERC20Deposit(
+            let { success, token, sender, amount } = parseERC20Deposit(
                 data.payload,
             );
+
+            // normalize addresses, for safety
+            token = getAddress(token);
+            sender = getAddress(sender);
 
             const wallet = this.wallets[sender] ?? {};
             wallet.erc20[token] = wallet.erc20[token]
@@ -95,6 +112,14 @@ export class WalletAppImpl implements WalletApp {
         to: string,
         amount: bigint,
     ): void {
+        // normalize addresses
+        if (isAddress(from)) {
+            from = getAddress(from);
+        }
+        if (isAddress(to)) {
+            to = getAddress(to);
+        }
+
         const walletFrom = this.wallets[from];
         const walletTo = this.wallets[to];
 
@@ -111,6 +136,9 @@ export class WalletAppImpl implements WalletApp {
     }
 
     withdrawEther(address: Address, amount: bigint): Voucher {
+        // normalize address
+        address = getAddress(address);
+
         const wallet = this.wallets[address];
 
         // check if dapp address is defined
@@ -141,6 +169,10 @@ export class WalletAppImpl implements WalletApp {
     }
 
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher {
+        // normalize addresses
+        token = getAddress(token);
+        address = getAddress(address);
+
         const wallet = this.wallets[address];
 
         // check balance
