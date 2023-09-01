@@ -1,5 +1,17 @@
 # @deroll/wallet
 
+## 0.3.0
+
+### Minor Changes
+
+-   81bbb4f: address normalization
+
+### Patch Changes
+
+-   71f992e: export low level types
+-   Updated dependencies [be34557]
+    -   @deroll/app@0.3.0
+
 ## 0.2.2
 
 ### Patch Changes
