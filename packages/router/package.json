@@ -15,7 +15,8 @@
         "compile": "tsup",
         "dev": "tsup --watch",
         "lint": "eslint",
-        "test": "vitest"
+        "test": "vitest",
+        "prepack": "run-s build"
     },
     "dependencies": {
         "@deroll/app": "workspace:*",

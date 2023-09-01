@@ -15,7 +15,8 @@
         "codegen": "wagmi generate",
         "compile": "tsup",
         "dev": "tsup --watch",
-        "lint": "eslint"
+        "lint": "eslint",
+        "prepack": "run-s build"
     },
     "dependencies": {
         "@deroll/app": "workspace:*",
