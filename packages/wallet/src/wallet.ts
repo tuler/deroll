@@ -47,7 +47,7 @@ export class WalletAppImpl implements WalletApp {
             return erc20[tokenOrAddress as Address] ?? 0n;
         } else {
             // ether balance
-            return this.wallets[tokenOrAddress]?.ether;
+            return this.wallets[tokenOrAddress]?.ether ?? 0n;
         }
     }
 
