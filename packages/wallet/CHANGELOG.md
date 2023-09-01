@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 0.3.4
+
+### Patch Changes
+
+-   d07d6b0: fix wallet initialization on transfer
+
 ## 0.3.3
 
 ### Patch Changes
