@@ -91,8 +91,16 @@ export class WalletAppImpl implements WalletApp {
     };
 
     transferEther(from: string, to: string, amount: bigint): void {
-        const walletFrom = this.wallets[from];
-        const walletTo = this.wallets[to];
+        // normalize addresses
+        if (isAddress(from)) {
+            from = getAddress(from);
+        }
+        if (isAddress(to)) {
+            to = getAddress(to);
+        }
+
+        const walletFrom = this.wallets[from] ?? { ether: 0n, erc20: {} };
+        const walletTo = this.wallets[to] ?? { ether: 0n, erc20: {} };
 
         if (walletFrom.ether < amount) {
             throw new Error(`insufficient balance of user ${from}`);
@@ -116,8 +124,8 @@ export class WalletAppImpl implements WalletApp {
             to = getAddress(to);
         }
 
-        const walletFrom = this.wallets[from];
-        const walletTo = this.wallets[to];
+        const walletFrom = this.wallets[from] ?? { ether: 0n, erc20: {} };
+        const walletTo = this.wallets[to] ?? { ether: 0n, erc20: {} };
 
         if (!walletFrom.erc20[token] || walletFrom.erc20[token] < amount) {
             throw new Error(
