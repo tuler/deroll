@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 0.3.3
+
+### Patch Changes
+
+-   0fa80f3: fix wallet initialization
+
 ## 0.3.2
 
 ### Patch Changes
