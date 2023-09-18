@@ -1,6 +1,6 @@
 import createClient from "openapi-fetch";
 
-import { paths } from "./schema";
+import { paths, components } from "./schema";
 import {
     Notice,
     Report,
@@ -11,6 +11,8 @@ import {
     InspectRequestHandler,
     InspectRequestData,
 } from "./types";
+
+type RollupsRequest = components["schemas"]["RollupRequest"];
 
 export type AppOptions = {
     url: string;
@@ -122,11 +124,12 @@ export class AppImpl implements App {
     async start() {
         let status: RequestHandlerResult = "accept";
         while (true) {
-            const { data, response } = await this.POST("/finish", {
+            const { response } = await this.POST("/finish", {
                 body: { status },
+                parseAs: "text",
             });
-
-            if (response.status == 200 && data) {
+            if (response.status == 200) {
+                const data = (await response.json()) as RollupsRequest;
                 switch (data.request_type) {
                     case "advance_state":
                         status = await this.handleAdvance(
@@ -139,6 +142,8 @@ export class AppImpl implements App {
                         );
                         break;
                 }
+            } else if (response.status == 202) {
+                // no rollup request available
             }
         }
     }
