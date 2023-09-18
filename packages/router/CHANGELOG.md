@@ -1,5 +1,12 @@
 # @deroll/router
 
+## 0.2.4
+
+### Patch Changes
+
+-   Updated dependencies [2f65b2f]
+    -   @deroll/app@0.4.0
+
 ## 0.2.3
 
 ### Patch Changes
