@@ -108,6 +108,8 @@ export class WalletAppImpl implements WalletApp {
 
         walletFrom.ether = walletFrom.ether - amount;
         walletTo.ether = walletTo.ether + amount;
+        this.wallets[from] = walletFrom;
+        this.wallets[to] = walletTo;
     }
 
     transferERC20(
@@ -137,6 +139,8 @@ export class WalletAppImpl implements WalletApp {
         walletTo.erc20[token] = walletTo.erc20[token]
             ? walletTo.erc20[token] + amount
             : amount;
+        this.wallets[from] = walletFrom;
+        this.wallets[to] = walletTo;
     }
 
     withdrawEther(address: Address, amount: bigint): Voucher {
@@ -151,7 +155,7 @@ export class WalletAppImpl implements WalletApp {
         }
 
         // check balance
-        if (wallet.ether < amount) {
+        if (!wallet || wallet.ether < amount) {
             throw new Error(
                 `insufficient balance of user ${address}: ${amount.toString()} > ${wallet.ether.toString()}`,
             );
@@ -180,7 +184,7 @@ export class WalletAppImpl implements WalletApp {
         const wallet = this.wallets[address];
 
         // check balance
-        if (!wallet.erc20[token] || wallet.erc20[token] < amount) {
+        if (!wallet || !wallet.erc20[token] || wallet.erc20[token] < amount) {
             throw new Error(
                 `insufficient balance of user ${address} of token ${token}: ${amount.toString()} > ${
                     wallet.erc20[token]?.toString() ?? "0"
