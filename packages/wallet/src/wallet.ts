@@ -48,8 +48,8 @@ export class WalletAppImpl implements WalletApp {
             }
 
             // erc-20 balance
-            const erc20: Record<Address, bigint> = this.wallets[address] ?? {};
-            return erc20[tokenOrAddress as Address] ?? 0n;
+            const wallet = this.wallets[address] ?? { ether: 0n, erc20: {} };
+            return wallet.erc20[tokenOrAddress as Address] ?? 0n;
         } else {
             // if is address, normalize it
             if (isAddress(tokenOrAddress)) {
