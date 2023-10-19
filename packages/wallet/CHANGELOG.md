@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 0.3.7
+
+### Patch Changes
+
+-   4189e2a: fix wallets assignment bug
+
 ## 0.3.6
 
 ### Patch Changes
