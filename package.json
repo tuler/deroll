@@ -16,7 +16,8 @@
         "eslint": "^8",
         "eslint-config-deroll": "workspace:*",
         "prettier": "^3",
-        "turbo": "latest"
+        "turbo": "latest",
+        "typedoc": "^0.25"
     },
     "packageManager": "pnpm@8.7.1"
 }
