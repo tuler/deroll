@@ -1,6 +1,5 @@
 import type { Abi } from "abitype";
 import { defineConfig } from "@wagmi/cli";
-import { erc } from "@wagmi/cli/plugins";
 import hardhatDeploy from "@sunodo/wagmi-plugin-hardhat-deploy";
 // @ts-ignore
 import CartesiDApp from "@cartesi/rollups/export/artifacts/contracts/dapp/CartesiDApp.sol/CartesiDApp.json" assert { type: "json" };
@@ -14,7 +13,6 @@ export default defineConfig({
         },
     ],
     plugins: [
-        erc({ 721: false, 4626: false }),
         hardhatDeploy({
             directory: "node_modules/@cartesi/rollups/export/abi",
             includes: [

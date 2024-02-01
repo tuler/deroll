@@ -1,7 +1,13 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/app";
-import { Address, encodeFunctionData, getAddress, isAddress } from "viem";
+import {
+    Address,
+    encodeFunctionData,
+    erc20Abi,
+    getAddress,
+    isAddress,
+} from "viem";
 
-import { cartesiDAppABI, dAppAddressRelayAddress, erc20ABI } from "./rollups";
+import { cartesiDAppAbi, dAppAddressRelayAddress } from "./rollups";
 import {
     isERC20Deposit,
     isEtherDeposit,
@@ -166,7 +172,7 @@ export class WalletAppImpl implements WalletApp {
 
         // create voucher
         const call = encodeFunctionData({
-            abi: cartesiDAppABI,
+            abi: cartesiDAppAbi,
             functionName: "withdrawEther",
             args: [address, amount],
         });
@@ -196,7 +202,7 @@ export class WalletAppImpl implements WalletApp {
         wallet.erc20[token] -= amount;
 
         const call = encodeFunctionData({
-            abi: erc20ABI,
+            abi: erc20Abi,
             functionName: "transfer",
             args: [address, amount],
         });
