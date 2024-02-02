@@ -8,7 +8,7 @@ viem types Hex and Address instead of simple strings for some schema properties.
 */
 
 const inputFile =
-    "https://raw.githubusercontent.com/cartesi/openapi-interfaces/992c11489b50a47b5fb018298833f714ff166df7/rollup.yaml";
+    "https://raw.githubusercontent.com/cartesi/openapi-interfaces/v0.7.1/rollup.yaml";
 const outputFile = "src/schema.d.ts";
 
 // import types from viem in generated code
