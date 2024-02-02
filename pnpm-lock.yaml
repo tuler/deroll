@@ -205,8 +205,8 @@ importers:
         version: 2.7.1(typescript@5.2.2)
     devDependencies:
       '@cartesi/rollups':
-        specifier: ^1.0
-        version: 1.0.0
+        specifier: ^1.2
+        version: 1.2.0
       '@deroll/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
@@ -276,15 +276,15 @@ packages:
       regenerator-runtime: 0.14.0
     dev: true
 
-  /@cartesi/rollups@1.0.0:
-    resolution: {integrity: sha512-/Yjw/sMYNP+xka5IU3pU3yewVILnmjsDfkVRp9xwMWEIyCnjKniOVkf7epAic///Op+UFcIcdgYljvEzMAhXbA==}
+  /@cartesi/rollups@1.2.0:
+    resolution: {integrity: sha512-oLm/JYuRpUD6bg8UKFZjdSJRZ1CWOd5SM6xnjvRKMisGZcJzULYHuuzZMSMONpnFVQhFXrwJF4q0tzcOAK4oDw==}
     dependencies:
-      '@cartesi/util': 6.0.0
+      '@cartesi/util': 6.1.0
       '@openzeppelin/contracts': 4.9.2
     dev: true
 
-  /@cartesi/util@6.0.0:
-    resolution: {integrity: sha512-n5+jFRI60HOp6xOd0IDtQU/2eh/u2uojxB1xVoTHi9Qu8EXWLeCT3s3+2bsBevk1duDFtAiqQeTT8g7dcj9+7g==}
+  /@cartesi/util@6.1.0:
+    resolution: {integrity: sha512-j92nSoMHCyu6h7nZgn+MeXjkp8oa1Cy6qaImyxVXmPN2Rcqzl/TkWm/RkhbODU9rh4U3OuUteYqKRjefI3/XIQ==}
     dev: true
 
   /@changesets/apply-release-plan@6.1.4:
