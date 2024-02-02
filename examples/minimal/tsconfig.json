@@ -1,10 +1,5 @@
 {
     "extends": "@deroll/tsconfig/base.json",
-    "include": [
-        "."
-    ],
-    "exclude": [
-        "dist",
-        "node_modules"
-    ]
+    "include": ["."],
+    "exclude": ["dist", "node_modules"]
 }
