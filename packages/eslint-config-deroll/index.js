@@ -7,4 +7,7 @@ module.exports = {
             presets: [],
         },
     },
+    env: {
+        node: true,
+    },
 };

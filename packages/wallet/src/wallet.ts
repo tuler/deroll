@@ -1,28 +1,25 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/app";
-import {
-    Address,
-    encodeFunctionData,
-    erc20Abi,
-    getAddress,
-    isAddress,
-} from "viem";
+import { Address, getAddress, isAddress } from "viem";
 
-import { cartesiDAppAbi, dAppAddressRelayAddress } from "./rollups";
-import {
-    isERC20Deposit,
-    isEtherDeposit,
-    parseERC20Deposit,
-    parseEtherDeposit,
-} from ".";
+import { inspect } from "node:util";
+import { TokenHandler } from "./token";
 
 export type Wallet = {
     ether: bigint;
-    erc20: Record<Address, bigint>;
+    erc20: Map<Address, bigint>;
+    erc721: Map<Address, Set<bigint>>;
+    erc1155: Map<Address, Map<bigint, bigint>>;
 };
 
 export interface WalletApp {
     balanceOf(address: string): bigint;
     balanceOf(token: Address, address: string): bigint;
+    balanceOfERC721(token: Address, owner: string): bigint;
+    balanceOfERC1155(
+        addresses: string | string[],
+        tokenIds: bigint | bigint[],
+        owner: string | Address,
+    ): bigint | bigint[];
     handler: AdvanceRequestHandler;
     transferEther(from: string, to: string, amount: bigint): void;
     transferERC20(
@@ -31,91 +28,176 @@ export interface WalletApp {
         to: string,
         amount: bigint,
     ): void;
+    transferERC721(
+        token: Address,
+        from: string,
+        to: string,
+        tokenId: bigint,
+    ): void;
+    transferERC1155(
+        token: Address,
+        from: string,
+        to: string,
+        tokenIds: bigint[],
+        values: bigint[],
+    ): void;
     withdrawEther(address: Address, amount: bigint): Voucher;
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher;
+    withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher;
+    withdrawERC1155(
+        token: Address,
+        address: Address,
+        tokenIds: bigint | bigint[],
+        values: bigint | bigint[],
+    ): Voucher;
 }
 
 export class WalletAppImpl implements WalletApp {
-    private dapp: Address | undefined;
-    private wallets: Record<string, Wallet> = {};
+    private dapp?: Address;
+    private wallets = new Map<string, Wallet>();
 
-    constructor() {
-        this.handler = this.handler.bind(this);
+    constructor() {}
+    setDapp = (address: Address): void => {
+        this.dapp = address;
+    };
+
+    setWallet = (address: string, wallet: Wallet): void => {
+        this.wallets.set(address, wallet);
+    };
+
+    getWalletOrNew = (address: string): Wallet => {
+        if (isAddress(address)) {
+            address = getAddress(address);
+        }
+        const wallet = this.wallets.get(address);
+
+        if (wallet) {
+            return wallet;
+        }
+
+        const newWallet = this.createDefaultWallet();
+        this.wallets.set(address, newWallet);
+
+        return newWallet;
+    };
+
+    createDefaultWallet(): Wallet {
+        return {
+            ether: 0n,
+            erc20: new Map(),
+            erc721: new Map(),
+            erc1155: new Map(),
+        };
     }
 
+    /**
+     *
+     * @param tokenOrAddress
+     * @param address
+     * @returns
+     */
     public balanceOf(
         tokenOrAddress: string | Address,
         address?: string,
     ): bigint {
-        if (address) {
-            // if is address, normalize it
-            if (isAddress(address)) {
-                address = getAddress(address);
-            }
+        const handler = TokenHandler.getInstance();
 
-            // erc-20 balance
-            const wallet = this.wallets[address] ?? { ether: 0n, erc20: {} };
-            return wallet.erc20[tokenOrAddress as Address] ?? 0n;
+        if (address && isAddress(address)) {
+            return handler.erc20.balanceOf({
+                address,
+                getWallet: this.getWalletOrNew,
+                tokenOrAddress,
+            });
         } else {
-            // if is address, normalize it
-            if (isAddress(tokenOrAddress)) {
-                tokenOrAddress = getAddress(tokenOrAddress);
-            }
-
-            // ether balance
-            return this.wallets[tokenOrAddress]?.ether ?? 0n;
+            return handler.ether.balanceOf({
+                getWallet: this.getWalletOrNew,
+                tokenOrAddress,
+            });
         }
     }
 
-    public handler: AdvanceRequestHandler = async (data) => {
-        if (isEtherDeposit(data)) {
-            let { sender, value } = parseEtherDeposit(data.payload);
-            const wallet = this.wallets[sender] ?? { ether: 0n, erc20: {} };
-            wallet.ether += value;
-            this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC20Deposit(data)) {
-            let { success, token, sender, amount } = parseERC20Deposit(
-                data.payload,
-            );
+    public balanceOfERC721(
+        address: string | Address,
+        owner: string | Address,
+    ): bigint {
+        const handler = TokenHandler.getInstance();
+        return handler.erc721.balanceOf({
+            address,
+            getWallet: this.getWalletOrNew,
+            owner,
+        });
+    }
 
-            if (success) {
-                const wallet = this.wallets[sender] ?? { ether: 0n, erc20: {} };
-                wallet.erc20[token] = wallet.erc20[token]
-                    ? wallet.erc20[token] + amount
-                    : amount;
-                this.wallets[sender] = wallet;
-            }
-            return "accept";
-        } else if (
-            getAddress(data.metadata.msg_sender) === dAppAddressRelayAddress
-        ) {
-            this.dapp = getAddress(data.payload);
-            return "accept";
+    public balanceOfERC1155(
+        addresses: string | string[],
+        tokenIds: bigint | bigint[],
+        owner: string | Address,
+    ): bigint | bigint[] {
+        const handler = TokenHandler.getInstance();
+
+        if (!Array.isArray(addresses) && !Array.isArray(tokenIds)) {
+            const address = addresses;
+            const tokenId = tokenIds;
+
+            return handler.erc1155Single.balanceOf({
+                address,
+                tokenId,
+                owner,
+                getWallet: this.getWalletOrNew,
+            });
         }
+
+        if (!Array.isArray(addresses)) {
+            addresses = [addresses];
+        }
+
+        if (!Array.isArray(tokenIds)) {
+            tokenIds = [tokenIds];
+        }
+
+        return handler.erc1155Batch.balanceOf({
+            addresses,
+            tokenIds,
+            owner,
+            getWallet: this.getWalletOrNew,
+        });
+    }
+
+    public handler: AdvanceRequestHandler = async (data) => {
+        try {
+            console.log("Wallet handler...", inspect(data, { depth: null }));
+
+            const tokenHandler = TokenHandler.getInstance();
+            const handler = tokenHandler.findDeposit(data);
+            if (handler) {
+                await handler.deposit({
+                    setDapp: this.setDapp,
+                    payload: data.payload,
+                    getWallet: this.getWalletOrNew,
+                    setWallet: this.setWallet,
+                });
+
+                return "accept";
+            }
+        } catch (e) {
+            console.log("Error", e);
+        }
+
+        console.log("Wallet handler reject");
+        // Otherwise, reject
         return "reject";
     };
 
     transferEther(from: string, to: string, amount: bigint): void {
-        // normalize addresses
-        if (isAddress(from)) {
-            from = getAddress(from);
-        }
-        if (isAddress(to)) {
-            to = getAddress(to);
-        }
-
-        const walletFrom = this.wallets[from] ?? { ether: 0n, erc20: {} };
-        const walletTo = this.wallets[to] ?? { ether: 0n, erc20: {} };
-
-        if (walletFrom.ether < amount) {
-            throw new Error(`insufficient balance of user ${from}`);
-        }
-
-        walletFrom.ether = walletFrom.ether - amount;
-        walletTo.ether = walletTo.ether + amount;
-        this.wallets[from] = walletFrom;
-        this.wallets[to] = walletTo;
+        const handler = TokenHandler.getInstance();
+        handler.ether.transfer({
+            from,
+            to,
+            amount,
+            getWallet: this.getWalletOrNew,
+            setWallet: this.setWallet,
+            getDapp: this.getDappAddressOrThrow,
+        });
     }
 
     transferERC20(
@@ -124,93 +206,148 @@ export class WalletAppImpl implements WalletApp {
         to: string,
         amount: bigint,
     ): void {
-        // normalize addresses
-        if (isAddress(from)) {
-            from = getAddress(from);
-        }
-        if (isAddress(to)) {
-            to = getAddress(to);
+        const handler = TokenHandler.getInstance();
+        handler.erc20.transfer({
+            token,
+            from,
+            to,
+            amount,
+            getWallet: this.getWalletOrNew,
+            setWallet: this.setWallet,
+        });
+    }
+
+    transferERC721(
+        token: Address,
+        from: string,
+        to: string,
+        tokenId: bigint,
+    ): void {
+        const handler = TokenHandler.getInstance();
+        handler.erc721.transfer({
+            token,
+            from,
+            to,
+            tokenId,
+            getWallet: this.getWalletOrNew,
+            setWallet: this.setWallet,
+        });
+    }
+
+    transferERC1155(
+        token: Address,
+        from: string,
+        to: string,
+        tokenIds: bigint[],
+        values: bigint[],
+    ): void {
+        const handler = TokenHandler.getInstance();
+
+        if (!Array.isArray(tokenIds) && !Array.isArray(values)) {
+            handler.erc1155Single.transfer({
+                token,
+                from,
+                to,
+                tokenId: tokenIds,
+                amount: values,
+                getWallet: this.getWalletOrNew,
+                setWallet: this.setWallet,
+            });
         }
 
-        const walletFrom = this.wallets[from] ?? { ether: 0n, erc20: {} };
-        const walletTo = this.wallets[to] ?? { ether: 0n, erc20: {} };
-
-        if (!walletFrom.erc20[token] || walletFrom.erc20[token] < amount) {
-            throw new Error(
-                `insufficient balance of user ${from} of token ${token}`,
-            );
+        if (!Array.isArray(tokenIds)) {
+            tokenIds = [tokenIds];
         }
 
-        walletFrom.erc20[token] = walletFrom.erc20[token] - amount;
-        walletTo.erc20[token] = walletTo.erc20[token]
-            ? walletTo.erc20[token] + amount
-            : amount;
-        this.wallets[from] = walletFrom;
-        this.wallets[to] = walletTo;
+        if (!Array.isArray(values)) {
+            values = [values];
+        }
+
+        handler.erc1155Batch.transfer({
+            token,
+            from,
+            to,
+            tokenIds,
+            amounts: values,
+            getWallet: this.getWalletOrNew,
+            setWallet: this.setWallet,
+        });
     }
 
     withdrawEther(address: Address, amount: bigint): Voucher {
-        // normalize address
-        address = getAddress(address);
-
-        const wallet = this.wallets[address];
-
-        // check if dapp address is defined
-        if (!this.dapp) {
-            throw new Error(`undefined application address`);
-        }
-
-        // check balance
-        if (!wallet || wallet.ether < amount) {
-            throw new Error(
-                `insufficient balance of user ${address}: ${amount.toString()} > ${wallet.ether.toString()}`,
-            );
-        }
-
-        // reduce balance right away
-        wallet.ether = wallet.ether - amount;
-
-        // create voucher
-        const call = encodeFunctionData({
-            abi: cartesiDAppAbi,
-            functionName: "withdrawEther",
-            args: [address, amount],
+        const handler = TokenHandler.getInstance();
+        return handler.ether.withdraw({
+            address,
+            getWallet: this.getWalletOrNew,
+            amount,
+            getDapp: this.getDappAddressOrThrow,
+            setWallet: this.setWallet,
         });
-        return {
-            destination: this.dapp, // dapp Address
-            payload: call,
-        };
     }
 
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher {
-        // normalize addresses
-        token = getAddress(token);
-        address = getAddress(address);
+        const handler = TokenHandler.getInstance();
+        return handler.erc20.withdraw({
+            token,
+            address,
+            amount,
+            getWallet: this.getWalletOrNew,
+        });
+    }
 
-        const wallet = this.wallets[address];
+    withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher {
+        const handler = TokenHandler.getInstance();
+        return handler.erc721.withdraw({
+            token,
+            address,
+            tokenId,
+            getWallet: this.getWalletOrNew,
+            setWallet: this.setWallet,
+            getDapp: this.getDappAddressOrThrow,
+        });
+    }
 
-        // check balance
-        if (!wallet || !wallet.erc20[token] || wallet.erc20[token] < amount) {
+    getDappAddressOrThrow = (): Address => {
+        if (!this.dapp) {
             throw new Error(
-                `insufficient balance of user ${address} of token ${token}: ${amount.toString()} > ${
-                    wallet.erc20[token]?.toString() ?? "0"
-                }`,
+                `You need to call the method relayDAppAddress from DAppAddressRelay__factory.`,
             );
         }
+        return this.dapp;
+    };
 
-        // reduce balance right away
-        wallet.erc20[token] -= amount;
+    withdrawERC1155(
+        token: Address,
+        address: Address,
+        tokenIds: bigint | bigint[],
+        amounts: bigint | bigint[],
+    ): Voucher {
+        const handler = TokenHandler.getInstance();
+        if (!Array.isArray(tokenIds) && !Array.isArray(amounts)) {
+            return handler.erc1155Single.withdraw({
+                token,
+                address,
+                tokenId: tokenIds,
+                amount: amounts,
+                getWallet: this.getWalletOrNew,
+                getDapp: this.getDappAddressOrThrow,
+            });
+        }
 
-        const call = encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [address, amount],
+        if (!Array.isArray(tokenIds)) {
+            tokenIds = [tokenIds];
+        }
+
+        if (!Array.isArray(amounts)) {
+            amounts = [amounts];
+        }
+
+        return handler.erc1155Batch.withdraw({
+            token,
+            address,
+            tokenIds,
+            amounts,
+            getWallet: this.getWalletOrNew,
         });
-
-        // create voucher to the IERC20 transfer
-        return {
-            destination: token,
-            payload: call,
-        };
     }
 }

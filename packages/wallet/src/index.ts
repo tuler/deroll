@@ -9,8 +9,14 @@ import {
 } from "viem";
 
 import { WalletApp, WalletAppImpl } from "./wallet";
-import { erc20PortalAddress, etherPortalAddress } from "./rollups";
-
+import {
+    erc20PortalAddress,
+    etherPortalAddress,
+    erc721PortalAddress,
+    erc1155SinglePortalAddress,
+    erc1155BatchPortalAddress,
+} from "./rollups";
+import { decodeAbiParameters, parseAbiParameters } from "viem";
 export type { WalletApp } from "./wallet";
 
 // wallet ABI
@@ -33,6 +39,26 @@ export type ERC20Deposit = {
     token: Address;
     sender: Address;
     amount: bigint;
+};
+
+export type ERC721Deposit = {
+    token: Address;
+    sender: Address;
+    tokenId: bigint;
+};
+
+export type ERC1155SingleDeposit = {
+    token: Address;
+    sender: Address;
+    tokenId: bigint;
+    value: bigint;
+};
+
+export type ERC1155BatchDeposit = {
+    token: Address;
+    sender: Address;
+    tokenIds: readonly bigint[];
+    values: readonly bigint[];
 };
 
 /**
@@ -61,8 +87,83 @@ export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
     return { success, token, sender, amount };
 };
 
+/**
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * @param payload input payload
+ * @returns
+ */
+export const parseERC721Deposit = (payload: Payload): ERC721Deposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const commonPayload = slice(payload, 40);
+    const [tokenId] = decodeAbiParameters(
+        parseAbiParameters("uint256 tokenId"),
+        commonPayload,
+    );
+
+    return {
+        token,
+        sender,
+        tokenId,
+    };
+};
+
+/**
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * @param payload input payload
+ * @returns
+ */
+export const parseERC1155SingleDeposit = (
+    payload: Payload,
+): ERC1155SingleDeposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+
+    const commonPayload = slice(payload, 40);
+    const [tokenId, value] = decodeAbiParameters(
+        parseAbiParameters("uint256 tokenId, uint256 value"),
+        commonPayload,
+    );
+
+    return {
+        token,
+        sender,
+        tokenId,
+        value,
+    };
+};
+
+/**
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * @param payload input payload
+ * @returns
+ */
+export const parseERC1155BatchDeposit = (
+    payload: Payload,
+): ERC1155BatchDeposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+
+    const commonPayload = slice(payload, 40);
+
+    const [tokenIds, values] = decodeAbiParameters(
+        parseAbiParameters("uint256[] tokenIds, uint256[] values"),
+        commonPayload,
+    );
+    return { token, sender, tokenIds, values };
+};
+
 export const isEtherDeposit = (data: AdvanceRequestData): boolean =>
     getAddress(data.metadata.msg_sender) === etherPortalAddress;
 
 export const isERC20Deposit = (data: AdvanceRequestData): boolean =>
     getAddress(data.metadata.msg_sender) === erc20PortalAddress;
+
+export const isERC721Deposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msg_sender) === erc721PortalAddress;
+
+export const isERC1155SingleDeposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msg_sender) === erc1155SinglePortalAddress;
+
+export const isERC1155BatchDeposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msg_sender) === erc1155BatchPortalAddress;
