@@ -18,6 +18,7 @@ export type RouterOptions = {
 
 export class Router {
     private options: RouterOptions;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private routes: Route<any>[];
 
     constructor(options: RouterOptions) {
@@ -27,10 +28,11 @@ export class Router {
     }
 
     public add<P extends object>(path: Path, handler: Handler<P>): Route<P> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const keys: Key[] = [];
         const matcher = match<P>(path, { decode: decodeURIComponent });
 
-        const route = { matcher, handler };
+        const route: Route<P> = { matcher, handler };
         this.routes.push(route);
         return route;
     }
