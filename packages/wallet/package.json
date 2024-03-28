@@ -26,6 +26,7 @@
     "devDependencies": {
         "@cartesi/rollups": "^1.2",
         "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^20",
         "@sunodo/wagmi-plugin-hardhat-deploy": "^0.3",
         "@wagmi/cli": "^2",
         "abitype": "^1",

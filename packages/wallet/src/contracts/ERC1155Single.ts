@@ -1,4 +1,3 @@
-import { MissingContextArgumentError } from "../errors";
 import {
     type Address,
     isHex,
@@ -6,30 +5,45 @@ import {
     isAddress,
     encodeFunctionData,
 } from "viem";
+import type { Voucher } from "@deroll/app";
 import { erc1155Abi, erc1155SinglePortalAddress } from "../rollups";
 import { parseERC1155SingleDeposit } from "..";
-import { TokenOperation, TokenContext } from "../token";
-import type { Voucher } from "@deroll/app";
+import { DepositArgs, DepositOperation } from "../token";
+import type { Wallet } from "../wallet";
+import { InsufficientBalanceError, NegativeTokenIdError } from "../errors";
 
-export class ERC1155Single implements TokenOperation {
-    balanceOf({ address, tokenId, getWallet, owner }: TokenContext): bigint {
-        if (!address || !tokenId || !getWallet || !owner) {
-            throw new MissingContextArgumentError<TokenContext>({
-                getWallet,
-                address,
-                tokenId,
-                owner,
-            });
-        }
+interface BalanceOf {
+    address: Address;
+    tokenId: bigint;
+    owner: string;
+    getWallet(address: string): Wallet;
+}
 
-        const ownerAddress = getAddress(owner);
-        const wallet = getWallet(ownerAddress);
+interface Transfer {
+    from: Address;
+    to: Address;
+    getWallet(address: string): Wallet;
+    setWallet(address: string, wallet: Wallet): void;
+    token: Address;
+    tokenId: bigint;
+    amount: bigint;
+}
 
-        if (isAddress(address)) {
-            address = getAddress(address);
-        }
+interface Withdraw {
+    token: Address;
+    address: Address;
+    getWallet(address: string): Wallet;
+    getDapp(): Address;
+    tokenId: bigint;
+    amount: bigint;
+}
 
-        const collection = wallet.erc1155.get(address as Address);
+export class ERC1155Single implements DepositOperation {
+    balanceOf({ address, tokenId, getWallet, owner }: BalanceOf): bigint {
+        const wallet = getWallet(owner);
+        address = getAddress(address);
+
+        const collection = wallet.erc1155[address];
         const balance = collection?.get(tokenId) ?? 0n;
 
         return balance;
@@ -42,26 +56,8 @@ export class ERC1155Single implements TokenOperation {
         tokenId,
         amount,
         setWallet,
-    }: TokenContext): void {
-        if (
-            !token ||
-            !from ||
-            !to ||
-            !tokenId ||
-            !getWallet ||
-            !amount ||
-            !setWallet
-        ) {
-            throw new MissingContextArgumentError<TokenContext>({
-                token,
-                from,
-                to,
-                tokenId,
-                getWallet,
-                amount,
-                setWallet,
-            });
-        }
+    }: Transfer): void {
+        token = getAddress(token);
 
         if (isAddress(from)) {
             from = getAddress(from);
@@ -74,39 +70,35 @@ export class ERC1155Single implements TokenOperation {
         const walletFrom = getWallet(from);
         const walletTo = getWallet(to);
 
-        let nfts = walletFrom.erc1155.get(token);
+        let nfts = walletFrom.erc1155[token];
         if (!nfts) {
             nfts = new Map();
-            walletFrom.erc1155.set(token, nfts);
+            walletFrom.erc1155[token] = nfts;
         }
 
         // check balance
         const balance = nfts.get(tokenId) ?? 0n;
 
         if (amount < 0n) {
-            throw new Error(`negative value for tokenId ${tokenId}: ${amount}`);
+            throw new NegativeTokenIdError(tokenId, amount);
         }
         if (balance < amount) {
-            throw new Error(
-                `insufficient balance of user ${from} of token ${tokenId}: ${amount.toString()} > ${
-                    balance.toString() ?? "0"
-                }`,
-            );
+            throw new InsufficientBalanceError(from, token, amount, tokenId);
         }
 
         nfts.set(tokenId, balance - amount);
 
-        let nftsTo = walletTo.erc1155.get(token);
+        let nftsTo = walletTo.erc1155[token];
         if (!nftsTo) {
             nftsTo = new Map();
-            walletTo.erc1155.set(token, nftsTo);
+            walletTo.erc1155[token] = nftsTo;
         }
 
         const item = nftsTo.get(tokenId) ?? 0n;
         nftsTo.set(tokenId, item + amount);
 
-        setWallet(from as Address, walletFrom);
-        setWallet(to as Address, walletTo);
+        setWallet(from, walletFrom);
+        setWallet(to, walletTo);
     }
     withdraw({
         getWallet,
@@ -115,48 +107,26 @@ export class ERC1155Single implements TokenOperation {
         token,
         address,
         getDapp,
-    }: TokenContext): Voucher {
-        if (
-            !tokenId ||
-            !amount ||
-            !token ||
-            !address ||
-            !getWallet ||
-            !getDapp
-        ) {
-            throw new MissingContextArgumentError<TokenContext>({
-                tokenId,
-                amount,
-                token,
-                address,
-                getWallet,
-                getDapp,
-            });
-        }
-
+    }: Withdraw): Voucher {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
 
         const wallet = getWallet(address);
-        let nfts = wallet.erc1155.get(token);
+        let nfts = wallet.erc1155[token];
 
         if (!nfts) {
             nfts = new Map();
-            wallet.erc1155.set(token, nfts);
+            wallet.erc1155[token] = nfts;
         }
 
         // check balance
         if (amount < 0n) {
-            throw new Error(`negative value for tokenId ${tokenId}: ${amount}`);
+            throw new NegativeTokenIdError(tokenId, amount);
         }
         const balance = nfts.get(tokenId) ?? 0n;
         if (balance < amount) {
-            throw new Error(
-                `insufficient balance of user ${address} of token ${token} of tokenId ${tokenId}: ${amount.toString()} > ${
-                    balance.toString() ?? "0"
-                }`,
-            );
+            throw new InsufficientBalanceError(address, token, amount, tokenId);
         }
 
         nfts.set(tokenId, balance - amount);
@@ -166,7 +136,7 @@ export class ERC1155Single implements TokenOperation {
         const call = encodeFunctionData({
             abi: erc1155Abi,
             functionName: "safeTransferFrom",
-            args: [dappAddress, address as Address, tokenId, amount, "0x"],
+            args: [dappAddress, address, tokenId, amount, "0x"],
         });
 
         return {
@@ -178,25 +148,15 @@ export class ERC1155Single implements TokenOperation {
         payload,
         setWallet,
         getWallet,
-    }: TokenContext): Promise<void> {
-        console.log("ERC-1155 single");
-
-        if (!payload || !isHex(payload) || !getWallet || !setWallet) {
-            throw new MissingContextArgumentError<TokenContext>({
-                payload,
-                getWallet,
-                setWallet,
-            });
-        }
-
+    }: DepositArgs): Promise<void> {
         const { tokenId, sender, token, value } =
             parseERC1155SingleDeposit(payload);
 
         const wallet = getWallet(sender);
-        let collection = wallet.erc1155.get(token);
+        let collection = wallet.erc1155[token];
         if (!collection) {
             collection = new Map();
-            wallet.erc1155.set(token, collection);
+            wallet.erc1155[token] = collection;
         }
         const tokenBalance = collection.get(tokenId) ?? 0n;
         collection.set(tokenId, tokenBalance + value);
@@ -206,3 +166,5 @@ export class ERC1155Single implements TokenOperation {
         return msgSender === erc1155SinglePortalAddress;
     }
 }
+
+export const erc1155Single = new ERC1155Single();

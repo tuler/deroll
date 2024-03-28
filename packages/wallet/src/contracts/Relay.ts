@@ -1,25 +1,18 @@
-import { MissingContextArgumentError } from "../errors";
 import {
     getAddress,
     type Address
 } from "viem";
 import { dAppAddressRelayAddress } from "../rollups";
-import { TokenOperation, TokenContext } from "../token";
+import { DepositArgs, DepositOperation } from "../token";
 
-export class Relay implements TokenOperation {
+export class Relay implements DepositOperation {
     isDeposit(msgSender: Address): boolean {
         return msgSender === dAppAddressRelayAddress;
     }
-    async deposit({ payload, setDapp }: TokenContext): Promise<void> {
-        console.log("dAppAddressRelayAddress");
-
-        if (!payload || !setDapp)
-            throw new MissingContextArgumentError<TokenContext>({
-                setDapp,
-                payload,
-            });
-        console.log("dAppAddressRelayAddress");
+    async deposit({ payload, setDapp }: DepositArgs): Promise<void> {
         const dapp = getAddress(payload);
         setDapp(dapp);
     }
 }
+
+export const relay = new Relay();

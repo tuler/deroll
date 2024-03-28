@@ -1,6 +1,5 @@
 import { AdvanceRequestData, RequestMetadata } from "@deroll/app";
 import { isAddress, isHex } from "viem";
-import { MissingContextArgumentError } from "./errors";
 
 // Utils
 const haveKeys = <T extends object>(
@@ -29,17 +28,4 @@ export const isValidAdvanceRequestData = (
         checkMetadata(data.metadata) &&
         isHex(data.payload, { strict: true })
     );
-};
-
-export const checkFieldsOrThrow = <T extends object>(
-    obj: Partial<T>,
-): obj is Required<typeof obj> => {
-    const keys = Object.entries(obj);
-    const undKeys = keys.filter(([, value]) => value !== undefined);
-
-    if (undKeys.length > 0) {
-        throw new MissingContextArgumentError(Object.fromEntries(undKeys));
-    }
-
-    return true;
 };

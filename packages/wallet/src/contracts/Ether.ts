@@ -1,4 +1,3 @@
-import { MissingContextArgumentError } from "../errors";
 import {
     getAddress,
     type Address,
@@ -6,92 +5,72 @@ import {
     isAddress,
     encodeFunctionData,
 } from "viem";
-import { cartesiDAppAbi, etherPortalAddress } from "../rollups";
 import type { Voucher } from "@deroll/app";
+import { cartesiDAppAbi, etherPortalAddress } from "../rollups";
 import { parseEtherDeposit } from "..";
-import { TokenOperation, TokenContext } from "../token";
+import { DepositArgs, DepositOperation } from "../token";
+import { Wallet } from "../wallet";
+import { InsufficientBalanceError, WalletUndefinedError } from "../errors";
 
-export class Ether implements TokenOperation {
-    balanceOf<T extends bigint | bigint[]>({
-        tokenOrAddress,
-        getWallet,
-    }: TokenContext): T {
-        if (!tokenOrAddress || !getWallet)
-            throw new MissingContextArgumentError<TokenContext>({
-                tokenOrAddress,
-                getWallet,
-            });
+interface BalanceOf {
+    address: string;
+    getWallet(address: string): Wallet;
+}
 
-        if (isAddress(tokenOrAddress)) {
-            tokenOrAddress = getAddress(tokenOrAddress);
+interface Transfer {
+    from: string;
+    to: string;
+    amount: bigint;
+    getWallet(address: string): Wallet;
+    setWallet(address: string, wallet: Wallet): void;
+}
+
+interface Withdraw {
+    address: Address;
+    amount: bigint;
+    getWallet(address: string): Wallet;
+    getDapp(): Address;
+}
+
+export class Ether implements DepositOperation {
+    balanceOf({ address, getWallet }: BalanceOf): bigint {
+        if (isAddress(address)) {
+            address = getAddress(address);
         }
 
-        const wallet = getWallet(tokenOrAddress as Address);
+        const wallet = getWallet(address);
 
         // ether balance
-        return (wallet?.ether ?? 0n) as T;
+        return wallet?.ether ?? 0n;
     }
-    transfer({ getWallet, from, to, amount, setWallet }: TokenContext): void {
-        if (!from || !to || !amount || !getWallet || !setWallet) {
-            throw new MissingContextArgumentError<TokenContext>({
-                from,
-                to,
-                amount,
-                getWallet,
-                setWallet,
-            });
-        }
-
+    transfer({ getWallet, from, to, amount, setWallet }: Transfer): void {
         const walletFrom = getWallet(from);
         const walletTo = getWallet(to);
 
         if (walletFrom.ether < amount) {
-            throw new Error(`insufficient balance of user ${from}`);
+            throw new InsufficientBalanceError(from, "ether", amount);
         }
 
         walletFrom.ether = walletFrom.ether - amount;
         walletTo.ether = walletTo.ether + amount;
-        setWallet(from as Address, walletFrom);
-        setWallet(to as Address, walletTo);
+        setWallet(from, walletFrom);
+        setWallet(to, walletTo);
     }
-    withdraw({
-        address,
-        setWallet,
-        getWallet,
-        amount,
-        getDapp,
-    }: TokenContext): Voucher {
-        if (!address || !setWallet || !getWallet || !amount || !getDapp) {
-            throw new MissingContextArgumentError<TokenContext>({
-                address,
-                setWallet,
-                getWallet,
-                amount,
-                getDapp,
-            });
-        }
-
+    withdraw({ address, getWallet, amount, getDapp }: Withdraw): Voucher {
         // normalize address
         address = getAddress(address);
 
         const wallet = getWallet(address);
 
         if (!wallet) {
-            throw new Error(`wallet of user ${address} is undefined`);
+            throw new WalletUndefinedError(address);
         }
 
         const dapp = getDapp();
 
-        // check if dapp address is defined
-        if (!dapp) {
-            throw new Error(`undefined application address`);
-        }
-
         // check balance
         if (wallet.ether < amount) {
-            throw new Error(
-                `insufficient balance of user ${address}: ${amount.toString()} > ${wallet.ether.toString()}`,
-            );
+            throw new InsufficientBalanceError(address, "ether", amount);
         }
 
         // reduce balance right away
@@ -101,7 +80,7 @@ export class Ether implements TokenOperation {
         const call = encodeFunctionData({
             abi: cartesiDAppAbi,
             functionName: "withdrawEther",
-            args: [address as Address, amount],
+            args: [address, amount],
         });
         return {
             destination: dapp, // dapp Address
@@ -115,21 +94,12 @@ export class Ether implements TokenOperation {
         payload,
         setWallet,
         getWallet,
-    }: TokenContext): Promise<void> {
-        console.log("Ether data");
-
-        if (!payload || !isHex(payload) || !getWallet || !setWallet) {
-            throw new MissingContextArgumentError<TokenContext>({
-                payload,
-                getWallet,
-                setWallet,
-            });
-        }
-
-        console.log("etherPortalAddress");
+    }: DepositArgs): Promise<void> {
         const { sender, value } = parseEtherDeposit(payload);
         const wallet = getWallet(sender);
         wallet.ether += value;
         setWallet(sender, wallet);
     }
 }
+
+export const ether = new Ether();

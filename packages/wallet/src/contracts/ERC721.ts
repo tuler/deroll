@@ -1,4 +1,3 @@
-import { MissingContextArgumentError } from "../errors";
 import {
     type Address,
     isHex,
@@ -7,27 +6,49 @@ import {
     encodeFunctionData,
     erc721Abi,
 } from "viem";
+import type { Voucher } from "@deroll/app";
 import { erc721PortalAddress } from "../rollups";
 import { parseERC721Deposit } from "..";
-import { TokenOperation, TokenContext } from "../token";
-import type { Voucher } from "@deroll/app";
+import { DepositArgs, DepositOperation } from "../token";
+import { Wallet } from "../wallet";
+import {
+    TokenFromUserNotFound,
+    InsufficientBalanceError,
+    WalletUndefinedError,
+} from "../errors";
 
-export class ERC721 implements TokenOperation {
-    balanceOf({ owner, getWallet, address }: TokenContext): bigint {
-        if (!getWallet || !owner || !address) {
-            throw new MissingContextArgumentError<TokenContext>({
-                getWallet,
-                owner,
-                address,
-            });
-        }
+interface BalanceOf {
+    owner: Address;
+    getWallet(address: string): Wallet;
+    address: string;
+}
 
+interface Transfer {
+    from: Address;
+    to: Address;
+    getWallet(address: string): Wallet;
+    setWallet(address: string, wallet: Wallet): void;
+    token: Address;
+    tokenId: bigint;
+}
+
+interface Withdraw {
+    token: Address;
+    address: Address;
+    getWallet(address: string): Wallet;
+    setWallet(address: string, wallet: Wallet): void;
+    tokenId: bigint;
+    getDapp(): Address;
+}
+
+export class ERC721 implements DepositOperation {
+    balanceOf({ owner, getWallet, address }: BalanceOf): bigint {
         const ownerAddress = getAddress(owner);
         const wallet = getWallet(ownerAddress);
         if (isAddress(address)) {
             address = getAddress(address);
         }
-        const size = wallet.erc721.get(address as Address)?.size ?? 0n;
+        const size = wallet.erc721[address]?.size ?? 0n;
         return BigInt(size);
     }
     transfer({
@@ -37,14 +58,8 @@ export class ERC721 implements TokenOperation {
         setWallet,
         token,
         tokenId,
-    }: TokenContext): void {
-        if (!from || !to || !getWallet || !setWallet || !token || !tokenId) {
-            throw new MissingContextArgumentError<TokenContext>({
-                from,
-                to,
-                getWallet,
-            });
-        }
+    }: Transfer): void {
+        token = getAddress(token);
 
         // normalize addresses
         if (isAddress(from)) {
@@ -57,76 +72,46 @@ export class ERC721 implements TokenOperation {
         const walletFrom = getWallet(from);
         const walletTo = getWallet(to);
 
-        const balance = walletFrom.erc721.get(token);
+        const balance = walletFrom.erc721[token];
 
         if (!balance) {
-            throw new Error(
-                `insufficient balance of user ${from} of token ${token}`,
-            );
+            throw new InsufficientBalanceError(from, token, tokenId);
         }
 
         if (!balance.has(tokenId)) {
-            throw new Error(
-                `user ${from} does not have token ${tokenId} of token ${token}`,
-            );
+            throw new TokenFromUserNotFound(from, token, tokenId);
         }
 
-        let balanceTo = walletTo.erc721.get(token);
+        let balanceTo = walletTo.erc721[token];
         if (!balanceTo) {
             balanceTo = new Set();
-            walletTo.erc721.set(token, balanceTo);
+            walletTo.erc721[token] = balanceTo;
         }
         balanceTo.add(tokenId);
         balance.delete(tokenId);
 
-        setWallet(from as Address, walletFrom);
-        setWallet(to as Address, walletTo);
+        setWallet(from, walletFrom);
+        setWallet(to, walletTo);
     }
     withdraw({
         token,
         address,
         getWallet,
-        setWallet,
         tokenId,
         getDapp,
-    }: TokenContext): Voucher {
-        if (
-            !token ||
-            !address ||
-            !getWallet ||
-            !setWallet ||
-            !tokenId ||
-            !getDapp
-        ) {
-            throw new MissingContextArgumentError<TokenContext>({
-                token,
-                address,
-                getWallet,
-                setWallet,
-                tokenId,
-                getDapp,
-            });
-        }
-
+    }: Withdraw): Voucher {
         token = getAddress(token);
         address = getAddress(address);
 
         const wallet = getWallet(address);
 
         if (!wallet) {
-            throw new Error(`wallet of user ${address} is undefined`);
+            throw new WalletUndefinedError(address);
         }
 
-        const collection = wallet?.erc721.get(token);
-        if (!collection) {
-            throw new Error(
-                `insufficient balance of user ${address} of token ${token}`,
-            );
-        }
+        const collection = wallet.erc721[token];
         if (!collection.has(tokenId)) {
-            throw new Error(
-                `insufficient balance of user ${address} of token ${token} id ${tokenId}`,
-            );
+            throw new InsufficientBalanceError(address, token, 1n, tokenId);
         }
         const dappAddress = getDapp();
 
@@ -134,7 +119,7 @@ export class ERC721 implements TokenOperation {
         const call = encodeFunctionData({
             abi: erc721Abi,
             functionName: "safeTransferFrom",
-            args: [dappAddress, address as Address, tokenId],
+            args: [dappAddress, address, tokenId],
         });
         return {
             destination: token,
@@ -145,27 +130,17 @@ export class ERC721 implements TokenOperation {
         payload,
         setWallet,
         getWallet,
-    }: TokenContext): Promise<void> {
-        console.log("ERC-721 data");
-
-        if (!payload || !isHex(payload) || !setWallet || !getWallet) {
-            throw new MissingContextArgumentError<TokenContext>({
-                payload,
-                setWallet,
-                getWallet,
-            });
-        }
-
+    }: DepositArgs): Promise<void> {
         const { token, sender, tokenId } = parseERC721Deposit(payload);
 
         const wallet = getWallet(sender);
 
-        const collection = wallet.erc721.get(token);
+        const collection = wallet.erc721[token];
         if (collection) {
             collection.add(tokenId);
         } else {
             const collection = new Set([tokenId]);
-            wallet.erc721.set(token, collection);
+            wallet.erc721[token] = collection;
         }
         setWallet(sender, wallet);
     }
@@ -173,3 +148,5 @@ export class ERC721 implements TokenOperation {
         return msgSender === erc721PortalAddress;
     }
 }
+
+export const erc721 = new ERC721();

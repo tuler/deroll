@@ -13,7 +13,7 @@ router.add<{ address: string }>(
     "wallet/:address",
     ({ params: { address } }) => {
         return JSON.stringify({
-            balance: wallet.balanceOf(address),
+            balance: wallet.balanceOfEther(address),
         });
     },
 );

@@ -1,3 +1,4 @@
+import { getRandomValues } from "node:crypto";
 import { beforeEach, describe, expect, test } from "vitest";
 import {
     Address,
@@ -35,7 +36,6 @@ import {
     dAppAddressRelayAddress,
     cartesiDAppAbi,
 } from "../src/rollups";
-import { getRandomValues } from "node:crypto";
 
 function generateAddress(): Address {
     const address = new Uint8Array(20);
@@ -296,7 +296,7 @@ describe("Wallet", () => {
             };
             const response = await wallet.handler({ metadata, payload });
             expect(response).toEqual("accept");
-            expect(wallet.balanceOf(sender)).toEqual(value);
+            expect(wallet.balanceOfEther(sender)).toEqual(value);
         });
 
         test("deposit ETH non normalized address", async () => {
@@ -316,7 +316,7 @@ describe("Wallet", () => {
             };
             const response = await wallet.handler({ metadata, payload });
             expect(response).toEqual("accept");
-            expect(wallet.balanceOf(sender.toLowerCase())).toEqual(value);
+            expect(wallet.balanceOfEther(sender.toLowerCase())).toEqual(value);
         });
 
         test("deposit ERC20", async () => {
@@ -339,7 +339,7 @@ describe("Wallet", () => {
 
             const response = await wallet.handler({ metadata, payload });
             expect(response).toEqual("accept");
-            expect(wallet.balanceOf(token, sender)).toEqual(amount);
+            expect(wallet.balanceOfERC20(token, sender)).toEqual(amount);
         });
 
         test("deposit ERC721", async () => {
@@ -427,15 +427,14 @@ describe("Wallet", () => {
             const from = generateAddress();
             const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
             const amount = 1n;
-            const call = wallet.transferEther.bind(
-                wallet,
+            const call = () => wallet.transferEther(
                 from,
                 sender,
                 amount,
             );
 
             expect(call).toThrowError();
-            expect(wallet.balanceOf(sender)).toEqual(0n);
+            expect(wallet.balanceOfEther(sender)).toEqual(0n);
         });
 
         test("transfer ETH", async () => {
@@ -468,15 +467,14 @@ describe("Wallet", () => {
             const token = generateAddress();
             const amount = 123456n;
 
-            const call = wallet.transferERC20.bind(
-                wallet,
+            const call = () => wallet.transferERC20(
                 token,
                 from,
                 to,
                 amount,
             );
             expect(call).toThrowError();
-            expect(wallet.balanceOf(token, to)).toEqual(0n);
+            expect(wallet.balanceOfERC20(token, to)).toEqual(0n);
         });
 
         test("transfer ERC20", async () => {
@@ -504,15 +502,15 @@ describe("Wallet", () => {
 
             const handler = () => wallet.handler({ metadata, payload });
             expect(handler()).resolves.toEqual("accept");
-            expect(wallet.balanceOf(token, from)).toEqual(amount);
+            expect(wallet.balanceOfERC20(token, from)).toEqual(amount);
 
             /**
              * Transfer
              */
             const call = () => wallet.transferERC20(token, from, to, amount);
             expect(call).not.toThrowError();
-            expect(wallet.balanceOf(token, from)).toEqual(0n);
-            expect(wallet.balanceOf(token, to)).toEqual(amount);
+            expect(wallet.balanceOfERC20(token, from)).toEqual(0n);
+            expect(wallet.balanceOfERC20(token, to)).toEqual(amount);
         });
 
         test("transfer ERC721 without balance", async () => {
@@ -527,8 +525,8 @@ describe("Wallet", () => {
              */
             const call = () => wallet.transferERC721(token, from, to, tokenId);
             expect(call).toThrowError();
-            expect(wallet.balanceOf(token, from)).toEqual(0n);
-            expect(wallet.balanceOf(token, to)).toEqual(0n);
+            expect(wallet.balanceOfERC20(token, from)).toEqual(0n);
+            expect(wallet.balanceOfERC20(token, to)).toEqual(0n);
         });
 
         test("transfer ERC721", async () => {
@@ -558,6 +556,10 @@ describe("Wallet", () => {
             expect(wallet.balanceOfERC721(token, from)).toEqual(1n);
             expect(wallet.balanceOfERC721(token, to)).toEqual(0n);
         });
+
+        test.todo("transfer ERC1155Batch with token not found", () => {});
+        test.todo("transfer ERC1155Batch with values negative", () => {});
+
         test("transfer ERC1155 without balance", () => {
             const token = "0xc961145a54C96E3aE9bAA048c4F4D6b04C13916b";
             const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
@@ -648,7 +650,7 @@ describe("Wallet", () => {
 
             const handler = () => wallet.handler({ metadata, payload });
             expect(handler()).resolves.toEqual("accept");
-            expect(wallet.balanceOf(address)).toEqual(amount);
+            expect(wallet.balanceOfEther(address)).toEqual(amount);
 
             // Withdraw
             const call = wallet.withdrawEther(address, amount);
@@ -676,7 +678,7 @@ describe("Wallet", () => {
 
             const handler = () => wallet.handler({ metadata, payload });
             expect(handler()).resolves.toEqual("accept");
-            expect(wallet.balanceOf(address)).toEqual(amount);
+            expect(wallet.balanceOfEther(address)).toEqual(amount);
 
             // Relay
             const relay = {
@@ -724,7 +726,7 @@ describe("Wallet", () => {
 
             const handler = () => wallet.handler({ metadata, payload });
             expect(handler()).resolves.toEqual("accept");
-            expect(wallet.balanceOf(token, address)).toEqual(amount);
+            expect(wallet.balanceOfERC20(token, address)).toEqual(amount);
 
             // Withdraw
             const call = encodeFunctionData({

@@ -1,22 +1,23 @@
 import { AdvanceRequestData, Payload } from "@deroll/app";
 import {
     Address,
+    decodeAbiParameters,
     getAddress,
     hexToBigInt,
     hexToBool,
     parseAbi,
+    parseAbiParameters,
     slice,
 } from "viem";
 
-import { WalletApp, WalletAppImpl } from "./wallet";
 import {
-    erc20PortalAddress,
-    etherPortalAddress,
-    erc721PortalAddress,
-    erc1155SinglePortalAddress,
     erc1155BatchPortalAddress,
+    erc1155SinglePortalAddress,
+    erc20PortalAddress,
+    erc721PortalAddress,
+    etherPortalAddress,
 } from "./rollups";
-import { decodeAbiParameters, parseAbiParameters } from "viem";
+import { WalletApp, WalletAppImpl } from "./wallet";
 export type { WalletApp } from "./wallet";
 
 // wallet ABI
@@ -88,7 +89,7 @@ export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
 };
 
 /**
- * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.2.0#input-encodings-for-deposits
  * @param payload input payload
  * @returns
  */
@@ -109,7 +110,7 @@ export const parseERC721Deposit = (payload: Payload): ERC721Deposit => {
 };
 
 /**
- * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.2.0#input-encodings-for-deposits
  * @param payload input payload
  * @returns
  */
@@ -134,7 +135,7 @@ export const parseERC1155SingleDeposit = (
 };
 
 /**
- * Decode input according to https://github.com/cartesi/rollups/tree/v1.0.0#input-encodings-for-deposits
+ * Decode input according to https://github.com/cartesi/rollups/tree/v1.2.0#input-encodings-for-deposits
  * @param payload input payload
  * @returns
  */
