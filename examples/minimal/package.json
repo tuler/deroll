@@ -11,16 +11,16 @@
     },
     "dependencies": {
         "@deroll/app": "workspace:*",
-        "abitype": "^1",
-        "viem": "^2"
+        "abitype": "^1.0.2",
+        "viem": "^2.9.6"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^20",
-        "eslint": "^8",
+        "@types/node": "^20.12.2",
+        "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
-        "tsup": "^7",
-        "typescript": "^5",
-        "vitest": "^1"
+        "tsup": "^8.0.2",
+        "typescript": "^5.4.3",
+        "vitest": "^1.4.0"
     }
 }

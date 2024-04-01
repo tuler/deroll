@@ -20,19 +20,19 @@
         "test": "vitest"
     },
     "dependencies": {
-        "openapi-fetch": "^0.8",
-        "viem": "^2"
+        "openapi-fetch": "^0.9.3",
+        "viem": "^2.9.6"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "eslint": "^8",
+        "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
-        "openapi-typescript": "^6",
-        "ts-node": "^10",
-        "tsup": "^7",
-        "typescript": "^5",
-        "vitest": "^1"
+        "openapi-typescript": "^6.7.5",
+        "ts-node": "^10.9.2",
+        "tsup": "^8.0.2",
+        "typescript": "^5.4.3",
+        "vitest": "^1.4.0"
     },
     "publishConfig": {
         "access": "public"
