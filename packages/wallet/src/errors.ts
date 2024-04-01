@@ -9,7 +9,7 @@ export class InvalidPayloadError extends Error {
 export class RelayError extends Error {
     constructor() {
         super(
-            `You need to call the method relayDAppAddress from DAppAddressRelay__factory.`,
+            `application has not received its address from DAppAddressRelay`,
         );
     }
 }
