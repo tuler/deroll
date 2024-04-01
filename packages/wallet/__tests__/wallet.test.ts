@@ -45,7 +45,7 @@ function generateAddress(): Address {
 }
 
 describe("Wallet", () => {
-    beforeEach(() => {});
+    beforeEach(() => { });
 
     describe("should be able to check if is deposit", () => {
         test("isEtherDeposit", () => {
@@ -364,6 +364,7 @@ describe("Wallet", () => {
             const response = await wallet.handler({ metadata, payload });
             expect(response).toEqual("accept");
             expect(wallet.balanceOfERC721(token, sender)).toEqual(1n);
+            expect(wallet.getWalletOrNew(sender).erc721[token].has(tokenId)).toBeTruthy()
         });
 
         test("deposit ERC1155", async () => {
@@ -557,8 +558,8 @@ describe("Wallet", () => {
             expect(wallet.balanceOfERC721(token, to)).toEqual(0n);
         });
 
-        test.todo("transfer ERC1155Batch with token not found", () => {});
-        test.todo("transfer ERC1155Batch with values negative", () => {});
+        test.todo("transfer ERC1155Batch with token not found", () => { });
+        test.todo("transfer ERC1155Batch with values negative", () => { });
 
         test("transfer ERC1155 without balance", () => {
             const token = "0xc961145a54C96E3aE9bAA048c4F4D6b04C13916b";
@@ -989,23 +990,23 @@ describe("Wallet", () => {
 
     describe("Wallet with Route", () => {
         describe("should be able to deposit", () => {
-            test.todo("depositEtherRoute reject", () => {});
+            test.todo("depositEtherRoute reject", () => { });
 
-            test.todo("depositEtherRoute", () => {});
+            test.todo("depositEtherRoute", () => { });
 
-            test.todo("depositERC20Route reject", () => {});
+            test.todo("depositERC20Route reject", () => { });
 
-            test.todo("depositERC20Route", () => {});
+            test.todo("depositERC20Route", () => { });
         });
 
         describe("should be able to withdraw", () => {
-            test.todo("withdrawEtherRoute reject no balance", async () => {});
+            test.todo("withdrawEtherRoute reject no balance", async () => { });
 
-            test.todo("withdrawEtherRoute", async () => {});
+            test.todo("withdrawEtherRoute", async () => { });
 
-            test.todo("withdrawERC20Route reject no balance", async () => {});
+            test.todo("withdrawERC20Route reject no balance", async () => { });
 
-            test.todo("withdrawERC20Route", async () => {});
+            test.todo("withdrawERC20Route", async () => { });
         });
     });
 });

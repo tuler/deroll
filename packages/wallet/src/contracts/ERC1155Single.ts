@@ -1,29 +1,25 @@
 import {
     type Address,
-    isHex,
     getAddress,
     isAddress,
     encodeFunctionData,
 } from "viem";
-import type { Voucher } from "@deroll/app";
-import { erc1155Abi, erc1155SinglePortalAddress } from "../rollups";
+import type { AdvanceRequestHandler, Voucher } from "@deroll/app";
+import { erc1155Abi } from "../rollups";
 import { parseERC1155SingleDeposit } from "..";
-import { DepositArgs, DepositOperation } from "../token";
-import type { Wallet } from "../wallet";
-import { InsufficientBalanceError, NegativeTokenIdError } from "../errors";
+import { CanHandler } from "../types";
+import type { Wallet, WalletApp } from "../wallet";
+import { InsufficientBalanceError, NegativeAmountError } from "../errors";
 
 interface BalanceOf {
     address: Address;
     tokenId: bigint;
     owner: string;
-    getWallet(address: string): Wallet;
 }
 
 interface Transfer {
-    from: Address;
-    to: Address;
-    getWallet(address: string): Wallet;
-    setWallet(address: string, wallet: Wallet): void;
+    from: string;
+    to: string;
     token: Address;
     tokenId: bigint;
     amount: bigint;
@@ -32,15 +28,15 @@ interface Transfer {
 interface Withdraw {
     token: Address;
     address: Address;
-    getWallet(address: string): Wallet;
-    getDapp(): Address;
     tokenId: bigint;
     amount: bigint;
 }
 
-export class ERC1155Single implements DepositOperation {
-    balanceOf({ address, tokenId, getWallet, owner }: BalanceOf): bigint {
-        const wallet = getWallet(owner);
+export class ERC1155Single implements CanHandler {
+    constructor(private wallet: WalletApp) { };
+
+    balanceOf({ address, tokenId, owner }: BalanceOf): bigint {
+        const wallet = this.wallet.getWalletOrNew(owner);
         address = getAddress(address);
 
         const collection = wallet.erc1155[address];
@@ -51,11 +47,9 @@ export class ERC1155Single implements DepositOperation {
     transfer({
         from,
         to,
-        getWallet,
         token,
         tokenId,
         amount,
-        setWallet,
     }: Transfer): void {
         token = getAddress(token);
 
@@ -67,8 +61,8 @@ export class ERC1155Single implements DepositOperation {
             to = getAddress(to);
         }
 
-        const walletFrom = getWallet(from);
-        const walletTo = getWallet(to);
+        const walletFrom = this.wallet.getWalletOrNew(from);
+        const walletTo = this.wallet.getWalletOrNew(to);
 
         let nfts = walletFrom.erc1155[token];
         if (!nfts) {
@@ -80,10 +74,10 @@ export class ERC1155Single implements DepositOperation {
         const balance = nfts.get(tokenId) ?? 0n;
 
         if (amount < 0n) {
-            throw new NegativeTokenIdError(tokenId, amount);
+            throw new NegativeAmountError(amount);
         }
         if (balance < amount) {
-            throw new InsufficientBalanceError(from, token, amount, tokenId);
+            throw new InsufficientBalanceError(from, token, tokenId);
         }
 
         nfts.set(tokenId, balance - amount);
@@ -97,22 +91,20 @@ export class ERC1155Single implements DepositOperation {
         const item = nftsTo.get(tokenId) ?? 0n;
         nftsTo.set(tokenId, item + amount);
 
-        setWallet(from, walletFrom);
-        setWallet(to, walletTo);
+        this.wallet.setWallet(from, walletFrom);
+        this.wallet.setWallet(to, walletTo);
     }
     withdraw({
-        getWallet,
         tokenId,
         amount,
         token,
         address,
-        getDapp,
     }: Withdraw): Voucher {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
 
-        const wallet = getWallet(address);
+        const wallet = this.wallet.getWalletOrNew(address);
         let nfts = wallet.erc1155[token];
 
         if (!nfts) {
@@ -121,17 +113,17 @@ export class ERC1155Single implements DepositOperation {
         }
 
         // check balance
-        if (amount < 0n) {
-            throw new NegativeTokenIdError(tokenId, amount);
-        }
         const balance = nfts.get(tokenId) ?? 0n;
+        if (amount < 0n) {
+            throw new NegativeAmountError(amount);
+        }
         if (balance < amount) {
-            throw new InsufficientBalanceError(address, token, amount, tokenId);
+            throw new InsufficientBalanceError(address, token, tokenId);
         }
 
         nfts.set(tokenId, balance - amount);
 
-        const dappAddress = getDapp();
+        const dappAddress = this.wallet.getDappAddressOrThrow();
 
         const call = encodeFunctionData({
             abi: erc1155Abi,
@@ -144,15 +136,12 @@ export class ERC1155Single implements DepositOperation {
             payload: call,
         };
     }
-    async deposit({
-        payload,
-        setWallet,
-        getWallet,
-    }: DepositArgs): Promise<void> {
+
+    handler: AdvanceRequestHandler = async ({ payload }) => {
         const { tokenId, sender, token, value } =
             parseERC1155SingleDeposit(payload);
 
-        const wallet = getWallet(sender);
+        const wallet = this.wallet.getWalletOrNew(sender);
         let collection = wallet.erc1155[token];
         if (!collection) {
             collection = new Map();
@@ -160,11 +149,8 @@ export class ERC1155Single implements DepositOperation {
         }
         const tokenBalance = collection.get(tokenId) ?? 0n;
         collection.set(tokenId, tokenBalance + value);
-        setWallet(sender, wallet);
-    }
-    isDeposit(msgSender: Address): boolean {
-        return msgSender === erc1155SinglePortalAddress;
+        this.wallet.setWallet(sender, wallet);
+
+        return "accept"
     }
 }
-
-export const erc1155Single = new ERC1155Single();

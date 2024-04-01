@@ -1,74 +1,67 @@
-import {
-    getAddress,
-    type Address,
-    isHex,
-    isAddress,
-    encodeFunctionData,
-} from "viem";
-import type { Voucher } from "@deroll/app";
-import { cartesiDAppAbi, etherPortalAddress } from "../rollups";
+import { getAddress, type Address, isAddress, encodeFunctionData } from "viem";
+import type { AdvanceRequestHandler, Voucher } from "@deroll/app";
+import { cartesiDAppAbi } from "../rollups";
 import { parseEtherDeposit } from "..";
-import { DepositArgs, DepositOperation } from "../token";
-import { Wallet } from "../wallet";
-import { InsufficientBalanceError, WalletUndefinedError } from "../errors";
+import { CanHandler } from "../types";
+import { Wallet, type WalletApp } from "../wallet";
+import { InsufficientBalanceError, NegativeAmountError } from "../errors";
 
 interface BalanceOf {
     address: string;
-    getWallet(address: string): Wallet;
 }
 
 interface Transfer {
     from: string;
     to: string;
     amount: bigint;
-    getWallet(address: string): Wallet;
-    setWallet(address: string, wallet: Wallet): void;
 }
 
 interface Withdraw {
     address: Address;
     amount: bigint;
-    getWallet(address: string): Wallet;
-    getDapp(): Address;
 }
 
-export class Ether implements DepositOperation {
-    balanceOf({ address, getWallet }: BalanceOf): bigint {
+export class Ether implements CanHandler {
+    constructor(private wallet: WalletApp) { };
+
+    balanceOf({ address }: BalanceOf): bigint {
         if (isAddress(address)) {
             address = getAddress(address);
         }
 
-        const wallet = getWallet(address);
+        const wallet = this.wallet.getWalletOrNew(address);
 
         // ether balance
         return wallet?.ether ?? 0n;
     }
-    transfer({ getWallet, from, to, amount, setWallet }: Transfer): void {
-        const walletFrom = getWallet(from);
-        const walletTo = getWallet(to);
+    transfer({ from, to, amount }: Transfer): void {
+        const walletFrom = this.wallet.getWalletOrNew(from);
+        const walletTo = this.wallet.getWalletOrNew(to);
 
+        if (amount < 0n) {
+            throw new NegativeAmountError(amount);
+        }
         if (walletFrom.ether < amount) {
             throw new InsufficientBalanceError(from, "ether", amount);
         }
 
         walletFrom.ether = walletFrom.ether - amount;
         walletTo.ether = walletTo.ether + amount;
-        setWallet(from, walletFrom);
-        setWallet(to, walletTo);
+        this.wallet.setWallet(from, walletFrom);
+        this.wallet.setWallet(to, walletTo);
     }
-    withdraw({ address, getWallet, amount, getDapp }: Withdraw): Voucher {
+    withdraw({ address, amount }: Withdraw): Voucher {
         // normalize address
         address = getAddress(address);
 
-        const wallet = getWallet(address);
+        const wallet = this.wallet.getWalletOrNew(address);
 
-        if (!wallet) {
-            throw new WalletUndefinedError(address);
-        }
-
-        const dapp = getDapp();
+        const dapp = this.wallet.getDappAddressOrThrow();
 
         // check balance
+        if (amount < 0n) {
+            throw new NegativeAmountError(amount);
+        }
         if (wallet.ether < amount) {
             throw new InsufficientBalanceError(address, "ether", amount);
         }
@@ -87,19 +80,14 @@ export class Ether implements DepositOperation {
             payload: call,
         };
     }
-    isDeposit(msgSender: Address): boolean {
-        return msgSender === etherPortalAddress;
-    }
-    async deposit({
-        payload,
-        setWallet,
-        getWallet,
-    }: DepositArgs): Promise<void> {
+
+    handler: AdvanceRequestHandler = async ({ payload }) => {
         const { sender, value } = parseEtherDeposit(payload);
-        const wallet = getWallet(sender);
+        const wallet = this.wallet.getWalletOrNew(sender);
         wallet.ether += value;
-        setWallet(sender, wallet);
-    }
+        this.wallet.setWallet(sender, wallet);
+
+        return "accept";
+    };
 }
 
-export const ether = new Ether();

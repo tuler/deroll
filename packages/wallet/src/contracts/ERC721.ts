@@ -1,33 +1,26 @@
 import {
     type Address,
-    isHex,
     getAddress,
     isAddress,
     encodeFunctionData,
     erc721Abi,
 } from "viem";
-import type { Voucher } from "@deroll/app";
-import { erc721PortalAddress } from "../rollups";
+import type { AdvanceRequestHandler, Voucher } from "@deroll/app";
 import { parseERC721Deposit } from "..";
-import { DepositArgs, DepositOperation } from "../token";
-import { Wallet } from "../wallet";
+import { CanHandler } from "../types";
+import { Wallet, type WalletApp } from "../wallet";
 import {
-    TokenFromUserNotFound,
     InsufficientBalanceError,
-    WalletUndefinedError,
 } from "../errors";
 
 interface BalanceOf {
     owner: Address;
-    getWallet(address: string): Wallet;
     address: string;
 }
 
 interface Transfer {
-    from: Address;
-    to: Address;
-    getWallet(address: string): Wallet;
-    setWallet(address: string, wallet: Wallet): void;
+    from: string;
+    to: string;
     token: Address;
     tokenId: bigint;
 }
@@ -35,16 +28,15 @@ interface Transfer {
 interface Withdraw {
     token: Address;
     address: Address;
-    getWallet(address: string): Wallet;
-    setWallet(address: string, wallet: Wallet): void;
     tokenId: bigint;
-    getDapp(): Address;
 }
 
-export class ERC721 implements DepositOperation {
-    balanceOf({ owner, getWallet, address }: BalanceOf): bigint {
+export class ERC721 implements CanHandler {
+    constructor(private wallet: WalletApp) { };
+
+    balanceOf({ owner, address }: BalanceOf): bigint {
         const ownerAddress = getAddress(owner);
-        const wallet = getWallet(ownerAddress);
+        const wallet = this.wallet.getWalletOrNew(ownerAddress);
         if (isAddress(address)) {
             address = getAddress(address);
         }
@@ -54,8 +46,6 @@ export class ERC721 implements DepositOperation {
     transfer({
         from,
         to,
-        getWallet,
-        setWallet,
         token,
         tokenId,
     }: Transfer): void {
@@ -69,17 +59,13 @@ export class ERC721 implements DepositOperation {
             to = getAddress(to);
         }
 
-        const walletFrom = getWallet(from);
-        const walletTo = getWallet(to);
+        const walletFrom = this.wallet.getWalletOrNew(from);
+        const walletTo = this.wallet.getWalletOrNew(to);
 
-        const balance = walletFrom.erc721[token];
+        let wallet = walletFrom.erc721[token];
 
-        if (!balance) {
+        if (!wallet?.has(tokenId)) {
             throw new InsufficientBalanceError(from, token, tokenId);
-        }
-
-        if (!balance.has(tokenId)) {
-            throw new TokenFromUserNotFound(from, token, tokenId);
         }
 
         let balanceTo = walletTo.erc721[token];
@@ -88,32 +74,33 @@ export class ERC721 implements DepositOperation {
             walletTo.erc721[token] = balanceTo;
         }
         balanceTo.add(tokenId);
-        balance.delete(tokenId);
+        wallet.delete(tokenId);
 
-        setWallet(from, walletFrom);
-        setWallet(to, walletTo);
+        this.wallet.setWallet(from, walletFrom);
+        this.wallet.setWallet(to, walletTo);
     }
     withdraw({
         token,
         address,
-        getWallet,
         tokenId,
-        getDapp,
     }: Withdraw): Voucher {
         token = getAddress(token);
         address = getAddress(address);
 
-        const wallet = getWallet(address);
+        const wallet = this.wallet.getWalletOrNew(address);
 
-        if (!wallet) {
-            throw new WalletUndefinedError(address);
+        let collection = wallet.erc721[token];
+
+        if (!collection) {
+            collection = new Set();
+            wallet.erc721[token] = collection;
         }
 
-        const collection = wallet.erc721[token];
         if (!collection.has(tokenId)) {
-            throw new InsufficientBalanceError(address, token, 1n, tokenId);
+            throw new InsufficientBalanceError(address, token, tokenId);
         }
-        const dappAddress = getDapp();
+
+        const dappAddress = this.wallet.getDappAddressOrThrow();
 
         collection.delete(tokenId);
         const call = encodeFunctionData({
@@ -126,14 +113,11 @@ export class ERC721 implements DepositOperation {
             payload: call,
         };
     }
-    async deposit({
-        payload,
-        setWallet,
-        getWallet,
-    }: DepositArgs): Promise<void> {
+
+    handler: AdvanceRequestHandler = async ({ payload }) => {
         const { token, sender, tokenId } = parseERC721Deposit(payload);
 
-        const wallet = getWallet(sender);
+        const wallet = this.wallet.getWalletOrNew(sender);
 
         const collection = wallet.erc721[token];
         if (collection) {
@@ -142,11 +126,8 @@ export class ERC721 implements DepositOperation {
             const collection = new Set([tokenId]);
             wallet.erc721[token] = collection;
         }
-        setWallet(sender, wallet);
-    }
-    isDeposit(msgSender: Address): boolean {
-        return msgSender === erc721PortalAddress;
+        this.wallet.setWallet(sender, wallet);
+
+        return "accept"
     }
 }
-
-export const erc721 = new ERC721();
