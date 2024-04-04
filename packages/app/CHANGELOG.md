@@ -1,5 +1,11 @@
 # @deroll/app
 
+## 0.5.1
+
+### Patch Changes
+
+- 00dbe37: bump dependencies
+
 ## 0.5.0
 
 ### Minor Changes

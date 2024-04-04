@@ -1,5 +1,18 @@
 # @deroll/wallet
 
+## 0.5.0
+
+### Minor Changes
+
+- 4af490c: add support for ERC721 and ERC1155
+- 4af490c: BREAKING: change balanceOf to explicit etherBalanceOf and erc20BalanceOf
+
+### Patch Changes
+
+- 00dbe37: bump dependencies
+- Updated dependencies [00dbe37]
+  - @deroll/app@0.5.1
+
 ## 0.4.0
 
 ### Minor Changes
