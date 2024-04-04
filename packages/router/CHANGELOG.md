@@ -1,5 +1,13 @@
 # @deroll/router
 
+## 0.3.1
+
+### Patch Changes
+
+- 00dbe37: bump dependencies
+- Updated dependencies [00dbe37]
+  - @deroll/app@0.5.1
+
 ## 0.3.0
 
 ### Minor Changes
