@@ -13,11 +13,11 @@
         "@deroll/app": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.9.6"
+        "viem": "^2.9.9"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^20.12.2",
+        "@types/node": "^20.12.4",
         "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
         "tsup": "^8.0.2",

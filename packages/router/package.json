@@ -21,11 +21,11 @@
     "dependencies": {
         "@deroll/app": "workspace:*",
         "path-to-regexp": "^6",
-        "viem": "^2.9.6"
+        "viem": "^2.9.9"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^20.12.2",
+        "@types/node": "^20.12.4",
         "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
