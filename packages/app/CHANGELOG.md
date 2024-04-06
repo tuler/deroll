@@ -1,5 +1,11 @@
 # @deroll/app
 
+## 0.5.3
+
+### Patch Changes
+
+- 1f556f4: fix request handling using openapi-fetch 0.9
+
 ## 0.5.2
 
 ### Patch Changes

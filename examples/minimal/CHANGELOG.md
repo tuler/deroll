@@ -1,5 +1,12 @@
 # minimal
 
+## 0.2.3
+
+### Patch Changes
+
+- Updated dependencies [1f556f4]
+  - @deroll/app@0.5.3
+
 ## 0.2.2
 
 ### Patch Changes
