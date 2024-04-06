@@ -124,21 +124,21 @@ export class AppImpl implements App {
     async start() {
         let status: RequestHandlerResult = "accept";
         while (true) {
-            const { response } = await this.POST("/finish", {
+            const { data, response } = await this.POST("/finish", {
                 body: { status },
                 parseAs: "text",
             });
-            if (response.status == 200) {
-                const data = (await response.json()) as RollupsRequest;
-                switch (data.request_type) {
+            if (response.status == 200 && data) {
+                const request = JSON.parse(data) as RollupsRequest;
+                switch (request.request_type) {
                     case "advance_state":
                         status = await this.handleAdvance(
-                            data.data as AdvanceRequestData,
+                            request.data as AdvanceRequestData,
                         );
                         break;
                     case "inspect_state":
                         await this.handleInspect(
-                            data.data as InspectRequestData,
+                            request.data as InspectRequestData,
                         );
                         break;
                 }
