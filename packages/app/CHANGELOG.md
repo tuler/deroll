@@ -1,5 +1,11 @@
 # @deroll/app
 
+## 0.5.2
+
+### Patch Changes
+
+- ab0e599: enforce request body in openapi schema
+
 ## 0.5.1
 
 ### Patch Changes
