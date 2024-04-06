@@ -7,8 +7,7 @@ Node API defined at https://openapi-ts.pages.dev/node/. The goal is to use the
 viem types Hex and Address instead of simple strings for some schema properties.
 */
 
-const inputFile =
-    "https://raw.githubusercontent.com/cartesi/openapi-interfaces/v0.7.1/rollup.yaml";
+const inputFile = "rollup.yaml";
 const outputFile = "src/schema.d.ts";
 
 // import types from viem in generated code
