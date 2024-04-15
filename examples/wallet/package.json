@@ -13,7 +13,7 @@
         "@deroll/app": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.9.9"
+        "viem": "^2.9.17"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
