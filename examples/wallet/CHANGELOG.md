@@ -1,5 +1,18 @@
 # wallet
 
+## 0.3.0
+
+### Minor Changes
+
+- 488d46b: separation of @deroll/app into @deroll/app and @deroll/core
+
+### Patch Changes
+
+- Updated dependencies [488d46b]
+  - @deroll/router@0.4.0
+  - @deroll/wallet@0.6.0
+  - @deroll/app@0.6.0
+
 ## 0.2.3
 
 ### Patch Changes
