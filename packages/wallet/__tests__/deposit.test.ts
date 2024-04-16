@@ -1,4 +1,4 @@
-import { RequestMetadata } from "@deroll/app";
+import { RequestMetadata } from "@deroll/core";
 import {
     Address,
     concat,

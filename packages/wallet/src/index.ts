@@ -1,4 +1,4 @@
-import { AdvanceRequestData, Payload } from "@deroll/app";
+import { AdvanceRequestData, Payload } from "@deroll/core";
 import {
     Address,
     decodeAbiParameters,

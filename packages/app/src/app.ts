@@ -1,40 +1,30 @@
-import createClient from "openapi-fetch";
-
-import { paths, components } from "./schema";
 import {
-    Notice,
-    Report,
-    AdvanceRequestHandler,
-    RequestHandlerResult,
-    Voucher,
     AdvanceRequestData,
+    AdvanceRequestHandler,
+    App,
     InspectRequestHandler,
     InspectRequestData,
-} from "./types";
+    Notice,
+    Report,
+    RequestHandlerResult,
+    RollupRequest,
+    Voucher,
+    paths,
+} from "@deroll/core";
+import createClient from "openapi-fetch";
 
-type RollupsRequest = components["schemas"]["RollupRequest"];
-
-export type AppOptions = {
+export type HttpAppOptions = {
     url: string;
     broadcastAdvanceRequests?: boolean;
 };
 
-export interface App {
-    start(): Promise<void>;
-    createNotice(request: Notice): Promise<number>;
-    createReport(request: Report): Promise<void>;
-    createVoucher(request: Voucher): Promise<number>;
-    addAdvanceHandler(handler: AdvanceRequestHandler): void;
-    addInspectHandler(handler: InspectRequestHandler): void;
-}
-
-export class AppImpl implements App {
-    private options: AppOptions;
+export class HttpApp implements App {
+    private options: HttpAppOptions;
     private advanceHandlers: AdvanceRequestHandler[];
     private inspectHandlers: InspectRequestHandler[];
     private POST;
 
-    constructor(options: AppOptions) {
+    constructor(options: HttpAppOptions) {
         this.options = options;
         this.advanceHandlers = [];
         this.inspectHandlers = [];
@@ -129,7 +119,7 @@ export class AppImpl implements App {
                 parseAs: "text",
             });
             if (response.status == 200 && data) {
-                const request = JSON.parse(data) as RollupsRequest;
+                const request = JSON.parse(data) as RollupRequest;
                 switch (request.request_type) {
                     case "advance_state":
                         status = await this.handleAdvance(

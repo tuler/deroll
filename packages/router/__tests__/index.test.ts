@@ -1,4 +1,4 @@
-import { App } from "@deroll/app";
+import { App } from "@deroll/core";
 import { stringToHex } from "viem";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { mock, mockClear } from "vitest-mock-extended";
