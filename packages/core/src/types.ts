@@ -7,8 +7,8 @@ export type AdvanceRequestData = components["schemas"]["Advance"];
 export type InspectRequestData = components["schemas"]["Inspect"];
 export type RequestMetadata = components["schemas"]["Metadata"];
 export type RequestHandlerResult = components["schemas"]["Finish"]["status"];
-export type Payload = components["schemas"]["Payload"];
 export type Notice = components["schemas"]["Notice"];
+export type Payload = components["schemas"]["Payload"];
 export type Report = components["schemas"]["Report"];
 export type Voucher = components["schemas"]["Voucher"];
 

@@ -1,6 +1,6 @@
 {
-    "name": "@deroll/app",
-    "version": "0.5.3",
+    "name": "@deroll/core",
+    "version": "0.0.0",
     "main": "./dist/index.js",
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
@@ -10,22 +10,24 @@
         "dist/**"
     ],
     "scripts": {
-        "build": "tsup",
+        "build": "run-s codegen compile",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "codegen": "ts-node schema.ts",
+        "compile": "tsup",
         "dev": "tsup --watch",
         "lint": "eslint",
         "prepack": "run-s build"
     },
     "dependencies": {
-        "@deroll/core": "workspace:*",
-        "openapi-fetch": "^0.9.3",
         "viem": "^2.9.19"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^20.12.7",
         "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
+        "openapi-typescript": "^6.7.5",
         "ts-node": "^10.9.2",
         "tsup": "^8.0.2",
         "typescript": "^5.4.5",

@@ -1,4 +1,4 @@
-import { App, InspectRequestData } from "@deroll/app";
+import { App, InspectRequestData } from "@deroll/core";
 import { Key, match, MatchResult, MatchFunction, Path } from "path-to-regexp";
 import { bytesToString, stringToBytes, toBytes, toHex } from "viem";
 
