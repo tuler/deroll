@@ -1,7 +1,11 @@
-import { AdvanceRequestData, Payload } from "@deroll/core";
+import { AdvanceRequestData, Payload, Voucher } from "@deroll/core";
 import {
     Address,
+    Hex,
     decodeAbiParameters,
+    encodeFunctionData,
+    erc20Abi,
+    erc721Abi,
     getAddress,
     hexToBigInt,
     hexToBool,
@@ -18,6 +22,7 @@ import {
     erc721PortalAddress,
     etherPortalAddress,
 } from "./rollups";
+import { cartesiDAppAbi, erc1155Abi } from "./abi";
 
 export type { WalletApp } from "./wallet";
 
@@ -163,3 +168,98 @@ export const isERC1155SingleDeposit = (data: AdvanceRequestData): boolean =>
 
 export const isERC1155BatchDeposit = (data: AdvanceRequestData): boolean =>
     getAddress(data.metadata.msg_sender) === erc1155BatchPortalAddress;
+
+export const createWithdrawEtherVoucher = (
+    application: Address,
+    receiver: Address,
+    value: bigint,
+): Voucher => {
+    const call = encodeFunctionData({
+        abi: cartesiDAppAbi,
+        functionName: "withdrawEther",
+        args: [receiver, value],
+    });
+    return {
+        destination: application, // application Address
+        payload: call,
+    };
+};
+
+export const createERC20TransferVoucher = (
+    token: Address,
+    recipient: Address,
+    amount: bigint,
+): Voucher => {
+    const call = encodeFunctionData({
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [recipient, amount],
+    });
+
+    // create voucher to the IERC20 transfer
+    return {
+        destination: token,
+        payload: call,
+    };
+};
+
+export const createERC721TransferVoucher = (
+    token: Address,
+    from: Address,
+    to: Address,
+    tokenId: bigint,
+): Voucher => {
+    const call = encodeFunctionData({
+        abi: erc721Abi,
+        functionName: "safeTransferFrom",
+        args: [from, to, tokenId],
+    });
+
+    // create voucher to the IERC721 transfer
+    return {
+        destination: token,
+        payload: call,
+    };
+};
+
+export const createERC1155SingleTransferVoucher = (
+    token: Address,
+    from: Address,
+    to: Address,
+    tokenId: bigint,
+    value: bigint,
+    data: Hex,
+): Voucher => {
+    const call = encodeFunctionData({
+        abi: erc1155Abi,
+        functionName: "safeTransferFrom",
+        args: [from, to, tokenId, value, data],
+    });
+
+    // create voucher to the IERC1155 transfer
+    return {
+        destination: token,
+        payload: call,
+    };
+};
+
+export const createERC1155BatchTransferVoucher = (
+    token: Address,
+    from: Address,
+    to: Address,
+    tokenIds: bigint[],
+    values: bigint[],
+    data: Hex,
+): Voucher => {
+    const call = encodeFunctionData({
+        abi: erc1155Abi,
+        functionName: "safeBatchTransferFrom",
+        args: [from, to, tokenIds, values, data],
+    });
+
+    // create voucher to the IERC1155 transfer
+    return {
+        destination: token,
+        payload: call,
+    };
+};

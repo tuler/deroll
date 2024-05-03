@@ -1,17 +1,13 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/core";
-import {
-    Address,
-    Hex,
-    encodeFunctionData,
-    erc20Abi,
-    erc721Abi,
-    getAddress,
-    isAddress,
-} from "viem";
+import { Address, Hex, getAddress, isAddress } from "viem";
 
-import { cartesiDAppAbi, erc1155Abi } from "./abi";
 import { dAppAddressRelayAddress } from "./rollups";
 import {
+    createERC1155BatchTransferVoucher,
+    createERC1155SingleTransferVoucher,
+    createERC20TransferVoucher,
+    createERC721TransferVoucher,
+    createWithdrawEtherVoucher,
     isERC1155BatchDeposit,
     isERC1155SingleDeposit,
     isERC20Deposit,
@@ -446,15 +442,7 @@ export class WalletAppImpl implements WalletApp {
         wallet.ether = wallet.ether - value;
 
         // create voucher
-        const call = encodeFunctionData({
-            abi: cartesiDAppAbi,
-            functionName: "withdrawEther",
-            args: [address, value],
-        });
-        return {
-            destination: this.dapp, // dapp Address
-            payload: call,
-        };
+        return createWithdrawEtherVoucher(this.dapp, address, value);
     }
 
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher {
@@ -475,17 +463,7 @@ export class WalletAppImpl implements WalletApp {
         // reduce balance right away
         wallet.erc20[token] -= amount;
 
-        const call = encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [address, amount],
-        });
-
-        // create voucher to the IERC20 transfer
-        return {
-            destination: token,
-            payload: call,
-        };
+        return createERC20TransferVoucher(token, address, amount);
     }
 
     withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher {
@@ -511,17 +489,8 @@ export class WalletAppImpl implements WalletApp {
         // remove tokenId right away
         wallet.erc721[token].delete(tokenId);
 
-        const call = encodeFunctionData({
-            abi: erc721Abi,
-            functionName: "safeTransferFrom",
-            args: [this.dapp, address, tokenId],
-        });
-
-        // create voucher to the IERC721 transfer
-        return {
-            destination: token,
-            payload: call,
-        };
+        // create voucher
+        return createERC721TransferVoucher(token, this.dapp, address, tokenId);
     }
 
     withdrawERC1155(
@@ -553,17 +522,15 @@ export class WalletAppImpl implements WalletApp {
         // reduce balance right away
         wallet.erc1155[token].set(tokenId, balance - value);
 
-        const call = encodeFunctionData({
-            abi: erc1155Abi,
-            functionName: "safeTransferFrom",
-            args: [this.dapp, address, tokenId, value, data],
-        });
-
-        // create voucher to the IERC721 transfer
-        return {
-            destination: token,
-            payload: call,
-        };
+        // create voucher
+        return createERC1155SingleTransferVoucher(
+            token,
+            this.dapp,
+            address,
+            tokenId,
+            value,
+            data,
+        );
     }
 
     withdrawBatchERC1155(
@@ -609,16 +576,14 @@ export class WalletAppImpl implements WalletApp {
             wallet.erc1155[token].set(tokenId, balance - value);
         });
 
-        const call = encodeFunctionData({
-            abi: erc1155Abi,
-            functionName: "safeBatchTransferFrom",
-            args: [this.dapp, address, tokenIds, values, data],
-        });
-
-        // create voucher to the IERC721 transfer
-        return {
-            destination: token,
-            payload: call,
-        };
+        // create voucher
+        return createERC1155BatchTransferVoucher(
+            token,
+            this.dapp,
+            address,
+            tokenIds,
+            values,
+            data,
+        );
     }
 }
