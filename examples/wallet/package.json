@@ -17,7 +17,7 @@
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^20.12.8",
-        "eslint": "^8.57.0",
+        "eslint": "^9.2.0",
         "eslint-config-deroll": "workspace:*",
         "tsup": "^8.0.2",
         "typescript": "^5.4.5",
