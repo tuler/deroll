@@ -1,5 +1,13 @@
 # @deroll/app
 
+## 0.6.1
+
+### Patch Changes
+
+- a85702c: bump dependencies
+- Updated dependencies [a85702c]
+  - @deroll/core@0.1.1
+
 ## 0.6.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # minimal
 
+## 0.3.1
+
+### Patch Changes
+
+- a85702c: bump dependencies
+- Updated dependencies [a85702c]
+  - @deroll/app@0.6.1
+
 ## 0.3.0
 
 ### Minor Changes

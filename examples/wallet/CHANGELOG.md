@@ -1,5 +1,16 @@
 # wallet
 
+## 0.3.1
+
+### Patch Changes
+
+- a85702c: bump dependencies
+- Updated dependencies [a85702c]
+- Updated dependencies [79b1b04]
+  - @deroll/router@0.4.1
+  - @deroll/wallet@0.7.0
+  - @deroll/app@0.6.1
+
 ## 0.3.0
 
 ### Minor Changes
