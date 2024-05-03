@@ -1,17 +1,17 @@
 # deroll
 
-Deroll, a TypeScript framework, facilitates the development of decentralized applications (dApps) on the  [Cartesi](https://cartesi.io) blockchain technology. With a focus on simplicity, Deroll offers a toolkit and conventions to streamline your development workflow. Easily onboard using Node.js, Sunodo, and Deroll to start building your Cartesi application with ease.
+Deroll, a TypeScript framework, facilitates the development of decentralized applications (dApps) on the [Cartesi](https://cartesi.io) blockchain technology. With a focus on simplicity, Deroll offers a toolkit and conventions to streamline your development workflow. Easily onboard using Node.js and Deroll to start building your Cartesi application with ease.
 
 ## Quick Start
 
 ### Prerequisites
 
-Ensure you have Node.js and Yarn installed; you can download them from [nodejs.org](https://nodejs.org/) and [yarnpkg.com](https://yarnpkg.com/). Additionally, it's necessary to install [sunodo](https://docs.sunodo.io/guide/introduction/installing) as it is an essential component for running the dApp.
+Ensure you have Node.js and Yarn installed; you can download them from [nodejs.org](https://nodejs.org/) and [yarnpkg.com](https://yarnpkg.com/). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
 
 ### Create a new project with the TypeScript template
 
 ```shell
-sunodo create hello-world --template typescript
+cartesi create hello-world --template typescript
 ```
 
 ### Add deroll to your project
@@ -30,31 +30,33 @@ Open the file `src/index.ts` and copy and paste the following code:
 import { createApp } from "@deroll/app";
 
 // Create the application
-const app = createApp({ url: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004" });
+const app = createApp({
+    url: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004",
+});
 
 // Handle input encoded in hex
 app.addAdvanceHandler(async ({ payload }) => {
-  const hexString = payload.replace(/^0x/, '');
-  const buffer = Buffer.from(hexString, "hex");
+    const hexString = payload.replace(/^0x/, "");
+    const buffer = Buffer.from(hexString, "hex");
 
-  // Convert the buffer to a UTF-8 string
-  const utf8String = buffer.toString("utf8");
-  console.log(utf8String);
-  return Promise.resolve("accept");
+    // Convert the buffer to a UTF-8 string
+    const utf8String = buffer.toString("utf8");
+    console.log(utf8String);
+    return Promise.resolve("accept");
 });
 
 // Start the application
 app.start().catch((e) => {
-  console.error(e);
-  process.exit(1);
+    console.error(e);
+    process.exit(1);
 });
 ```
 
 ### Build and run your dApp
 
 ```shell
-sunodo build
-sunodo run
+cartesi build
+cartesi run
 ```
 
 Expected output:
@@ -72,7 +74,7 @@ prompt-1     | Press Ctrl+C to stop the node
 Open a new terminal and run:
 
 ```shell
-sunodo send
+cartesi send
 ```
 
 1. Choose `Send generic input to the application.`
@@ -86,7 +88,7 @@ sunodo send
 Expected output:
 
 ```shell
-sunodo send
+cartesi send
 ? Select send sub-command Send generic input to the application.
 ? Chain Foundry
 ? RPC URL http://127.0.0.1:8545
@@ -99,7 +101,7 @@ sunodo send
 ✔ Input sent: 0xebd90fe6fd50245dfa30f33e2d68236a73b25e2351106484cfa9d815e401939d
 ```
 
-Expected output in the `sunodo run` terminal:
+Expected output in the `cartesi run` terminal:
 
 ```shell
 prompt-1     | Anvil running at http://localhost:8545
@@ -112,14 +114,14 @@ validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTT
 validator-1  | Hello world!
 ```
 
-Now you're ready to start building your Cartesi application with sunodo and deroll!
+Now you're ready to start building your Cartesi application with cartesi and deroll!
 
 ## Build from source
 
 ### Requirements
 
-- Corepack (with pnpm) or pnpm v8 (8.7.1 recommended)
-- Node 20 or greater (LTS)
+-   Corepack (with pnpm) or pnpm v8 (8.7.1 recommended)
+-   Node 20 or greater (LTS)
 
 ### Installation
 
