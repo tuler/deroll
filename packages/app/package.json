@@ -18,8 +18,8 @@
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
-        "openapi-fetch": "^0.9.3",
-        "viem": "^2.9.19"
+        "openapi-fetch": "^0.9.5",
+        "viem": "^2.9.31"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
@@ -29,7 +29,7 @@
         "ts-node": "^10.9.2",
         "tsup": "^8.0.2",
         "typescript": "^5.4.5",
-        "vitest": "^1.5.0"
+        "vitest": "^1.6.0"
     },
     "publishConfig": {
         "access": "public"

@@ -5,9 +5,9 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/eslint-plugin": "^7.8.0",
         "eslint-config-prettier": "^9.1.0",
-        "eslint-config-turbo": "^1.13.2",
+        "eslint-config-turbo": "^1.13.3",
         "eslint-plugin-import": "^2"
     },
     "publishConfig": {
