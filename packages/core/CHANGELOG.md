@@ -1,5 +1,11 @@
 # @deroll/core
 
+## 0.1.1
+
+### Patch Changes
+
+- a85702c: bump dependencies
+
 ## 0.1.0
 
 ### Minor Changes
