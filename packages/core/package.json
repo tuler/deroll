@@ -19,7 +19,7 @@
         "prepack": "run-s build"
     },
     "dependencies": {
-        "viem": "^2.9.31"
+        "viem": "^2.12.5"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
