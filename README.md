@@ -133,121 +133,121 @@ validator-1  | Hello world!
 
 #### `createApp(config: object): App`
 
-Creates a new Cartesi application.
+  Creates a new Cartesi application.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `config` (`object`): Configuration object.
-    - `url` (`string`): URL of the rollup HTTP server.
+    - `config` (`object`): Configuration object.
+      - `url` (`string`): URL of the rollup HTTP server.
 
-- **Returns:** `App` instance.
+  - **Returns:** `App` instance.
 
-**Example:**
+  **Example:**
 
-```ts
-import { createApp } from "@deroll/app";
+  ```ts
+  import { createApp } from "@deroll/app";
 
-const app = createApp({
-  url: process.env.ROLLUP_HTTP_SERVER || "http://127.0.0.1:5004",
-});
+  const app = createApp({
+    url: process.env.ROLLUP_HTTP_SERVER || "http://127.0.0.1:5004",
+  });
 
-app.start();
-```
----
+  app.start();
+  ```
+  ---
 
 ### 2. Create notices, vouchers and reports
 
 #### `createNotice(request: { payload: 0x${string}; }): Promise<number>`
 
-Creates a new notice and returns the index of the created notice.
+  Creates a new notice and returns the index of the created notice.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `request (object)`: The request object containing:
-  - `payload (string)`: The payload data in hexadecimal format.
+    - `request (object)`: The request object containing:
+    - `payload (string)`: The payload data in hexadecimal format.
 
-- **Returns:**
-  - `Promise<number>` A promise that resolves to the index of the created notice.
-- **Throws:**
-  - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
+  - **Returns:**
+    - `Promise<number>` A promise that resolves to the index of the created notice.
+  - **Throws:**
+    - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
 
-**Example:**
+  **Example:**
 
-```ts
-const sample = "0x48656c6c6f2043617274657369"; // "Hello Cartesi" in hex
+  ```ts
+  const sample = "0x48656c6c6f2043617274657369"; // "Hello Cartesi" in hex
 
-app
-  .createNotice({ payload: sample })
-  .then((index) => {
-    console.log(`Notice created with index: ${index}`);
-  })
-  .catch((error) => {
-    console.error(`Failed to create notice: ${error}`);
-  });
-```
+  app
+    .createNotice({ payload: sample })
+    .then((index) => {
+      console.log(`Notice created with index: ${index}`);
+    })
+    .catch((error) => {
+      console.error(`Failed to create notice: ${error}`);
+    });
+  ```
 
 #### `createVoucher(request: { destination: 0x${string}; payload: string; }): Promise<number>`
 
-Creates a new voucher and returns the index of the created voucher.
+  Creates a new voucher and returns the index of the created voucher.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `request (object)`: The request object containing:
-  - `destination (string)`: The destination address in hexadecimal format.
-  - `payload (string)`: The payload data in hexadecimal format.
+    - `request (object)`: The request object containing:
+    - `destination (string)`: The destination address in hexadecimal format.
+    - `payload (string)`: The payload data in hexadecimal format.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Promise<number>` A promise that resolves to the index of the created voucher.
+    - `Promise<number>` A promise that resolves to the index of the created voucher.
 
-- **Throws:**
-  - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
+  - **Throws:**
+    - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
 
-**Example:**
+  **Example:**
 
-```ts
-const voucherRequest = {
-  destination: "0x1234567890abcdef1234567890abcdef12345678",
-  payload: "Some payload data",
-};
+  ```ts
+  const voucherRequest = {
+    destination: "0x1234567890abcdef1234567890abcdef12345678",
+    payload: "Some payload data",
+  };
 
-app
-  .createVoucher(voucherRequest)
-  .then((index) => {
-    console.log(`Voucher created with index: ${index}`);
-  })
-  .catch((error) => {
-    console.error(`Failed to create voucher: ${error}`);
-  });
-```
+  app
+    .createVoucher(voucherRequest)
+    .then((index) => {
+      console.log(`Voucher created with index: ${index}`);
+    })
+    .catch((error) => {
+      console.error(`Failed to create voucher: ${error}`);
+    });
+  ```
 
 #### `createReport(request: { payload: 0x${string}; }): Promise<void>`
 
-Creates a new report.
+  Creates a new report.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `request (object)`: The request object containing:
-  - `payload (string)`: The payload data in hexadecimal format.
+    - `request (object)`: The request object containing:
+    - `payload (string)`: The payload data in hexadecimal format.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Promise<void>` A promise that resolves when the report is created.
+    - `Promise<void>` A promise that resolves when the report is created.
 
-- **Throws:**
-  - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
+  - **Throws:**
+    - `Error`: Throws an error if the response does not contain data or if the response status is not `OK`.
 
-**Example:**
+  **Example:**
 
-```ts
-const sample = '0x68656c6c6f20776f726c64' // "hello world" in hex
-};
-app.createReport({ payload:sample }).then(() => {
-  console.log("Report created successfully");
-}).catch(error => {
-  console.error(`Failed to create report: ${error.message}`);
-});
-```
+  ```ts
+  const sample = '0x68656c6c6f20776f726c64' // "hello world" in hex
+  };
+  app.createReport({ payload:sample }).then(() => {
+    console.log("Report created successfully");
+  }).catch(error => {
+    console.error(`Failed to create report: ${error.message}`);
+  });
+  ```
 ---
 
 ### 3. Creating the wallet and router
@@ -260,35 +260,35 @@ yarn add @deroll/router @deroll/wallet
 
 #### `createWallet(): Wallet`
 
-Initializes a new wallet instance.
+  Initializes a new wallet instance.
 
-- **Returns:** `Wallet` instance.
+  - **Returns:** `Wallet` instance.
 
-**Example:**
+  **Example:**
 
-```ts
-import { createWallet } from "@deroll/wallet";
+  ```ts
+  import { createWallet } from "@deroll/wallet";
 
-const wallet = createWallet();
-```
+  const wallet = createWallet();
+  ```
 
 #### `createRouter(options: RouterOptions): Router`
 
-Initializes a new router instance.
+  Initializes a new router instance.
 
-- **Parameters**:
+  - **Parameters**:
 
-  - `options(RouterOptions)`: Options object containing the app instance.
+    - `options(RouterOptions)`: Options object containing the app instance.
 
-- **Returns:** `Router` instance.
+  - **Returns:** `Router` instance.
 
-**Example:**
+  **Example:**
 
-```ts
-import { createRouter } from "@deroll/router";
+  ```ts
+  import { createRouter } from "@deroll/router";
 
-const router = createRouter({ app });
-```
+  const router = createRouter({ app });
+  ```
 
 ### Adding handlers
 
@@ -340,375 +340,375 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
 
 #### `etherBalanceOf(address: string): bigint`
 
-Retrieves the Ether balance of a given address.
+  Retrieves the Ether balance of a given address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `address` (`string`): The address to check the Ether balance for. The address will be normalized.
+    - `address` (`string`): The address to check the Ether balance for. The address will be normalized.
 
-- **Returns:**
-  - `bigint`: The Ether balance of the address.
+  - **Returns:**
+    - `bigint`: The Ether balance of the address.
 
-**Example:**
+  **Example:**
 
-```typescript
-const balance = wallet.etherBalanceOf(
-  "0x1234567890abcdef1234567890abcdef12345678"
-);
-console.log(`Ether balance: ${balance}`);
-```
+  ```typescript
+  const balance = wallet.etherBalanceOf(
+    "0x1234567890abcdef1234567890abcdef12345678"
+  );
+  console.log(`Ether balance: ${balance}`);
+  ```
 
 ---
 
 
 #### `transferEther(from: string, to: string, value: bigint): void`
 
-Transfers Ether from one address to another.
+  Transfers Ether from one address to another.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `from` (`string`): The sender's address. The address will be normalized.
-  - `to` (`string`): The recipient's address. The address will be normalized.
-  - `value` (`bigint`): The amount of Ether to transfer.
+    - `from` (`string`): The sender's address. The address will be normalized.
+    - `to` (`string`): The recipient's address. The address will be normalized.
+    - `value` (`bigint`): The amount of Ether to transfer.
 
-- **Throws:**
-  - `Error`: Throws an error if the sender has insufficient balance.
+  - **Throws:**
+    - `Error`: Throws an error if the sender has insufficient balance.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  wallet.transferEther(
-    "0x1234567890abcdef1234567890abcdef12345678",
-    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-    1000000000000000000n
-  );
-  console.log("Transfer successful");
-} catch (error) {
-  console.error(`Failed to transfer Ether: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    wallet.transferEther(
+      "0x1234567890abcdef1234567890abcdef12345678",
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+      1000000000000000000n
+    );
+    console.log("Transfer successful");
+  } catch (error) {
+    console.error(`Failed to transfer Ether: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `withdrawEther(address: Address, value: bigint): Voucher`
 
-Creates a voucher to withdraw Ether from the specified address.
+  Creates a voucher to withdraw Ether from the specified address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `address` (`Address`): The address to withdraw Ether from. The address will be normalized.
-  - `value` (`bigint`): The amount of Ether to withdraw.
+    - `address` (`Address`): The address to withdraw Ether from. The address will be normalized.
+    - `value` (`bigint`): The amount of Ether to withdraw.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Voucher`: A voucher that can be used to process the withdrawal.
+    - `Voucher`: A voucher that can be used to process the withdrawal.
 
-- **Throws:**
-  - `Error`: Throws an error if the address has insufficient balance or if the dApp address is undefined.
+  - **Throws:**
+    - `Error`: Throws an error if the address has insufficient balance or if the dApp address is undefined.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  const voucher = wallet.withdrawEther(
-    "0x1234567890abcdef1234567890abcdef12345678",
-    500000000000000000n
-  );
-  console.log("Voucher created for Ether withdrawal:", voucher);
-} catch (error) {
-  console.error(`Failed to create withdrawal voucher: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    const voucher = wallet.withdrawEther(
+      "0x1234567890abcdef1234567890abcdef12345678",
+      500000000000000000n
+    );
+    console.log("Voucher created for Ether withdrawal:", voucher);
+  } catch (error) {
+    console.error(`Failed to create withdrawal voucher: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `erc20BalanceOf(token: Address, address: string): bigint`
 
-Retrieves the ERC20 token balance of a given address for a specified token.
+  Retrieves the ERC20 token balance of a given address for a specified token.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC20 token contract address.
-  - `address` (`string`): The address to check the ERC20 token balance for. The address will be normalized.
+    - `token` (`Address`): The ERC20 token contract address.
+    - `address` (`string`): The address to check the ERC20 token balance for. The address will be normalized.
 
-- **Returns:**
-  - `bigint`: The ERC20 token balance of the address.
+  - **Returns:**
+    - `bigint`: The ERC20 token balance of the address.
 
-**Example:**
+  **Example:**
 
-```typescript
-const balance = wallet.erc20BalanceOf(
-  "0xTokenAddress",
-  "0x1234567890abcdef1234567890abcdef12345678"
-);
-console.log(`ERC20 token balance: ${balance}`);
-```
+  ```typescript
+  const balance = wallet.erc20BalanceOf(
+    "0xTokenAddress",
+    "0x1234567890abcdef1234567890abcdef12345678"
+  );
+  console.log(`ERC20 token balance: ${balance}`);
+  ```
 
 ---
 
 
 #### `transferERC20(token: Address, from: string, to: string, amount: bigint): void`
 
-Transfers ERC20 tokens from one address to another.
+  Transfers ERC20 tokens from one address to another.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC20 token contract address.
-  - `from` (`string`): The sender's address. The address will be normalized.
-  - `to` (`string`): The recipient's address. The address will be normalized.
-  - `amount` (`bigint`): The amount of ERC20 tokens to transfer.
+    - `token` (`Address`): The ERC20 token contract address.
+    - `from` (`string`): The sender's address. The address will be normalized.
+    - `to` (`string`): The recipient's address. The address will be normalized.
+    - `amount` (`bigint`): The amount of ERC20 tokens to transfer.
 
-- **Throws:**
-  - `Error`: Throws an error if the sender has insufficient balance.
+  - **Throws:**
+    - `Error`: Throws an error if the sender has insufficient balance.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  wallet.transferERC20(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-    1000n
-  );
-  console.log("Transfer successful");
-} catch (error) {
-  console.error(`Failed to transfer ERC20 tokens: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    wallet.transferERC20(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+      1000n
+    );
+    console.log("Transfer successful");
+  } catch (error) {
+    console.error(`Failed to transfer ERC20 tokens: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `withdrawERC20(token: Address, address: Address, amount: bigint): Voucher`
 
-Creates a voucher to withdraw ERC20 tokens from the specified address.
+  Creates a voucher to withdraw ERC20 tokens from the specified address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC20 token contract address.
-  - `address` (`Address`): The address to withdraw ERC20 tokens from. The address will be normalized.
-  - `amount` (`bigint`): The amount of ERC20 tokens to withdraw.
+    - `token` (`Address`): The ERC20 token contract address.
+    - `address` (`Address`): The address to withdraw ERC20 tokens from. The address will be normalized.
+    - `amount` (`bigint`): The amount of ERC20 tokens to withdraw.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Voucher`: A voucher that can be used to process the withdrawal.
+    - `Voucher`: A voucher that can be used to process the withdrawal.
 
-- **Throws:**
-  - `Error`: Throws an error if the address has insufficient balance.
+  - **Throws:**
+    - `Error`: Throws an error if the address has insufficient balance.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  const voucher = wallet.withdrawERC20(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    1000n
-  );
-  console.log("Voucher created for ERC20 withdrawal:", voucher);
-} catch (error) {
-  console.error(`Failed to create withdrawal voucher: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    const voucher = wallet.withdrawERC20(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      1000n
+    );
+    console.log("Voucher created for ERC20 withdrawal:", voucher);
+  } catch (error) {
+    console.error(`Failed to create withdrawal voucher: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `erc721Has(token: Address, address: string, tokenId: bigint): boolean`
 
-Checks if a given address owns a specified ERC721 token.
+  Checks if a given address owns a specified ERC721 token.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC721 token contract address.
-  - `address` (`string`): The address to check ownership for. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to check.
+    - `token` (`Address`): The ERC721 token contract address.
+    - `address` (`string`): The address to check ownership for. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to check.
 
-- **Returns:**
-  - `boolean`: Returns `true` if the address owns the specified token ID, otherwise `false`.
+  - **Returns:**
+    - `boolean`: Returns `true` if the address owns the specified token ID, otherwise `false`.
 
-**Example:**
+  **Example:**
 
-```typescript
-const hasToken = wallet.erc721Has(
-  "0xTokenAddress",
-  "0x1234567890abcdef1234567890abcdef12345678",
-  1n
-);
-console.log(`Owns token: ${hasToken}`);
-```
+  ```typescript
+  const hasToken = wallet.erc721Has(
+    "0xTokenAddress",
+    "0x1234567890abcdef1234567890abcdef12345678",
+    1n
+  );
+  console.log(`Owns token: ${hasToken}`);
+  ```
 
 ---
 
 
 #### `transferERC721(token: Address, from: string, to: string, tokenId: bigint): void`
 
-Transfers an ERC721 token from one address to another.
+  Transfers an ERC721 token from one address to another.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC721 token contract address.
-  - `from` (`string`): The sender's address. The address will be normalized.
-  - `to` (`string`): The recipient's address. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to transfer.
+    - `token` (`Address`): The ERC721 token contract address.
+    - `from` (`string`): The sender's address. The address will be normalized.
+    - `to` (`string`): The recipient's address. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to transfer.
 
-- **Throws:**
-  - `Error`: Throws an error if the sender does not own the specified token ID.
+  - **Throws:**
+    - `Error`: Throws an error if the sender does not own the specified token ID.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  wallet.transferERC721(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-    1n
-  );
-  console.log("Transfer successful");
-} catch (error) {
-  console.error(`Failed to transfer ERC721 token: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    wallet.transferERC721(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+      1n
+    );
+    console.log("Transfer successful");
+  } catch (error) {
+    console.error(`Failed to transfer ERC721 token: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher`
 
-Creates a voucher to withdraw an ERC721 token from the specified address.
+  Creates a voucher to withdraw an ERC721 token from the specified address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC721 token contract address.
-  - `address` (`Address`): The address to withdraw the ERC721 token from. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to withdraw.
+    - `token` (`Address`): The ERC721 token contract address.
+    - `address` (`Address`): The address to withdraw the ERC721 token from. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to withdraw.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Voucher`: A voucher that can be used to process the withdrawal.
+    - `Voucher`: A voucher that can be used to process the withdrawal.
 
-- **Throws:**
-  - `Error`: Throws an error if the address does not own the specified token ID.
+  - **Throws:**
+    - `Error`: Throws an error if the address does not own the specified token ID.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  const voucher = wallet.withdrawERC721(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    1n
-  );
-  console.log("Voucher created for ERC721 withdrawal:", voucher);
-} catch (error) {
-  console.error(`Failed to create withdrawal voucher: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    const voucher = wallet.withdrawERC721(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      1n
+    );
+    console.log("Voucher created for ERC721 withdrawal:", voucher);
+  } catch (error) {
+    console.error(`Failed to create withdrawal voucher: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `erc1155BalanceOf(token: Address, address: string, tokenId: bigint): bigint`
 
-Retrieves the balance of a specific ERC1155 token for a given address.
+  Retrieves the balance of a specific ERC1155 token for a given address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC1155 token contract address.
-  - `address` (`string`): The address to check the ERC1155 token balance for. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to check.
+    - `token` (`Address`): The ERC1155 token contract address.
+    - `address` (`string`): The address to check the ERC1155 token balance for. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to check.
 
-- **Returns:**
-  - `bigint`: The balance of the specified ERC1155 token for the address.
+  - **Returns:**
+    - `bigint`: The balance of the specified ERC1155 token for the address.
 
-**Example:**
+  **Example:**
 
-```typescript
-const balance = wallet.erc1155BalanceOf(
-  "0xTokenAddress",
-  "0x1234567890abcdef1234567890abcdef12345678",
-  1n
-);
-console.log(`ERC1155 token balance: ${balance}`);
-```
+  ```typescript
+  const balance = wallet.erc1155BalanceOf(
+    "0xTokenAddress",
+    "0x1234567890abcdef1234567890abcdef12345678",
+    1n
+  );
+  console.log(`ERC1155 token balance: ${balance}`);
+  ```
 
 ---
 
 #### `transferERC1155(token: Address, from: string, to: string, tokenId: bigint, value: bigint): void`
 
-Transfers a specified amount of an ERC1155 token from one address to another.
+  Transfers a specified amount of an ERC1155 token from one address to another.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC1155 token contract address.
-  - `from` (`string`): The sender's address. The address will be normalized.
-  - `to` (`string`): The recipient's address. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to transfer.
-  - `value` (`bigint`): The amount of the token to transfer.
+    - `token` (`Address`): The ERC1155 token contract address.
+    - `from` (`string`): The sender's address. The address will be normalized.
+    - `to` (`string`): The recipient's address. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to transfer.
+    - `value` (`bigint`): The amount of the token to transfer.
 
-- **Throws:**
-  - `Error`: Throws an error if the sender has insufficient balance for the specified token ID.
+  - **Throws:**
+    - `Error`: Throws an error if the sender has insufficient balance for the specified token ID.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  wallet.transferERC1155(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-    1n,
-    10n
-  );
-  console.log("Transfer successful");
-} catch (error) {
-  console.error(`Failed to transfer ERC1155 token: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    wallet.transferERC1155(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+      1n,
+      10n
+    );
+    console.log("Transfer successful");
+  } catch (error) {
+    console.error(`Failed to transfer ERC1155 token: ${error.message}`);
+  }
+  ```
 
 ---
 
 
 #### `withdrawERC1155(token: Address, address: Address, tokenId: bigint, value: bigint, data: Hex): Voucher`
 
-Creates a voucher to withdraw a specified amount of an ERC1155 token from the specified address.
+  Creates a voucher to withdraw a specified amount of an ERC1155 token from the specified address.
 
-- **Parameters:**
+  - **Parameters:**
 
-  - `token` (`Address`): The ERC1155 token contract address.
-  - `address` (`Address`): The address to withdraw the ERC1155 token from. The address will be normalized.
-  - `tokenId` (`bigint`): The token ID to withdraw.
-  - `value` (`bigint`): The amount of the token to withdraw.
-  - `data` (`Hex`): Additional data to include with the withdrawal.
+    - `token` (`Address`): The ERC1155 token contract address.
+    - `address` (`Address`): The address to withdraw the ERC1155 token from. The address will be normalized.
+    - `tokenId` (`bigint`): The token ID to withdraw.
+    - `value` (`bigint`): The amount of the token to withdraw.
+    - `data` (`Hex`): Additional data to include with the withdrawal.
 
-- **Returns:**
+  - **Returns:**
 
-  - `Voucher`: A voucher that can be used to process the withdrawal.
+    - `Voucher`: A voucher that can be used to process the withdrawal.
 
-- **Throws:**
-  - `Error`: Throws an error if the address has insufficient balance for the specified token ID.
+  - **Throws:**
+    - `Error`: Throws an error if the address has insufficient balance for the specified token ID.
 
-**Example:**
+  **Example:**
 
-```typescript
-try {
-  const voucher = wallet.withdrawERC1155(
-    "0xTokenAddress",
-    "0x1234567890abcdef1234567890abcdef12345678",
-    1n,
-    10n,
-    "0x"
-  );
-  console.log("Voucher created for ERC1155 withdrawal:", voucher);
-} catch (error) {
-  console.error(`Failed to create withdrawal voucher: ${error.message}`);
-}
-```
+  ```typescript
+  try {
+    const voucher = wallet.withdrawERC1155(
+      "0xTokenAddress",
+      "0x1234567890abcdef1234567890abcdef12345678",
+      1n,
+      10n,
+      "0x"
+    );
+    console.log("Voucher created for ERC1155 withdrawal:", voucher);
+  } catch (error) {
+    console.error(`Failed to create withdrawal voucher: ${error.message}`);
+  }
+  ```
 
 ---
 
