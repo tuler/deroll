@@ -338,8 +338,6 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
 12. [transferBatchERC1155](#transferbatcherc1155token-address-from-string-to-string-tokenids-bigint-values-bigint-void)
 12. [withdrawBatchERC1155](#withdrawbatcherc1155token-address-address-tokenids-bigint-values-bigint-data-hex-voucher)
 
----
-
 
 #### `etherBalanceOf(address: string): bigint`
 
@@ -360,8 +358,6 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
   );
   console.log(`Ether balance: ${balance}`);
   ```
-
----
 
 ---
 
@@ -768,6 +764,9 @@ try {
     console.error(`Failed to create withdrawal voucher: ${error.message}`);
   }
   ```
+
+---
+
 #### `transferBatchERC1155(token: Address, from: string, to: string, tokenIds: bigint[], values: bigint[]): void`
 
 Transfers multiple ERC1155 tokens from one address to another in a batch.
@@ -800,12 +799,6 @@ try {
 ```
 
 ---
-
-
-Sure, here are the missing parts:
-
----
-
 
 #### `withdrawBatchERC1155(token: Address, address: Address, tokenIds: bigint[], values: bigint[], data: Hex): Voucher`
 
