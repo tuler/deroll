@@ -860,7 +860,7 @@ npm run build
 
 ## How to Contribute
 
-We welcome contributions! Please read the [contributing guidelines](CONTRIBUTING.md) for details.
+TODO
 
 ## License
 
