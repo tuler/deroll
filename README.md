@@ -381,41 +381,6 @@ console.log('Wallet details:', walletDetails);
 ---
 
 
-Creates a voucher to withdraw multiple ERC1155 tokens from the specified address in a batch.
-
-- **Parameters:**
-  - `token` (`Address`): The ERC1155 token contract address.
-  - `address` (`Address`): The address to withdraw the ERC1155 tokens from. The address will be normalized.
-  - `tokenIds` (`bigint[]`): The token IDs to withdraw.
-  - `values` (`bigint[]`): The amounts of each token to withdraw.
-  - `data` (`Hex`): Additional data to include with the withdrawal.
-
-- **Returns:**
-  - `Voucher`: A voucher that can be used to process the withdrawal.
-
-- **Throws:**
-  - `Error`: Throws an error if the address has insufficient balance for any of the specified token IDs.
-
-**Example:**
-
-```typescript
-try {
-  const voucher = wallet.withdrawBatchERC1155(
-    '0xTokenAddress',
-    '0x1234567890abcdef1234567890abcdef12345678',
-    [1n, 2n, 3n],
-    [10n, 20n, 30n],
-    '0x'
-  );
-  console.log('Voucher created for batch ERC1155 withdrawal:', voucher);
-} catch (error) {
-  console.error(`Failed to create batch withdrawal voucher: ${error.message}`);
-}
-```
-
----
-
-
 #### `transferEther(from: string, to: string, value: bigint): void`
 
   Transfers Ether from one address to another.
