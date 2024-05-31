@@ -127,11 +127,11 @@ validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTT
 validator-1  | Hello world!
 ```
 
-## API Reference
+## API and Usage Guide
 
 ### 1. Create a new application
 
-### `createApp(config: object): App`
+#### `createApp(config: object): App`
 
 Creates a new Cartesi application.
 
@@ -153,10 +153,11 @@ const app = createApp({
 
 app.start();
 ```
+---
 
 ### 2. Create notices, vouchers and reports
 
-### `createNotice(request: { payload: 0x${string}; }): Promise<number>`
+#### `createNotice(request: { payload: 0x${string}; }): Promise<number>`
 
 Creates a new notice and returns the index of the created notice.
 
@@ -185,7 +186,7 @@ app
   });
 ```
 
-### `createVoucher(request: { destination: 0x${string}; payload: string; }): Promise<number>`
+#### `createVoucher(request: { destination: 0x${string}; payload: string; }): Promise<number>`
 
 Creates a new voucher and returns the index of the created voucher.
 
@@ -220,7 +221,7 @@ app
   });
 ```
 
-### `createReport(request: { payload: 0x${string}; }): Promise<void>`
+#### `createReport(request: { payload: 0x${string}; }): Promise<void>`
 
 Creates a new report.
 
@@ -247,6 +248,7 @@ app.createReport({ payload:sample }).then(() => {
   console.error(`Failed to create report: ${error.message}`);
 });
 ```
+---
 
 ### 3. Creating the wallet and router
 
@@ -256,7 +258,7 @@ Install the router and wallet packages:
 yarn add @deroll/router @deroll/wallet
 ```
 
-### `createWallet(): Wallet`
+#### `createWallet(): Wallet`
 
 Initializes a new wallet instance.
 
@@ -270,7 +272,7 @@ import { createWallet } from "@deroll/wallet";
 const wallet = createWallet();
 ```
 
-### `createRouter(options: RouterOptions): Router`
+#### `createRouter(options: RouterOptions): Router`
 
 Initializes a new router instance.
 
@@ -314,26 +316,27 @@ router.add<{ address: string }>(
 
 The example route matches paths like `wallet/0x1234567890abcdef` and returns the balance of the specified address.
 
-### Wallet Reference
+--- 
+
+### 4. Wallet Reference
 
 The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token standard. Below is the expanded reference including the methods for handling the tokens.
 
-1. [etherBalanceOf](#etherbalanceof)
-2. [transferEther](#transferether)
-3. [withdrawEther](#withdrawether)
-4. [erc20BalanceOf](#erc20balanceof)
-5. [transferERC20](#transfererc20)
-6. [withdrawERC20](#withdrawerc20)
-7. [erc721Has](#erc721has)
-8. [transferERC721](#transfererc721)
-9. [withdrawERC721](#withdrawerc721)
-10. [erc1155BalanceOf](#erc1155balanceof)
-11. [transferERC1155](#transfererc1155)
-12. [withdrawERC1155](#withdrawerc1155)
+1. [etherBalanceOf](#etherbalanceofaddress-string-bigint)
+2. [transferEther](#transferetherfrom-string-to-string-value-bigint-void)
+3. [withdrawEther](#withdrawetheraddress-address-value-bigint-voucher)
+4. [erc20BalanceOf](#erc20balanceoftoken-address-address-string-bigint)
+5. [transferERC20](#transfererc20token-address-from-string-to-string-amount-bigint-void)
+6. [withdrawERC20](#withdrawerc20token-address-address-address-amount-bigint-voucher)
+7. [erc721Has](#erc721hastoken-address-address-string-tokenid-bigint-boolean)
+8. [transferERC721](#transfererc721token-address-from-string-to-string-tokenid-bigint-void)
+9. [withdrawERC721](#withdrawerc721token-address-address-address-tokenid-bigint-voucher)
+10. [erc1155BalanceOf](#erc1155balanceoftoken-address-address-string-tokenid-bigint-bigint)
+11. [transferERC1155](#transfererc1155token-address-from-string-to-string-tokenid-bigint-value-bigint-void)
+12. [withdrawERC1155](#withdrawerc1155token-address-address-address-tokenid-bigint-value-bigint-data-hex-voucher)
 
 ---
 
-### `etherBalanceOf`
 
 #### `etherBalanceOf(address: string): bigint`
 
@@ -357,7 +360,6 @@ console.log(`Ether balance: ${balance}`);
 
 ---
 
-### `transferEther`
 
 #### `transferEther(from: string, to: string, value: bigint): void`
 
@@ -389,7 +391,6 @@ try {
 
 ---
 
-### `withdrawEther`
 
 #### `withdrawEther(address: Address, value: bigint): Voucher`
 
@@ -423,7 +424,6 @@ try {
 
 ---
 
-### `erc20BalanceOf`
 
 #### `erc20BalanceOf(token: Address, address: string): bigint`
 
@@ -449,7 +449,6 @@ console.log(`ERC20 token balance: ${balance}`);
 
 ---
 
-### `transferERC20`
 
 #### `transferERC20(token: Address, from: string, to: string, amount: bigint): void`
 
@@ -483,7 +482,6 @@ try {
 
 ---
 
-### `withdrawERC20`
 
 #### `withdrawERC20(token: Address, address: Address, amount: bigint): Voucher`
 
@@ -519,7 +517,6 @@ try {
 
 ---
 
-### `erc721Has`
 
 #### `erc721Has(token: Address, address: string, tokenId: bigint): boolean`
 
@@ -547,7 +544,6 @@ console.log(`Owns token: ${hasToken}`);
 
 ---
 
-### `transferERC721`
 
 #### `transferERC721(token: Address, from: string, to: string, tokenId: bigint): void`
 
@@ -581,7 +577,6 @@ try {
 
 ---
 
-### `withdrawERC721`
 
 #### `withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher`
 
@@ -617,7 +612,6 @@ try {
 
 ---
 
-### `erc1155BalanceOf`
 
 #### `erc1155BalanceOf(token: Address, address: string, tokenId: bigint): bigint`
 
@@ -644,8 +638,6 @@ console.log(`ERC1155 token balance: ${balance}`);
 ```
 
 ---
-
-### `transferERC1155`
 
 #### `transferERC1155(token: Address, from: string, to: string, tokenId: bigint, value: bigint): void`
 
@@ -681,7 +673,6 @@ try {
 
 ---
 
-### `withdrawERC1155`
 
 #### `withdrawERC1155(token: Address, address: Address, tokenId: bigint, value: bigint, data: Hex): Voucher`
 
