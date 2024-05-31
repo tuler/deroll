@@ -323,6 +323,7 @@ The example route matches paths like `wallet/0x1234567890abcdef` and returns the
 The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token standard. Below is the expanded reference including the methods for handling the tokens.
 
 1. [etherBalanceOf](#etherbalanceofaddress-string-bigint)
+1. [getWallet](#getwalletaddress-string-readonlywallet)
 2. [transferEther](#transferetherfrom-string-to-string-value-bigint-void)
 3. [withdrawEther](#withdrawetheraddress-address-value-bigint-voucher)
 4. [erc20BalanceOf](#erc20balanceoftoken-address-address-string-bigint)
@@ -334,6 +335,8 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
 10. [erc1155BalanceOf](#erc1155balanceoftoken-address-address-string-tokenid-bigint-bigint)
 11. [transferERC1155](#transfererc1155token-address-from-string-to-string-tokenid-bigint-value-bigint-void)
 12. [withdrawERC1155](#withdrawerc1155token-address-address-address-tokenid-bigint-value-bigint-data-hex-voucher)
+12. [transferBatchERC1155](#transferbatcherc1155token-address-from-string-to-string-tokenids-bigint-values-bigint-void)
+12. [withdrawBatchERC1155](#withdrawbatcherc1155token-address-address-tokenids-bigint-values-bigint-data-hex-voucher)
 
 ---
 
@@ -357,6 +360,64 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
   );
   console.log(`Ether balance: ${balance}`);
   ```
+
+---
+
+Sure, here are the missing parts:
+
+---
+
+#### `getWallet(address: string): Readonly<Wallet>`
+
+Retrieves the wallet details of a given address.
+
+- **Parameters:**
+  - `address` (`string`): The address to retrieve the wallet details for. The address will be normalized.
+
+- **Returns:**
+  - `Readonly<Wallet>`: The wallet details of the address.
+
+**Example:**
+
+```typescript
+const walletDetails = wallet.getWallet('0x1234567890abcdef1234567890abcdef12345678');
+console.log('Wallet details:', walletDetails);
+```
+
+---
+
+
+Creates a voucher to withdraw multiple ERC1155 tokens from the specified address in a batch.
+
+- **Parameters:**
+  - `token` (`Address`): The ERC1155 token contract address.
+  - `address` (`Address`): The address to withdraw the ERC1155 tokens from. The address will be normalized.
+  - `tokenIds` (`bigint[]`): The token IDs to withdraw.
+  - `values` (`bigint[]`): The amounts of each token to withdraw.
+  - `data` (`Hex`): Additional data to include with the withdrawal.
+
+- **Returns:**
+  - `Voucher`: A voucher that can be used to process the withdrawal.
+
+- **Throws:**
+  - `Error`: Throws an error if the address has insufficient balance for any of the specified token IDs.
+
+**Example:**
+
+```typescript
+try {
+  const voucher = wallet.withdrawBatchERC1155(
+    '0xTokenAddress',
+    '0x1234567890abcdef1234567890abcdef12345678',
+    [1n, 2n, 3n],
+    [10n, 20n, 30n],
+    '0x'
+  );
+  console.log('Voucher created for batch ERC1155 withdrawal:', voucher);
+} catch (error) {
+  console.error(`Failed to create batch withdrawal voucher: ${error.message}`);
+}
+```
 
 ---
 
@@ -709,6 +770,78 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
     console.error(`Failed to create withdrawal voucher: ${error.message}`);
   }
   ```
+#### `transferBatchERC1155(token: Address, from: string, to: string, tokenIds: bigint[], values: bigint[]): void`
+
+Transfers multiple ERC1155 tokens from one address to another in a batch.
+
+- **Parameters:**
+  - `token` (`Address`): The ERC1155 token contract address.
+  - `from` (`string`): The sender's address. The address will be normalized.
+  - `to` (`string`): The recipient's address. The address will be normalized.
+  - `tokenIds` (`bigint[]`): The token IDs to transfer.
+  - `values` (`bigint[]`): The amounts of each token to transfer.
+
+- **Throws:**
+  - `Error`: Throws an error if the sender has insufficient balance for any of the specified token IDs.
+
+**Example:**
+
+```typescript
+try {
+  wallet.transferBatchERC1155(
+    '0xTokenAddress',
+    '0x1234567890abcdef1234567890abcdef12345678',
+    '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    [1n, 2n, 3n],
+    [10n, 20n, 30n]
+  );
+  console.log('Batch transfer successful');
+} catch (error) {
+  console.error(`Failed to transfer ERC1155 tokens: ${error.message}`);
+}
+```
+
+---
+
+
+Sure, here are the missing parts:
+
+---
+
+
+#### `withdrawBatchERC1155(token: Address, address: Address, tokenIds: bigint[], values: bigint[], data: Hex): Voucher`
+
+Creates a voucher to withdraw multiple ERC1155 tokens from the specified address in a batch.
+
+- **Parameters:**
+  - `token` (`Address`): The ERC1155 token contract address.
+  - `address` (`Address`): The address to withdraw the ERC1155 tokens from. The address will be normalized.
+  - `tokenIds` (`bigint[]`): The token IDs to withdraw.
+  - `values` (`bigint[]`): The amounts of each token to withdraw.
+  - `data` (`Hex`): Additional data to include with the withdrawal.
+
+- **Returns:**
+  - `Voucher`: A voucher that can be used to process the withdrawal.
+
+- **Throws:**
+  - `Error`: Throws an error if the address has insufficient balance for any of the specified token IDs.
+
+**Example:**
+
+```typescript
+try {
+  const voucher = wallet.withdrawBatchERC1155(
+    '0xTokenAddress',
+    '0x1234567890abcdef1234567890abcdef12345678',
+    [1n, 2n, 3n],
+    [10n, 20n, 30n],
+    '0x'
+  );
+  console.log('Voucher created for batch ERC1155 withdrawal:', voucher);
+} catch (error) {
+  console.error(`Failed to create batch withdrawal voucher: ${error.message}`);
+}
+```
 
 ---
 
