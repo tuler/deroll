@@ -363,8 +363,6 @@ The `@deroll/wallet` has support for Ether, ERC20, ERC721 and ERC1155 token stan
 
 ---
 
-Sure, here are the missing parts:
-
 ---
 
 #### `getWallet(address: string): Readonly<Wallet>`
