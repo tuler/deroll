@@ -131,14 +131,15 @@ validator-1  | Hello world!
 
 ### 1. Create a new application
 
-#### `createApp(config: object): App`
+#### `createApp(options: HttpAppOptions): App`
 
   Creates a new Cartesi application.
 
   - **Parameters:**
 
-    - `config` (`object`): Configuration object.
+    - `options` (`HttpAppOptions`): Configuration object.
       - `url` (`string`): URL of the rollup HTTP server.
+      - `broadcastAdvanceRequests` (`boolean`, `optional`): Whether to broadcast advance requests.  Default is `false`.
 
   - **Returns:** `App` instance.
 
