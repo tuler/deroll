@@ -157,7 +157,7 @@ validator-1  | Hello world!
 
 ### 2. Create notices, vouchers and reports
 
-#### `createNotice(request: { payload: 0x${string}; }): Promise<number>`
+#### `app.createNotice(request: { payload: 0x${string}; }): Promise<number>`
 
   Creates a new notice and returns the index of the created notice.
 
@@ -174,19 +174,20 @@ validator-1  | Hello world!
   **Example:**
 
   ```ts
-  const sample = "0x48656c6c6f2043617274657369"; // "Hello Cartesi" in hex
+    app.addAdvanceHandler(async ({ payload }) => {
+  
+  try {
+    const index = await app.createNotice({ payload });
+    console.log(`Notice created with index: ${index}`);
+  } catch (error) {
+    console.error(`Failed to create notice: ${error}`);
+  }
 
-  app
-    .createNotice({ payload: sample })
-    .then((index) => {
-      console.log(`Notice created with index: ${index}`);
-    })
-    .catch((error) => {
-      console.error(`Failed to create notice: ${error}`);
-    });
+  return "accept";
+  });
   ```
 
-#### `createVoucher(request: { destination: 0x${string}; payload: string; }): Promise<number>`
+#### `app.createVoucher(request: { destination: 0x${string}; payload: string; }): Promise<number>`
 
   Creates a new voucher and returns the index of the created voucher.
 
@@ -206,22 +207,24 @@ validator-1  | Hello world!
   **Example:**
 
   ```ts
-  const voucherRequest = {
-    destination: "0x1234567890abcdef1234567890abcdef12345678",
-    payload: "Some payload data",
-  };
+    app.addAdvanceHandler(async ({ payload }) => {
+    const voucherRequest = {
+      destination: "0x1234567890abcdef1234567890abcdef12345678",
+      payload,
+    };
 
-  app
-    .createVoucher(voucherRequest)
-    .then((index) => {
+    try {
+      const index = await app.createVoucher(voucherRequest);
       console.log(`Voucher created with index: ${index}`);
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error(`Failed to create voucher: ${error}`);
-    });
+    }
+
+    return "accept";
+  });
   ```
 
-#### `createReport(request: { payload: 0x${string}; }): Promise<void>`
+#### `app.createReport(request: { payload: 0x${string}; }): Promise<void>`
 
   Creates a new report.
 
@@ -240,12 +243,16 @@ validator-1  | Hello world!
   **Example:**
 
   ```ts
-  const sample = '0x68656c6c6f20776f726c64' // "hello world" in hex
-  };
-  app.createReport({ payload:sample }).then(() => {
-    console.log("Report created successfully");
-  }).catch(error => {
-    console.error(`Failed to create report: ${error.message}`);
+  app.addAdvanceHandler(async ({ payload }) => {
+  
+    try {
+      await app.createReport({ payload });
+      console.log("Report created successfully");
+    } catch (error) {
+      console.error(`Failed to create report: ${error.message}`);
+    }
+
+    return "accept";
   });
   ```
 ---
