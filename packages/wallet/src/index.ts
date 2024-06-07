@@ -35,6 +35,19 @@ export const WalletABI = parseAbi([
     "function withdrawERC1155Batch(address token, uint256[] tokenIds, uint256[] values)",
 ]);
 
+/**
+ * Initializes a new wallet instance.
+ * 
+ * @returns {WalletApp} Wallet instance.
+ * 
+ * @example
+ * ```ts
+ * import { createWallet } from "@deroll/wallet";
+ * 
+ * const wallet = createWallet();
+ * ```
+ */
+
 export const createWallet = (): WalletApp => {
     return new WalletAppImpl();
 };

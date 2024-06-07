@@ -17,7 +17,8 @@
         "dev": "tsup --watch",
         "lint": "eslint",
         "prepack": "run-s build",
-        "test": "vitest"
+        "test": "vitest",
+        "docs":"typedoc --out docs src/index.ts"
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
