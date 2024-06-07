@@ -14,7 +14,8 @@
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsup --watch",
         "lint": "eslint",
-        "prepack": "run-s build"
+        "prepack": "run-s build",
+        "docs":"typedoc --out docs src/index.ts"
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
@@ -28,6 +29,7 @@
         "npm-run-all": "^4",
         "ts-node": "^10.9.2",
         "tsup": "^8.0.2",
+        "typedoc": "^0.25.13",
         "typescript": "^5.4.5",
         "vitest": "^1.6.0"
     },

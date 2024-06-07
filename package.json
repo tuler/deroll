@@ -9,7 +9,8 @@
         "lint": "turbo lint",
         "release": "turbo build && changeset publish",
         "test": "turbo test",
-        "version-packages": "changeset version"
+        "version-packages": "changeset version",
+        "docs":"typedoc --out docs packages/app/src/index.ts packages/wallet/src/index.ts packages/router/src/index.ts"
     },
     "devDependencies": {
         "@changesets/cli": "^2",
