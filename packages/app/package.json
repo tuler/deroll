@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "eslint": "^8.57.0",
+        "eslint": "^9.6.0",
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
         "ts-node": "^10.9.2",
