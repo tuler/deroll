@@ -29,7 +29,7 @@
         "@sunodo/wagmi-plugin-hardhat-deploy": "^0.3",
         "@vitest/coverage-istanbul": "^1.6.0",
         "@vitest/ui": "^1.6.0",
-        "@wagmi/cli": "^2.1.4",
+        "@wagmi/cli": "^2.1.11",
         "abitype": "^1.0.2",
         "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
