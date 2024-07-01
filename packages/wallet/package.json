@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
-        "viem": "^2.9.31"
+        "viem": "^2.16.5"
     },
     "devDependencies": {
         "@cartesi/rollups": "^1.4.0",
