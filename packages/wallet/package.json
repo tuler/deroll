@@ -21,7 +21,7 @@
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
-        "viem": "^2.9.31"
+        "viem": "^2.17.4"
     },
     "devDependencies": {
         "@cartesi/rollups": "^1.4.0",
@@ -29,13 +29,13 @@
         "@sunodo/wagmi-plugin-hardhat-deploy": "^0.3",
         "@vitest/coverage-istanbul": "^2.0.3",
         "@vitest/ui": "^2.0.3",
-        "@wagmi/cli": "^2.1.4",
-        "abitype": "^1.0.2",
+        "@wagmi/cli": "^2.1.15",
+        "abitype": "^1.0.5",
         "eslint": "^8.57.0",
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
-        "tsup": "^8.0.2",
-        "typescript": "^5.4.5",
+        "tsup": "^8.1.2",
+        "typescript": "^5.5.3",
         "vitest": "^2.0.3"
     },
     "publishConfig": {

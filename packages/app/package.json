@@ -18,8 +18,8 @@
     },
     "dependencies": {
         "@deroll/core": "workspace:*",
-        "openapi-fetch": "^0.9.5",
-        "viem": "^2.9.31"
+        "openapi-fetch": "^0.10.2",
+        "viem": "^2.17.4"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
@@ -27,8 +27,8 @@
         "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
         "ts-node": "^10.9.2",
-        "tsup": "^8.0.2",
-        "typescript": "^5.4.5",
+        "tsup": "^8.1.2",
+        "typescript": "^5.5.3",
         "vitest": "^2.0.3"
     },
     "publishConfig": {
