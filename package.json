@@ -19,5 +19,5 @@
         "turbo": "^1.13.3",
         "typedoc": "^0.25.13"
     },
-    "packageManager": "pnpm@9.0.6"
+    "packageManager": "pnpm@9.5.0"
 }
