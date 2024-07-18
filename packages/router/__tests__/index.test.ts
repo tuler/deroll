@@ -24,7 +24,7 @@ describe("Router", () => {
     });
 
     test("simple route", async () => {
-        router.add(/ping/, (a, b) => "pong");
+        router.add("ping", (a, b) => "pong");
         await router.handler({ payload: stringToHex("ping") });
         expect(app.createReport).toHaveBeenCalledWith({
             payload: stringToHex("pong"),
