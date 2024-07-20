@@ -1,0 +1,7 @@
+query Report($inputNumber: Int!, $reportNumber: Int!) {
+    input(index: $inputNumber) {
+        report(index: $reportNumber) {
+            payload
+        }
+    }
+}

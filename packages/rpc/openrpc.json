@@ -1,0 +1,306 @@
+{
+    "openrpc": "1.2.4",
+    "info": {
+        "version": "1.0.0",
+        "title": "Cartesi",
+        "license": {
+            "name": "Apache-2.0"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/node/rpc"
+        }
+    ],
+    "methods": [
+        {
+            "name": "cartesi_inputNumber",
+            "summary": "Returns the number of the most recent input",
+            "params": [],
+            "result": {
+                "name": "inputNumber",
+                "summary": "The number of the most recent input",
+                "description": "The number of the most recent input receive by the node. Returns -1 if there were no inputs. The most recent input number is returned regardless its status, which can also be UNPROCESSED.",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getInput",
+            "summary": "Returns the input with the given number",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                }
+            ],
+            "result": {
+                "name": "input",
+                "description": "The input with the given number",
+                "schema": {
+                    "$ref": "#/components/schemas/Input"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getNoticeCount",
+            "summary": "Returns the number of notices produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                }
+            ],
+            "result": {
+                "name": "noticeCount",
+                "description": "The number of notices produced by the input",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getReportCount",
+            "summary": "Returns the number of reports produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                }
+            ],
+            "result": {
+                "name": "reportCount",
+                "description": "The number of reports produced by the input",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getVoucherCount",
+            "summary": "Returns the number of vouchers produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                }
+            ],
+            "result": {
+                "name": "voucherCount",
+                "description": "The number of vouchers produced by the input",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getNotice",
+            "summary": "Returns a notice produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                },
+                {
+                    "$ref": "#/components/contentDescriptors/NoticeNumber"
+                }
+            ],
+            "result": {
+                "name": "notice",
+                "description": "The notice produced by the input",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getReport",
+            "summary": "Returns a report produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                },
+                {
+                    "$ref": "#/components/contentDescriptors/ReportNumber"
+                }
+            ],
+            "result": {
+                "name": "report",
+                "description": "Report produced by an input",
+                "schema": {
+                    "$ref": "#/components/schemas/Report"
+                }
+            }
+        },
+        {
+            "name": "cartesi_getVoucher",
+            "summary": "Returns a voucher produced by an input",
+            "params": [
+                {
+                    "$ref": "#/components/contentDescriptors/InputNumber"
+                },
+                {
+                    "$ref": "#/components/contentDescriptors/VoucherNumber"
+                }
+            ],
+            "result": {
+                "name": "voucher",
+                "description": "Voucher produced by an input",
+                "schema": {
+                    "$ref": "#/components/schemas/Voucher"
+                }
+            }
+        }
+    ],
+    "components": {
+        "contentDescriptors": {
+            "InputNumber": {
+                "name": "inputNumber",
+                "required": true,
+                "description": "The index of the input",
+                "schema": {
+                    "type": "number"
+                }
+            },
+            "NoticeNumber": {
+                "name": "noticeNumber",
+                "required": true,
+                "description": "The index of the notice",
+                "schema": {
+                    "type": "number"
+                }
+            },
+            "ReportNumber": {
+                "name": "reportNumber",
+                "required": true,
+                "description": "The index of the report",
+                "schema": {
+                    "type": "number"
+                }
+            },
+            "VoucherNumber": {
+                "name": "voucherNumber",
+                "required": true,
+                "description": "The index of the voucher",
+                "schema": {
+                    "type": "number"
+                }
+            }
+        },
+        "schemas": {
+            "Input": {
+                "type": "object",
+                "required": [
+                    "blockNumber",
+                    "msgSender",
+                    "payload",
+                    "status",
+                    "timestamp"
+                ],
+                "properties": {
+                    "blockNumber": {
+                        "type": "string"
+                    },
+                    "msgSender": {
+                        "type": "string"
+                    },
+                    "payload": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Report": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": {
+                    "payload": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Proof": {
+                "type": "object",
+                "required": ["context", "validity"],
+                "properties": {
+                    "context": {
+                        "type": "string"
+                    },
+                    "validity": {
+                        "type": "object",
+                        "required": [
+                            "inputIndexWithinEpoch",
+                            "outputIndexWithinInput",
+                            "outputHashesRootHash",
+                            "vouchersEpochRootHash",
+                            "noticesEpochRootHash",
+                            "machineStateHash",
+                            "outputHashInOutputHashesSiblings",
+                            "outputHashesInEpochSiblings"
+                        ],
+                        "properties": {
+                            "inputIndexWithinEpoch": {
+                                "type": "number"
+                            },
+                            "outputIndexWithinInput": {
+                                "type": "number"
+                            },
+                            "outputHashesRootHash": {
+                                "type": "string"
+                            },
+                            "vouchersEpochRootHash": {
+                                "type": "string"
+                            },
+                            "noticesEpochRootHash": {
+                                "type": "string"
+                            },
+                            "machineStateHash": {
+                                "type": "string"
+                            },
+                            "outputHashInOutputHashesSiblings": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "outputHashesInEpochSiblings": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Notice": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": {
+                    "payload": {
+                        "type": "string"
+                    },
+                    "proof": {
+                        "$ref": "#/components/schemas/Proof"
+                    }
+                }
+            },
+            "Voucher": {
+                "type": "object",
+                "required": ["destination", "payload"],
+                "properties": {
+                    "destination": {
+                        "type": "string"
+                    },
+                    "payload": {
+                        "type": "string"
+                    },
+                    "proof": {
+                        "$ref": "#/components/schemas/Proof"
+                    }
+                }
+            }
+        }
+    }
+}

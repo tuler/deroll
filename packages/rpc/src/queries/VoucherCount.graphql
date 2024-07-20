@@ -1,0 +1,7 @@
+query VoucherCount($inputNumber: Int!) {
+    input(index: $inputNumber) {
+        vouchers {
+            totalCount
+        }
+    }
+}

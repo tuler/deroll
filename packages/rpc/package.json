@@ -1,0 +1,58 @@
+{
+    "name": "@deroll/rpc",
+    "version": "0.0.0",
+    "description": "Cartesi JSON-RPC API",
+    "main": "./dist/index.js",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./client": {
+            "import": "./dist/client.mjs",
+            "require": "./dist/client.js",
+            "types": "./dist/client.d.ts"
+        },
+        "./server": {
+            "import": "./dist/server.mjs",
+            "require": "./dist/server.js",
+            "types": "./dist/server.d.ts"
+        }
+    },
+    "bin": "./dist/cli.js",
+    "scripts": {
+        "build": "run-s codegen compile",
+        "codegen": "graphql-codegen",
+        "compile": "tsup",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "dev": "tsup --watch",
+        "prepack": "run-s build",
+        "start": "ts-node src/cli.ts"
+    },
+    "dependencies": {
+        "@apollo/client": "^3.10.8",
+        "@commander-js/extra-typings": "^12.1.0",
+        "@graphql-typed-document-node/core": "^3.2.0",
+        "body-parser": "^1.20.2",
+        "commander": "^12.1.0",
+        "express": "^4.19.2",
+        "graphql-filter-fragment": "^1.0.5",
+        "json-rpc-2.0": "^1.7.0"
+    },
+    "devDependencies": {
+        "@deroll/tsconfig": "workspace:*",
+        "@graphql-codegen/cli": "^5.0.2",
+        "@graphql-codegen/client-preset": "^4.3.2",
+        "@open-rpc/generator": "^1.22.3",
+        "@types/body-parser": "^1.19.5",
+        "@types/express": "^4.17.21",
+        "graphql": "^16.9.0",
+        "npm-run-all": "^4.1.5",
+        "ts-node": "^10.9.2",
+        "tsup": "^8.2.1",
+        "typescript": "^5.5.3"
+    }
+}
