@@ -1,5 +1,11 @@
 # @deroll/rpc
 
+## 0.1.3
+
+### Patch Changes
+
+-   d297185: export types
+
 ## 0.1.2
 
 ### Patch Changes
