@@ -1,5 +1,11 @@
 # @deroll/rpc
 
+## 0.1.2
+
+### Patch Changes
+
+-   4ab81c3: fix packaging
+
 ## 0.1.1
 
 ### Patch Changes
