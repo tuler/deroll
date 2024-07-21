@@ -1,0 +1,13 @@
+{
+    "extends": "@deroll/tsconfig/base.json",
+    "compilerOptions": {
+        "module": "esnext",
+        "noUncheckedIndexedAccess": true,
+        "paths": {
+            "@deroll/rpc/client": ["./node_modules/@deroll/rpc/dist/client"]
+        },
+        "resolveJsonModule": true
+    },
+    "include": ["."],
+    "exclude": ["dist", "node_modules"]
+}
