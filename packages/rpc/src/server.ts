@@ -14,6 +14,7 @@ import {
 } from "./__generated__/graphql";
 import { exceptionMiddleware, logMiddleware } from "./middlewares";
 
+export * from "./types";
 export type ServerOptions = {
     graphqlUri: string;
 };
