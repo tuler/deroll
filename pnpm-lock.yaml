@@ -253,6 +253,9 @@ importers:
       express:
         specifier: ^4.19.2
         version: 4.19.2
+      graphql:
+        specifier: ^16.9.0
+        version: 16.9.0
       graphql-filter-fragment:
         specifier: ^1.0.5
         version: 1.0.5(@apollo/client@3.10.8(graphql-ws@5.16.0(graphql@16.9.0))(graphql@16.9.0)(react@18.3.1))(graphql@16.9.0)
@@ -278,9 +281,6 @@ importers:
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
-      graphql:
-        specifier: ^16.9.0
-        version: 16.9.0
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5

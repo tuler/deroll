@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { ApolloClient, InMemoryCache } from "@apollo/client/core";
 import filterGraphQlFragment from "graphql-filter-fragment";
 import { JSONRPCServer, TypedJSONRPCServer } from "json-rpc-2.0";
 import { Methods } from "./methods";
