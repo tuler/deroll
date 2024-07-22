@@ -1,5 +1,11 @@
 # @deroll/rpc
 
+## 0.1.4
+
+### Patch Changes
+
+-   d897bee: revert ESM, issues with apollo/client
+
 ## 0.1.3
 
 ### Patch Changes
