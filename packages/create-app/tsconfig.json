@@ -1,0 +1,10 @@
+{
+    "extends": "@deroll/tsconfig/base.json",
+    "compilerOptions": {
+        "noUncheckedIndexedAccess": true,
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext"
+    },
+    "include": ["."],
+    "exclude": ["dist", "node_modules"]
+}

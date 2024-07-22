@@ -1,0 +1,39 @@
+{
+    "name": "@deroll/create-app",
+    "version": "0.0.0",
+    "description": "deroll application creator",
+    "main": "dist/index.js",
+    "bin": "dist/cli.js",
+    "scripts": {
+        "build": "tsup",
+        "start": "tsx src/cli.ts",
+        "prepack": "run-s build"
+    },
+    "keywords": [
+        "cartesi",
+        "deroll"
+    ],
+    "type": "module",
+    "author": "Danilo Tuler",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "@deroll/tsconfig": "workspace:*",
+        "@types/figlet": "^1.5.8",
+        "@types/fs-extra": "^11.0.4",
+        "@types/node": "^20.14.11",
+        "@types/validate-npm-package-name": "^4.0.2",
+        "npm-run-all": "^4.1.5",
+        "tsup": "^8.2.2",
+        "tsx": "^4.16.2",
+        "typescript": "^5.5.3"
+    },
+    "dependencies": {
+        "@clack/prompts": "^0.7.0",
+        "@commander-js/extra-typings": "^12.1.0",
+        "commander": "^12.1.0",
+        "figlet": "^1.7.0",
+        "fs-extra": "^11.2.0",
+        "got": "^14.4.1",
+        "validate-npm-package-name": "^5.0.1"
+    }
+}
