@@ -21,7 +21,7 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       turbo:
-        specifier: ^2.0.7
+        specifier: ^2.0.9
         version: 2.0.9
       typedoc:
         specifier: ^0.26.4
@@ -147,7 +147,7 @@ importers:
         specifier: ^9.1.0
         version: 9.1.0(eslint@9.7.0)
       eslint-config-turbo:
-        specifier: ^2.0.7
+        specifier: ^2.0.9
         version: 2.0.9(eslint@9.7.0)
       eslint-plugin-import:
         specifier: ^2
