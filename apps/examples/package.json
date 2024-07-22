@@ -1,0 +1,43 @@
+{
+    "name": "@deroll/examples",
+    "version": "0.0.0",
+    "scripts": {
+        "build": "tsup",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "dev": "tsup --watch",
+        "dev:abi": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/abi.ts",
+        "dev:echo": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/echo.ts",
+        "dev:minimal": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/minimal.ts",
+        "dev:router": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/router.ts",
+        "dev:wallet": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/wallet.ts",
+        "dev:walletRouter": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/walletRouter.ts",
+        "dev:withdraw": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/withdraw.ts"
+    },
+    "bin": {
+        "deroll-example-abi": "dist/abi.js",
+        "deroll-example-echo": "dist/echo.js",
+        "deroll-example-minimal": "dist/minimal.js",
+        "deroll-example-router": "dist/router.js",
+        "deroll-example-wallet": "dist/wallet.js",
+        "deroll-example-wallet-router": "dist/walletRouter.js",
+        "deroll-example-withdraw": "dist/withdraw.js"
+    },
+    "files": [
+        "dist/**"
+    ],
+    "dependencies": {
+        "@deroll/app": "workspace:*",
+        "@deroll/router": "workspace:*",
+        "@deroll/wallet": "workspace:*",
+        "viem": "^2.17.10"
+    },
+    "devDependencies": {
+        "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^20.14.11",
+        "eslint": "^8.57.0",
+        "eslint-config-deroll": "workspace:*",
+        "tsup": "^8.2.2",
+        "typescript": "^5.5.3",
+        "vitest": "^2.0.4"
+    }
+}

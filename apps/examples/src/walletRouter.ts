@@ -9,13 +9,10 @@ const app = createApp({ url: "http://localhost:5004" });
 const wallet = createWallet();
 
 const router = createRouter({ app });
-router.add<{ address: string }>(
-    "wallet/:address",
-    ({ params: { address } }) => {
-        return JSON.stringify({
-            balance: wallet.etherBalanceOf(address),
-        });
-    },
+router.add<{ address: string }>("wallet/:address", ({ params: { address } }) =>
+    JSON.stringify(wallet.getWallet(address), (_, v) =>
+        typeof v === "bigint" ? v.toString() : v,
+    ),
 );
 
 app.addAdvanceHandler(wallet.handler);
