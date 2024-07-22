@@ -11,6 +11,15 @@ type Proof = {
         outputHashesInEpochSiblings: string[];
     };
 };
+export type InputStatus =
+    | "UNPROCESSED"
+    | "ACCEPTED"
+    | "REJECTED"
+    | "EXCEPTION"
+    | "MACHINE_HALTED"
+    | "CYCLE_LIMIT_EXCEEDED"
+    | "TIME_LIMIT_EXCEEDED"
+    | "PAYLOAD_LENGTH_LIMIT_EXCEEDED";
 export type InputNumberParams = [];
 export type InputNumberReturnType = number;
 export type GetInputParams = [number];
@@ -18,7 +27,7 @@ export type GetInputReturnType = {
     blockNumber: string;
     msgSender: string;
     payload: string;
-    status: string;
+    status: InputStatus;
     timestamp: string;
 };
 type OutputCountParams = [number];
