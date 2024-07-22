@@ -1,5 +1,11 @@
 # @deroll/rpc
 
+## 0.1.5
+
+### Patch Changes
+
+-   757e847: exporting input status
+
 ## 0.1.4
 
 ### Patch Changes
