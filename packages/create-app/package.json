@@ -1,6 +1,6 @@
 {
     "name": "@deroll/create-app",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "deroll application creator",
     "main": "dist/index.js",
     "bin": "dist/cli.js",
