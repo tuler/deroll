@@ -8,20 +8,25 @@ Deroll, a TypeScript framework, facilitates the development of decentralized app
 
 Ensure you have Node.js and Yarn installed; you can download them from [nodejs.org](https://nodejs.org/) and [yarnpkg.com](https://yarnpkg.com/). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
 
-### Create a new project with the TypeScript template
+### Creating a project
 
 ```shell
-cartesi create hello-world --template typescript
+npm init @deroll/app
 ```
 
-### Add deroll to your project
+or
 
 ```shell
-cd hello-world
-yarn add @deroll/app
+pnpm create @deroll/app
 ```
 
-### Write a simple Cartesi application
+or
+
+```shell
+yarn create @deroll/app
+```
+
+### Simple example
 
 Open the file `src/index.ts` and copy and paste the following code:
 
@@ -137,7 +142,8 @@ corepack pnpm install
 ### Build
 
 ```sh
-npm run build
+pnpm i
+pnpm run build
 ```
 
 ## How to contribute
