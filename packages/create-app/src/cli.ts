@@ -129,6 +129,7 @@ const getLibraries = async (options: {
             },
         ],
         initialValues,
+        required: false,
     });
 
     if (isCancel(packages)) {
