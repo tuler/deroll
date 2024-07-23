@@ -15,7 +15,7 @@
     ],
     "type": "module",
     "author": "Danilo Tuler",
-    "license": "Apache-2.0",
+    "license": "MIT",
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
         "@types/figlet": "^1.5.8",
