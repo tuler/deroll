@@ -2,7 +2,7 @@ import { createApp } from "@deroll/app";
 import { decodeFunctionData, parseAbi } from "viem";
 
 // create application
-const app = createApp({ url: "http://localhost:5004" });
+const app = createApp({ url: "http://127.0.0.1:5004" });
 
 // define application ABI
 const abi = parseAbi([

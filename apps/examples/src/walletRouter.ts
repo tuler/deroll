@@ -3,7 +3,7 @@ import { createRouter } from "@deroll/router";
 import { createWallet } from "@deroll/wallet";
 
 // create app
-const app = createApp({ url: "http://localhost:5004" });
+const app = createApp({ url: "http://127.0.0.1:5004" });
 
 // create wallet
 const wallet = createWallet();
