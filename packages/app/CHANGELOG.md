@@ -1,5 +1,13 @@
 # @deroll/app
 
+## 0.7.1
+
+### Patch Changes
+
+-   09c8d46: Moving broadcastAdvanceRequests to AppOptions type
+-   Updated dependencies [09c8d46]
+    -   @deroll/core@0.2.1
+
 ## 0.7.0
 
 ### Minor Changes

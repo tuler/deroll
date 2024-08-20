@@ -1,5 +1,11 @@
 # @deroll/core
 
+## 0.2.1
+
+### Patch Changes
+
+-   09c8d46: Moving broadcastAdvanceRequests to AppOptions type
+
 ## 0.2.0
 
 ### Minor Changes
