@@ -9,6 +9,10 @@ import {
 export * from "./types";
 export * from "./schema";
 
+export type AppOptions = {
+    broadcastAdvanceRequests?: boolean;
+};
+
 export interface App {
     start(): Promise<void>;
     createNotice(request: Notice): Promise<number>;

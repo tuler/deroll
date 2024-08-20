@@ -2,6 +2,7 @@ import {
     AdvanceRequestData,
     AdvanceRequestHandler,
     App,
+    AppOptions,
     InspectRequestHandler,
     InspectRequestData,
     Notice,
@@ -13,9 +14,8 @@ import {
 } from "@deroll/core";
 import createClient from "openapi-fetch";
 
-export type HttpAppOptions = {
+export type HttpAppOptions = AppOptions & {
     url: string;
-    broadcastAdvanceRequests?: boolean;
 };
 
 export class HttpApp implements App {
