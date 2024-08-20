@@ -1,5 +1,12 @@
 # @deroll/wallet
 
+## 0.8.1
+
+### Patch Changes
+
+-   Updated dependencies [09c8d46]
+    -   @deroll/core@0.2.1
+
 ## 0.8.0
 
 ### Minor Changes
