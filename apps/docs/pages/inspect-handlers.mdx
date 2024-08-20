@@ -29,17 +29,33 @@ Another useful use case of inspects is to simulate the outcome of an input, like
 Inspect requests are made directly to the Cartesi node through an HTTP GET request to the `/inspect` endpoint.
 The following `curl` command creates an inspect request to the local node executed by `cartesi run`, and calls the above handler.
 
-```shell
-$ curl http://localhost:8080/inspect/tuler
-{"status":"Accepted","exception_payload":null,"reports":[{"payload":"0x54554c4552"}],"processed_input_count":0}
+:::code-group
+```bash [command]
+curl http://localhost:8080/inspect/tuler | jq
 ```
+```json [output]
+{
+  "status": "Accepted",
+  "exception_payload": null,
+  "reports": [
+    {
+      "payload": "0x54554c4552"
+    }
+  ],
+  "processed_input_count": 0
+}
+```
+:::
 
 Let's use some command line utilities, `jq` and `xxd`, to decode the report payload returned:
 
-```shell
-$ curl -slL http://localhost:8080/inspect/tuler | jq -r '.reports[0].payload' | xxd -r -p
-TULER
+:::code-group
+```bash [command]
+curl -slL http://localhost:8080/inspect/tuler | jq -r '.reports[0].payload' | xxd -r -p
 ```
+```bash [output]
+TULER
+:::
 
 We'll leave as an exercise to the reader to use the `fetch` API, and the payload conversion APIs to implement inspect requests using TypeScript.
 More details about inspect requests check the [official documentation](https://docs.cartesi.io/cartesi-rollups/1.5/development/send-requests/#advance-and-inspect-requests).
