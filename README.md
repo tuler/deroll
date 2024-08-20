@@ -41,13 +41,11 @@ const app = createApp({
 
 // Handle input encoded in hex
 app.addAdvanceHandler(async ({ payload }) => {
-    const hexString = payload.replace(/^0x/, "");
-    const buffer = Buffer.from(hexString, "hex");
+    // read payload as string
+    const str = hexToString(payload);
 
-    // Convert the buffer to a UTF-8 string
-    const utf8String = buffer.toString("utf8");
-    console.log(utf8String);
-    return Promise.resolve("accept");
+    // create a notice with the string in uppercase
+    await app.createNotice({ payload: stringToHex(str.toUpperCase()) });
 });
 
 // Start the application
@@ -71,6 +69,8 @@ prompt-1     | Anvil running at http://localhost:8545
 prompt-1     | GraphQL running at http://localhost:8080/graphql
 prompt-1     | Inspect running at http://localhost:8080/inspect/
 prompt-1     | Explorer running at http://localhost:8080/explorer/
+prompt-1     | Bundler running at http://localhost:8080/bundler/rpc
+prompt-1     | Paymaster running at http://localhost:8080/paymaster/
 prompt-1     | Press Ctrl+C to stop the node
 ```
 
@@ -113,6 +113,8 @@ prompt-1     | Anvil running at http://localhost:8545
 prompt-1     | GraphQL running at http://localhost:8080/graphql
 prompt-1     | Inspect running at http://localhost:8080/inspect/
 prompt-1     | Explorer running at http://localhost:8080/explorer/
+prompt-1     | Bundler running at http://localhost:8080/bundler/rpc
+prompt-1     | Paymaster running at http://localhost:8080/paymaster/
 prompt-1     | Press Ctrl+C to stop the node
 validator-1  | [INFO  rollup_http_server::http_service] Received new request of type ADVANCE
 validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTTP/1.1" 200 224 "-" "undici" 0.000960
@@ -125,7 +127,7 @@ Now you're ready to start building your Cartesi application with cartesi and der
 
 ### Requirements
 
--   Corepack (with pnpm) or pnpm v8 (8.7.1 recommended)
+-   Corepack (with pnpm) or pnpm v9 (9.7.1 recommended)
 -   Node 20 or greater (LTS)
 
 ### Installation
@@ -148,7 +150,7 @@ pnpm run build
 
 ## How to contribute
 
-TODO
+Try to follow deroll conventions and patterns, open a ticket to discuss ideas, or open a PR.
 
 ## License
 

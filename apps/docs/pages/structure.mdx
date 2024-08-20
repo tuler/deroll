@@ -1,0 +1,18 @@
+# Project Structure [Overview of the structure of a deroll project]
+
+## Overview
+
+A general overview of the structure of a deroll project:
+
+```
+my-dapp/                # Your dapp's root directory.
+├── .cartesi            # Temporary Cartesi CLI build artifacts (in .gitignore) // [!code focus]
+├── .dockerignore
+├── .gitignore
+├── Dockerfile          # The application build configuration through Docker // [!code hl] // [!code focus]
+├── README.md
+├── package.json
+├── src
+│   └── index.ts        # Application entry point // [!code hl] // [!code focus]
+└── tsconfig.json
+```

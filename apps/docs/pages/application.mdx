@@ -1,0 +1,36 @@
+# Application
+
+A deroll `App` is responsible for the main loop of the Cartesi application.
+It fetches advance requests (inputs) sent to the application, handling them to [AdvanceHandler's](./advance-handlers), and inspect requests to [InspectHandler's](./inspect-handlers).
+
+The source of these requests is usually the rollups http server that runs inside the Cartesi Machine, which fetches requests from the outside using Cartesi I/O primitives.
+
+You can construct an `App` that communicates with the rollups http server using the [createApp](./app/create-app) function.
+You must specify the URL of the http server, which by default is set in the application Dockerfile as the environment variable `ROLLUP_HTTP_SERVER_URL=http://127.0.0.1:5004`.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" }); // [!code focus]
+```
+
+You then call the `app.start()` method. That will enter in a continuous loop, fetching requests and handling them to the application request handlers.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// start app // [!code ++]
+app.start().catch((e) => process.exit(1)); // [!code ++]
+```
+
+In the example above we are catching exceptions and exiting the application. Keep in mind that exiting a Cartesi rollups application means that the rollups is terminated forever.
+
+To do anything useful the application must implement [AdvanceHandler's](./advance-handlers) and [InspectHandler's](./inspect-handlers), which is the subject of the following sections.

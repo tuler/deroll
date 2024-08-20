@@ -1,0 +1,99 @@
+# Data Encoding
+
+Data processed by a Cartesi application, inputs and outpus, contains a generic binary payload, which when needed by text transport methods (like JSON-RPC) is serialized as a hex-encoded string.
+The encoding and semantics of those payloads are defined by the application itself, which can use string encodings, like UTF-8, JSON structures, or binary encodings like [ABI](https://docs.soliditylang.org/en/latest/abi-spec.html) or [Protobuf](https://protobuf.dev/).
+
+## String encoding
+
+There are several data description formats that use UTF-8 strings as the base format. Those include JSON, XML, and others.
+
+You can use the viem [hexToString](https://viem.sh/docs/utilities/fromHex#hextostring) and [stringToHex](https://viem.sh/docs/utilities/toHex#stringtohex) utility methods to handle conversion between string and hex-encoded binary strings.
+
+The following example takes a JavaScript object and converts it to a hex-encoded string to be sent as input payload.
+
+```ts twoslash
+import { stringToHex } from "viem";
+const payload = stringToHex(JSON.stringify({ key: "value" }));
+// 0x7b226b6579223a2276616c7565227d
+```
+
+If you send that payload as input to your Cartesi application you can decode it back to a JavaScript object using the following code:
+
+```ts twoslash
+import { hexToString } from "viem";
+const obj = JSON.parse(hexToString("0x7b226b6579223a2276616c7565227d"));
+// { key: 'value' }
+```
+
+## ABI encoding
+
+ABI is also a popular encoding choice for binary data, especially because of its extensive use in Solidity, which doesn't have good string handling capabilities.
+
+Cartesi portals and relays smart contracts use ABI encoding, and you will most likely need to learn how to decode ABI encoded data anyway.
+
+Data can be encoding by specifying the types of the data and the data itself. The following example shows how to encode a string, a uint and a bool value using the [encodeAbiParameters](https://viem.sh/docs/abi/encodeAbiParameters#encodeabiparameters) utility function.
+
+```ts twoslash
+import { encodeAbiParameters, parseAbiParameters } from 'viem'
+ 
+const encodedData = encodeAbiParameters(
+  parseAbiParameters('string x, uint y, bool z'),
+  ['wagmi', 420n, true]
+)
+// 0x000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000001a4000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000057761676d69000000000000000000000000000000000000000000000000000000
+```
+
+You can also use the [encodeFunctionData](https://viem.sh/docs/contract/encodeFunctionData#encodefunctiondata) utility function to encode a "function name" plus its parameters, and defined an "Application ABI" that you can use in an [advance handler](./advance-handlers).
+
+Your application can define an API like the one below:
+
+```ts twoslash
+import { parseAbi } from "viem";
+
+// define application ABI
+const abi = parseAbi([
+    "function attackDragon(uint256 dragonId, string weapon)",
+    "function drinkPotion()",
+]);
+```
+
+Notice how the `abi` is properly typed. Then on an advance handler you can decode some payload and do a type-checked switch case like in the full example below.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import { decodeFunctionData, parseAbi } from "viem";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// define application ABI
+const abi = parseAbi([
+    "function attackDragon(uint256 dragonId, string weapon)",
+    "function drinkPotion()",
+]);
+
+// handle input encoded as ABI function call
+app.addAdvanceHandler(async ({ payload }) => {
+    const { functionName, args } = decodeFunctionData({ abi, data: payload });
+
+    switch (functionName) {
+//          ^?
+        case "attackDragon":
+            
+            // see how `args` is properly typed thanks to TypeScript inferring
+            const [dragonId, weapon] = args;
+//                                     ^?
+            console.log(`attacking dragon ${dragonId} with ${weapon}...`);
+            return "accept";
+
+        case "drinkPotion":
+            console.log(`drinking potion...`);
+            return "accept";
+    }
+});
+
+// start app
+app.start().catch((e) => process.exit(1));
+```

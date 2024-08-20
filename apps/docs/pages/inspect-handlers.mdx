@@ -1,0 +1,45 @@
+# Inspect handlers
+
+## Overview
+
+Inspect handlers are async function callbacks that receive the `payload` of an inspect request, and has no return value.
+The following example defines an inspect handler that logs the payload, decode it as a string and add a report with the string uppercase value.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { InspectRequestHandler } from "@deroll/core";
+import { stringToHex, hexToString } from "viem";
+
+const handler: InspectRequestHandler = async ({ payload }) => {
+    console.log(payload);
+    const str = hexToString(payload);
+    await app.createReport({ payload: stringToHex(str.toUpperCase()) });
+}
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+app.addInspectHandler(handler);
+```
+
+Reports are the only kind of output that inspect handlers should create.
+The state of the Cartesi machine as a whole is not modified on an inspect request, so you should only use this kind of request handler to return application state (and not modify the state).
+
+Another useful use case of inspects is to simulate the outcome of an input, like doing some kind of validation logic, and returning the expected result.
+
+Inspect requests are made directly to the Cartesi node through an HTTP GET request to the `/inspect` endpoint.
+The following `curl` command creates an inspect request to the local node executed by `cartesi run`, and calls the above handler.
+
+```shell
+$ curl http://localhost:8080/inspect/tuler
+{"status":"Accepted","exception_payload":null,"reports":[{"payload":"0x54554c4552"}],"processed_input_count":0}
+```
+
+Let's use some command line utilities, `jq` and `xxd`, to decode the report payload returned:
+
+```shell
+$ curl -slL http://localhost:8080/inspect/tuler | jq -r '.reports[0].payload' | xxd -r -p
+TULER
+```
+
+We'll leave as an exercise to the reader to use the `fetch` API, and the payload conversion APIs to implement inspect requests using TypeScript.
+More details about inspect requests check the [official documentation](https://docs.cartesi.io/cartesi-rollups/1.5/development/send-requests/#advance-and-inspect-requests).

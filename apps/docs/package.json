@@ -2,6 +2,7 @@
     "name": "@deroll/docs",
     "version": "0.0.0",
     "type": "module",
+    "private": true,
     "scripts": {
         "dev": "vocs dev",
         "build": "vocs build",
@@ -11,7 +12,15 @@
         "@types/react": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "typescript": "latest",
         "vocs": "latest"
+    },
+    "devDependencies": {
+        "@deroll/app": "workspace:*",
+        "@deroll/core": "workspace:*",
+        "@deroll/router": "workspace:*",
+        "@deroll/wallet": "workspace:*",
+        "@types/node": "^22.4.1",
+        "typescript": "^5.5.4",
+        "viem": "^2.19.8"
     }
 }

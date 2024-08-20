@@ -1,0 +1,164 @@
+# Wallet
+
+## Overview
+
+Base layer assets are often used in Cartesi applications.
+Cartesi supports bridging ETH from the base layer to your application as well as 3 additional token standards: ERC-20, ERC-721 and ERC-1155.
+
+Bridging works by interacting with portal smart contracts developed by Cartesi and deployed to all supported networks.
+Those contracts lock the assets on the base layer, assigning their ownership to the application smart contract, and sending an input to the InputBox contract notifying the application about the transfer.
+This notification includes what asset was transferred and who transferred it, allowing the application to credit the user's internal application balance accordingly.
+
+## Deposit
+
+The `@deroll/wallet` module provides an in-memory implementation of a wallet management that automatically takes care of receiving asset notification from portals, and providing a simple API for querying, trasferring inside the application, and creating vouchers to withdraw back to the base layer.
+
+:::code-group
+```bash [pnpm]
+$ pnpm add @deroll/wallet
+```
+```bash [npm]
+npm install @deroll/wallet
+```
+```bash [yarn]
+yarn add @deroll/wallet
+```
+:::
+
+You start by creating a wallet object using the `createWallet` function, and then adding the wallet handler to the application.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet"; // [!code ++]
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet // [!code ++]
+const wallet = createWallet(); // [!code ++]
+
+// wire wallet advance handler // [!code ++]
+app.addAdvanceHandler(wallet.handler); // [!code ++]
+
+// start app
+app.start().catch((e) => process.exit(1));
+```
+
+The `wallet.handler` will take care of intercepting the inputs sent from the Cartesi portals, decoding the information, and storing users assets information in an in-memory data structure.
+
+You can then, as an example, query the CTSI balance in an inspect handler:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+import { numberToHex } from "viem"; // [!code ++]
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+app.addInspectHandler(async (data) => { // [!code ++]
+    const address = data.payload; // [!code ++]
+    const balance = wallet.erc20BalanceOf( // [!code ++]
+        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
+        address, // [!code ++]
+    ); // [!code ++]
+    await app.createReport({ payload: numberToHex(balance) }); // [!code ++]
+}); // [!code ++]
+
+// start app
+app.start().catch((e) => process.exit(1));
+```
+
+A complete API documentation is available in the [reference section](/wallet/overview).
+
+## Withdraw
+
+Assets deposited to an application through a portal are owned on the base layer by the application smart contract.
+Users can withdraw their deposited assets by creating vouchers that can be executed on the base layer, after the voucher proofs are generated (usually once a week).
+
+The `wallet` object provides several `withdraw` methods that creates vouchers that can be generated as output.
+The following example creates a voucher to withdraw 1 CTSI to the user that sent the input.
+If the user doesn't have enough balance an exception is raised, which makes the handler not `accept` the input.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+import { hexToBigInt, numberToHex } from "viem"; // [!code ++]
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet and wire its handler
+const wallet = createWallet();
+app.addAdvanceHandler(wallet.handler);
+
+app.addAdvanceHandler(async (data) => { // [!code ++]
+    const amount = hexToBigInt(data.payload); // [!code ++]
+    const voucher = wallet.withdrawERC20( // [!code ++]
+        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
+        data.metadata.msg_sender, // [!code ++]
+        amount, // [!code ++]
+    ); // [!code ++]
+    await app.createVoucher(voucher); // [!code ++]
+    return "accept"; // [!code ++]
+}); // [!code ++]
+
+app.addInspectHandler(async (data) => {
+    const address = data.payload;
+    const balance = wallet.erc20BalanceOf(
+        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
+        address,
+    );
+    await app.createReport({ payload: numberToHex(balance) });
+});
+
+// start app
+app.start().catch((e) => process.exit(1));
+```
+
+## Utility functions
+
+Instead of using the wallet module handler, and the wallet in-memory data structure, you can also use some utility functions provided by the `@deroll/wallet` module to parse deposits yourself and take care of managing balances or creating vouchers.
+
+The following code snippet handles ERC-20 deposits manually, and just creates a voucher to return the deposited amount.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import {
+    createERC20TransferVoucher,
+    isERC20Deposit,
+    parseERC20Deposit,
+} from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+app.addAdvanceHandler(async (data) => { // [!code focus]
+    if (isERC20Deposit(data)) { // [!code focus]
+        const deposit = parseERC20Deposit(data.payload); // [!code focus]
+        const voucher = createERC20TransferVoucher( // [!code focus]
+            deposit.token, // [!code focus]
+            deposit.sender, // [!code focus]
+            deposit.amount, // [!code focus]
+        ); // [!code focus]
+        await app.createVoucher(voucher); // [!code focus]
+    } // [!code focus]
+    return "accept"; // [!code focus]
+}); // [!code focus]
+
+// start app
+app.start().catch((e) => process.exit(1));
+```

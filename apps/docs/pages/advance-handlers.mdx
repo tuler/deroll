@@ -1,0 +1,93 @@
+# Advance handlers
+
+## Overview
+
+Advance handlers are async function callbacks that receive the `metadata` and `payload` of an input, and must return either `"accept"` or `"reject"`.
+The following example defines a request handler that accepts all requests, but just logs the input metadata.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { AdvanceRequestHandler } from "@deroll/core";
+
+const handler: AdvanceRequestHandler = async ({ metadata, payload }) => {
+    console.log(metadata);
+// @noErrors
+    return "
+//          ^|
+}
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+app.addAdvanceHandler(handler);
+```
+
+## Handlers Execution
+
+The application created with `createApp` holds a list of advance handlers that are executed in the order they were added.
+
+By default, when a handler returns `"accept"` the execution chain stops.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// ---cut---
+app.addAdvanceHandler(async (data) => {
+    console.log(data);
+    return "accept";
+});
+
+app.addAdvanceHandler(async (data) => {
+    // this code is never executed, because the first handler always returns "accept" // [!code hl]
+    return "accept";
+});
+```
+
+If a handler returns `"reject"` or **raises an exception**, the next handler in the list is executed.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// ---cut---
+app.addAdvanceHandler(async (data) => {
+    console.log(data);
+    return "reject";
+});
+
+app.addAdvanceHandler(async (data) => {
+    // this code will execute // [!code hl]
+    return "accept";
+});
+```
+
+If no handler returns `"accept"` the input is rejected and the machine is reverted to the initial state by the Cartesi node.
+
+## Broadcast Mode
+
+If the application is created with the `broadcastAdvanceRequests` option set to `true`, then all handlers are executed regardless the return value of each handler.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({
+    url: "http://127.0.0.1:5004",
+    broadcastAdvanceRequests: true
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+});
+
+app.addAdvanceHandler(async (data) => {
+    console.log(data);
+    return "accept";
+});
+
+app.addAdvanceHandler(async (data) => {
+    // this code executes, even when the first handler returns "accept" // [!code hl]
+    return "accept";
+});
+```
