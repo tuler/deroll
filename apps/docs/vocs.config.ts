@@ -158,5 +158,15 @@ export default defineConfig({
             ],
         },
     ],
+    socials: [
+        {
+            icon: "github",
+            link: "https://github.com/tuler/deroll",
+        },
+        {
+            icon: "x",
+            link: "https://x.com/dtuler",
+        },
+    ],
     title: "deroll",
 });
