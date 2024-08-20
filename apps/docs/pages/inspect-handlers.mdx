@@ -21,7 +21,7 @@ const app = createApp({ url: "http://127.0.0.1:5004" });
 app.addInspectHandler(handler);
 ```
 
-Reports are the only kind of output that inspect handlers should create.
+Reports are the only kind of output that inspect handlers can create.
 The state of the Cartesi machine as a whole is not modified on an inspect request, so you should only use this kind of request handler to return application state (and not modify the state).
 
 Another useful use case of inspects is to simulate the outcome of an input, like doing some kind of validation logic, and returning the expected result.
