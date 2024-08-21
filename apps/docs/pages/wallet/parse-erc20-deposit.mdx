@@ -1,0 +1,35 @@
+# parseERC20Deposit
+
+Parse a ERC-20 deposit request coming from the `ERC20Portal` smart contract.
+
+## Usage
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { isERC20Deposit, parseERC20Deposit } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+app.addAdvanceHandler(async (data) => {
+    if (isERC20Deposit(data)) {
+        const deposit = parseERC20Deposit(data.payload); // [!code focus]
+// @noErrors
+        deposit.
+//              ^|
+    }
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `ERC20Deposit`
+
+Structure with deposit data.
+
+## Parameters
+
+Type: `Hex`
+
+Deposit payload.

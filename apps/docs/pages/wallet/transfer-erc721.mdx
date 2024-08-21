@@ -1,11 +1,50 @@
 # transferERC721
 
-:::warning
-Work in progress
-:::
+Transfer L2 ERC-721 ownership from one user to another.
 
 ## Usage
 
+The following example is an advance handler that transfers token 1 of the `0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B` ERC-721 from the sender of the input to a recipient specified in the input payload.
+If the sender does not have ownership of the token an exception is raised, and that handler is aborted.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
+app.addAdvanceHandler(async ({ metadata, payload }) => {
+    wallet.transferERC721(token, metadata.msg_sender, payload, 1n); // [!code focus]
+    wallet.trasfer
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `void`
+
 ## Parameters
+
+Type: `Address`
+
+Token address.
+
+Type: `string`
+
+From address.
+
+Type: `string`
+
+Recipiend address.
+
+Type: `bigint`
+
+Amount to transfer.

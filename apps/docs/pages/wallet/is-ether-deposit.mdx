@@ -1,0 +1,33 @@
+# isEtherDeposit
+
+Checks if a request is a ETH deposit coming from the `EtherPortal` smart contract.
+
+## Usage
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { isEtherDeposit, parseEtherDeposit } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+app.addAdvanceHandler(async (data) => {
+    if (isEtherDeposit(data)) { // [!code focus]
+        const deposit = parseEtherDeposit(data.payload);
+// @noErrors
+        deposit.
+//              ^|
+    }
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `boolean`
+
+True if request is a ETH deposit from the `EtherPortal` smart contract.
+
+## Parameters
+
+Type: `AdvanceRequestData`

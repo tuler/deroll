@@ -143,6 +143,66 @@ export default defineConfig({
                             text: "withdrawBatchERC1155",
                             link: "/wallet/withdraw-batch-erc1155",
                         },
+                        {
+                            text: "createWithdrawEtherVoucher",
+                            link: "/wallet/create-withdraw-ether-voucher",
+                        },
+                        {
+                            text: "createERC20TransferVoucher",
+                            link: "/wallet/create-erc20-transfer-voucher",
+                        },
+                        {
+                            text: "createERC721TransferVoucher",
+                            link: "/wallet/create-erc721-transfer-voucher",
+                        },
+                        {
+                            text: "createERC1155SingleTransferVoucher",
+                            link: "/wallet/create-erc1155-single-transfer-voucher",
+                        },
+                        {
+                            text: "createERC1155BatchTransferVoucher",
+                            link: "/wallet/create-erc1155-batch-transfer-voucher",
+                        },
+                        {
+                            text: "isEtherDeposit",
+                            link: "/wallet/is-ether-deposit",
+                        },
+                        {
+                            text: "isERC20Deposit",
+                            link: "/wallet/is-erc20-deposit",
+                        },
+                        {
+                            text: "isERC721Deposit",
+                            link: "/wallet/is-erc721-deposit",
+                        },
+                        {
+                            text: "isERC1155SingleDeposit",
+                            link: "/wallet/is-erc1155-single-deposit",
+                        },
+                        {
+                            text: "isERC1155BatchDeposit",
+                            link: "/wallet/is-erc1155-batch-deposit",
+                        },
+                        {
+                            text: "parseEtherDeposit",
+                            link: "/wallet/parse-ether-deposit",
+                        },
+                        {
+                            text: "parseERC20Deposit",
+                            link: "/wallet/parse-erc20-deposit",
+                        },
+                        {
+                            text: "parseERC721Deposit",
+                            link: "/wallet/parse-erc721-deposit",
+                        },
+                        {
+                            text: "parseERC1155SingleDeposit",
+                            link: "/wallet/parse-erc1155-single-deposit",
+                        },
+                        {
+                            text: "parseERC1155BatchDeposit",
+                            link: "/wallet/parse-erc1155-batch-deposit",
+                        },
                     ],
                 },
                 {

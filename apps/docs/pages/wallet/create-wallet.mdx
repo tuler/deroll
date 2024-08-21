@@ -1,11 +1,28 @@
 # createWallet
 
-:::warning
-Work in progress
-:::
+Creates a wallet object that provides a handler to process asssets deposits and an in-memory wallet management data structure.
 
 ## Usage
 
+The example below creates a new wallet management object, and attaches a handler to automatically process assets deposits.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet // [!code focus]
+const wallet = createWallet(); // [!code focus]
+
+app.addAdvanceHandler(wallet.handler); // [!code focus]
+```
+
 ## Returns
 
+Type: `WalletApp`
+
 ## Parameters
+
+None

@@ -1,11 +1,50 @@
 # withdrawERC721
 
-:::warning
-Work in progress
-:::
+Withdraw ERC-721 token from one user and returns a `Voucher` to the recipient on L1.
+The voucher still need to be created through a [createVoucher](../../app/create-voucher) call.
 
 ## Usage
 
+The following example withdraws the token 1 of the user who is submitting an input to the application.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
+app.addAdvanceHandler(async ({ metadata }) => {
+    const user = metadata.msg_sender;
+    const hasOne = wallet.erc721Has(token, user, 1n);
+    if (hasOne) {
+        const voucher = wallet.withdrawERC721(token, user, 1n); // [!code focus]
+        await app.createVoucher(voucher);
+    }
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `Voucher`
+
 ## Parameters
+
+Type: `Address`
+
+Address of ERC-721 token.
+
+Type: `string`
+
+User to withdraw from.
+
+Type: `bigint`
+
+Amount to withdraw.

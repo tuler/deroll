@@ -1,0 +1,35 @@
+# parseEtherDeposit
+
+Parse a ERC-721 deposit request coming from the `ERC721Portal` smart contract.
+
+## Usage
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { isERC721Deposit, parseERC721Deposit } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+app.addAdvanceHandler(async (data) => {
+    if (isERC721Deposit(data)) {
+        const deposit = parseERC721Deposit(data.payload); // [!code focus]
+// @noErrors
+        deposit.
+//              ^|
+    }
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `ERC721Deposit`
+
+Structure with deposit data.
+
+## Parameters
+
+Type: `Hex`
+
+Deposit payload.

@@ -1,11 +1,47 @@
 # erc721Has
 
-:::warning
-Work in progress
-:::
+Returns an ERC-721 ownership of a token and user managed by a wallet module.
 
 ## Usage
 
+The following example creates an inspect request handler that assumes the `payload` is an user address and just prints if he owns the NFT id 1 of token `0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B`.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address // [!code focus]
+app.addInspectHandler(async ({ payload }) => { // [!code focus]
+    const address = payload; // [!code focus]
+    const hasOne = wallet.erc721Has(token, address, 1n); // [!code focus]
+    console.log(hasOne); // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+Type: `boolean`
+
+Whether the user has ownership of a specific ERC-721 token id.
+
 ## Parameters
+
+Type: `Address`
+
+The ERC-721 token address.
+
+Type: `string`
+
+The address of the user to get the ownership from.
+
+Type: `bigint`
+
+The id of the token to check ownership.

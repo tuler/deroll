@@ -1,11 +1,47 @@
 # erc1155BalanceOf
 
-:::warning
-Work in progress
-:::
+Returns an ERC-1155 balance of a token and user managed by a wallet module.
 
 ## Usage
 
+The following example creates an inspect request handler that assumes the `payload` is an user address and just prints the balance of token id 1 of token `0x04d724738873CB6a86328D2EbAEb2079D715e61e`.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address // [!code focus]
+app.addInspectHandler(async ({ payload }) => { // [!code focus]
+    const address = payload; // [!code focus]
+    const balance = wallet.erc1155BalanceOf(token, address, 1n); // [!code focus]
+    console.log(balance); // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+Type: `bigint`
+
+The ERC-1155 balance of the given token and address.
+
 ## Parameters
+
+Type: `Address`
+
+The ERC-1155 token address.
+
+Type: `string`
+
+The address of the user to get the balance from.
+
+Type: `bigint`
+
+The id of the token to check balance.

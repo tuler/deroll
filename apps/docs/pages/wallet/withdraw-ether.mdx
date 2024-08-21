@@ -1,11 +1,45 @@
 # withdrawEther
 
-:::warning
-Work in progress
-:::
+Withdraw L2 ETH (or base layer native token) from one user and returns a `Voucher` to the recipient on L1.
+The voucher still need to be created through a [createVoucher](../../app/create-voucher) call.
 
 ## Usage
 
+The following example withdraws the entire balance of the user who is submitting an input to the application.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+app.addAdvanceHandler(async ({ metadata }) => {
+    const user = metadata.msg_sender;
+    const value = wallet.etherBalanceOf(user);
+    if (value > 0) {
+        const voucher = wallet.withdrawEther(user, value); // [!code focus]
+        await app.createVoucher(voucher);
+    }
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `Voucher`
+
 ## Parameters
+
+Type: `string`
+
+User to withdraw from.
+
+Type: `bigint`
+
+Amount to withdraw.

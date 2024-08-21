@@ -1,0 +1,35 @@
+# parseERC1155BatchDeposit
+
+Parse a ERC-1155 deposit request coming from the `ERC1155BatchPortal` smart contract.
+
+## Usage
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { isERC1155BatchDeposit, parseERC1155BatchDeposit } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+app.addAdvanceHandler(async (data) => {
+    if (isERC1155BatchDeposit(data)) {
+        const deposit = parseERC1155BatchDeposit(data.payload); // [!code focus]
+// @noErrors
+        deposit.
+//              ^|
+    }
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `ERC1155BatchDeposit`
+
+Structure with deposit data.
+
+## Parameters
+
+Type: `Hex`
+
+Deposit payload.

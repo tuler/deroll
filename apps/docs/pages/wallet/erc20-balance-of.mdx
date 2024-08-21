@@ -1,11 +1,43 @@
 # erc20BalanceOf
 
-:::warning
-Work in progress
-:::
+Returns an ERC-20 token balance of a token and user managed by a wallet module.
 
 ## Usage
 
+The following example creates an inspect request handler that assumes the `payload` is an user address and just prints the balance of that user to the console.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
+app.addInspectHandler(async ({ payload }) => { // [!code focus]
+    const address = payload; // [!code focus]
+    const balance = wallet.erc20BalanceOf(token, address); // [!code focus]
+    console.log(balance); // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+Type: `bigint`
+
+The ERC-20 balance of the given token and address.
+
 ## Parameters
+
+Type: `string`
+
+The address of the user to get the balance from.
+
+Type: `string`
+
+The address of the user to get the balance from.

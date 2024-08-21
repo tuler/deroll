@@ -1,11 +1,50 @@
 # withdrawERC20
 
-:::warning
-Work in progress
-:::
+Withdraw ERC-20 tokens from one user and returns a `Voucher` to the recipient on L1.
+The voucher still need to be created through a [createVoucher](../../app/create-voucher) call.
 
 ## Usage
 
+The following example withdraws the entire CTSI balance of the user who is submitting an input to the application.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+app.addAdvanceHandler(async ({ metadata }) => {
+    const user = metadata.msg_sender;
+    const value = wallet.erc20BalanceOf(token, user);
+    if (value > 0) {
+        const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
+        await app.createVoucher(voucher);
+    }
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `Voucher`
+
 ## Parameters
+
+Type: `Address`
+
+Address of ERC-20 token.
+
+Type: `string`
+
+User to withdraw from.
+
+Type: `bigint`
+
+Amount to withdraw.

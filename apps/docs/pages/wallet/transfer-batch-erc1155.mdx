@@ -1,11 +1,62 @@
 # transferBatchERC1155
 
-:::warning
-Work in progress
-:::
+Transfer multiple L2 ERC-1155 tokens from one user to another.
 
 ## Usage
 
+The following example is an advance handler that transfers 1 * 10^18 units of tokens 1 and 2 of the token `0x04d724738873CB6a86328D2EbAEb2079D715e61e` from the sender of the input to a recipient specified in the input payload.
+If the sender does not have enough balance an exception is raised, and that handler is aborted.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+import { parseUnits } from "viem";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
+app.addAdvanceHandler(async ({ metadata, payload }) => {
+    const value1 = parseUnits("1", 18);
+    const value2 = parseUnits("1", 18);
+    wallet.transferBatchERC1155( // [!code focus]
+        token, // [!code focus]
+        metadata.msg_sender, // [!code focus]
+        payload, // [!code focus]
+        [1n, 2n], // [!code focus]
+        [value1, value2], // [!code focus]
+    ); // [!code focus]
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `void`
+
 ## Parameters
+
+Type: `Address`
+
+Token address.
+
+Type: `string`
+
+From address.
+
+Type: `string`
+
+Recipiend address.
+
+Type: `bigint[]`
+
+Token ids.
+
+Type: `bigint[]`
+
+Amounts to transfer.

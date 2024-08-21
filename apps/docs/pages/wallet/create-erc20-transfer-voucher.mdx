@@ -1,0 +1,46 @@
+# createERC20TransferVoucher
+
+Utility to create a `Voucher` to transfer ERC-20 from the application to a destination address on the base layer.
+
+## Usage
+
+The example below shows how to create a `Voucher` to withdraw 1 CTSI to the `msg_sender` of the an input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createERC20TransferVoucher } from "@deroll/wallet";
+import { parseUnits } from "viem";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+app.addAdvanceHandler(async ({ metadata }) => {
+    const value = parseUnits("1", 18);
+    const voucher = createERC20TransferVoucher( // [!code focus]
+        token, // [!code focus]
+        metadata.msg_sender, // [!code focus]
+        value, // [!code focus]
+    ); // [!code focus]
+    await app.createVoucher(voucher);
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `Voucher`
+
+## Parameters
+
+Type: `Address`
+
+ERC-20 token address.
+
+Type: `Address`
+
+Destination address.
+
+Type: `bigint`
+
+Amount to transfer.

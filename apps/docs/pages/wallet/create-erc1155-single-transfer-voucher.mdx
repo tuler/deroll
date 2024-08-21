@@ -1,0 +1,62 @@
+# createERC1155SingleTransferVoucher
+
+Utility to create a `Voucher` to transfer ERC-1155 token from one address to another on the base layer.
+
+## Usage
+
+The example below shows how to create a `Voucher` to withdraw 1 token of token id 1 from the application to the `msg_sender` of the an input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createERC1155SingleTransferVoucher } from "@deroll/wallet";
+import { parseUnits } from "viem";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
+const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
+app.addAdvanceHandler(async ({ metadata }) => {
+    const value = parseUnits("1", 18);
+    const voucher = createERC1155SingleTransferVoucher( // [!code focus]
+        token, // [!code focus]
+        application, // [!code focus]
+        metadata.msg_sender, // [!code focus]
+        1n, // [!code focus]
+        value, // [!code focus]
+        "0x", // [!code focus]
+    ); // [!code focus]
+    await app.createVoucher(voucher);
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `Voucher`
+
+## Parameters
+
+Type: `Address`
+
+ERC-1155 token address.
+
+Type: `Address`
+
+Source address.
+
+Type: `Address`
+
+Destination address.
+
+Type: `bigint`
+
+Token id.
+
+Type: `bigint`
+
+Token amount.
+
+Type: `Hex`
+
+Extra payload sent to the base layer.

@@ -1,11 +1,46 @@
 # transferEther
 
-:::warning
-Work in progress
-:::
+Transfer L2 ETH (or base layer native token) from one user to another.
 
 ## Usage
 
+The following example is an advance handler that transfers 1 ETH from the sender of the input to a recipient specified in the input payload.
+If the sender does not have enough balance an exception is raised, and that handler is aborted.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+import { parseEther } from "viem";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+app.addAdvanceHandler(async ({ metadata, payload }) => {
+    const value = parseEther("1");
+    wallet.transferEther(metadata.msg_sender, payload, value); // [!code focus]
+    return "accept";
+});
+```
+
 ## Returns
 
+Type: `void`
+
 ## Parameters
+
+Type: `string`
+
+From address.
+
+Type: `string`
+
+Recipiend address.
+
+Type: `bigint`
+
+Amount to transfer.

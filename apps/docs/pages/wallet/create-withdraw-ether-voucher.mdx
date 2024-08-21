@@ -1,0 +1,46 @@
+# createWithdrawEtherVoucher
+
+Utility to create a `Voucher` to withdraw ether to a destination address on the base layer.
+
+## Usage
+
+The example below shows how to create a `Voucher` to withdraw 1 ether to the `msg_sender` of the an input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWithdrawEtherVoucher } from "@deroll/wallet";
+import { parseEther } from "viem";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
+app.addAdvanceHandler(async ({ metadata }) => {
+    const value = parseEther("1");
+    const voucher = createWithdrawEtherVoucher( // [!code focus]
+        application, // [!code focus]
+        metadata.msg_sender, // [!code focus]
+        value, // [!code focus]
+    ); // [!code focus]
+    await app.createVoucher(voucher);
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `Voucher`
+
+## Parameters
+
+Type: `Address`
+
+Application address.
+
+Type: `Address`
+
+Destination address.
+
+Type: `bigint`
+
+Amount to transfer.

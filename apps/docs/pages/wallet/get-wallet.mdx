@@ -1,11 +1,50 @@
 # getWallet
 
-:::warning
-Work in progress
-:::
+Returns a wallet data structure for a specific user address.
 
 ## Usage
 
+The following example creates an inspect request handler that assumes the `payload` is an user address, gets the user wallet and just prints the balance of that user to the console.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { createWallet } from "@deroll/wallet";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create wallet
+const wallet = createWallet();
+
+app.addAdvanceHandler(wallet.handler);
+
+app.addInspectHandler(async ({ payload }) => { // [!code focus]
+    const address = payload; // [!code focus]
+    const userWallet = wallet.getWallet(address); // [!code focus]
+    const balance = userWallet.ether; // [!code focus]
+    console.log(balance); // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+Type: `Wallet`
+
+```ts twoslash
+import { Address } from "viem";
+// ---cut---
+type Wallet = {
+    ether: bigint;
+    erc20: Record<Address, bigint>; // key = token address, value = amount
+    erc721: Record<Address, Set<bigint>>; // key = token address, value = set of tokenIds
+    erc1155: Record<Address, Map<bigint, bigint>>; // key = token address, value = map of tokenId to values
+};
+```
+
+The returned type is actually a `Readonly` view of the structure above, as the values are not intended to be modified directly, only through a deposit from the base layer, a `transfer` call, or a withdraw through a voucher.
+
 ## Parameters
+
+Type: `string`
+
+The user address.
