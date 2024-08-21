@@ -1,0 +1,52 @@
+# createVoucher
+
+Creates a notice output while processing an advance request.
+
+## Usage
+
+The following example creates a voucher output of a ERC-20 transfer of 1 CTSI from the application to user `0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f`.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// log incoming advance request
+app.addAdvanceHandler(async (data) => {
+    const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
+    const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient // [!code focus]
+    const amount = parseUnits("1", 18); // [!code focus]
+
+    const id = await app.createVoucher({ // [!code focus]
+        destination: token, // [!code focus]
+        payload: encodeFunctionData({ // [!code focus]
+            abi: erc20Abi, // [!code focus]
+            functionName: "transfer", // [!code focus]
+            args: [to, amount], // [!code focus]
+        }), // [!code focus]
+    }); // [!code focus]
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `number`
+
+The id of the voucher output.
+
+## Parameters
+
+### destination
+
+Type: `Address`
+
+The address of the target smart contract of the voucher.
+
+### payload
+
+Type: `Hex`
+
+The ABI-encoded solidity call.

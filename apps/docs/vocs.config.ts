@@ -61,16 +61,16 @@ export default defineConfig({
                             link: "/app/add-inspect-handler",
                         },
                         {
-                            text: "addNotice",
-                            link: "/app/add-notice",
+                            text: "createNotice",
+                            link: "/app/create-notice",
                         },
                         {
-                            text: "addReport",
-                            link: "/app/add-report",
+                            text: "createReport",
+                            link: "/app/create-report",
                         },
                         {
-                            text: "addVoucher",
-                            link: "/app/add-voucher",
+                            text: "createVoucher",
+                            link: "/app/create-voucher",
                         },
                     ],
                 },

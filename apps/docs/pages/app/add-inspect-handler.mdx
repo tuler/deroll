@@ -1,11 +1,28 @@
 # addInspectHandler
 
-:::warning
-Work in progress
-:::
+Appends an inspect request handler to the list of handlers managed by the application.
 
 ## Usage
 
+Below is a simple example of adding an inspect handler that only logs the request received.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://localhost:5004" });
+
+app.addInspectHandler(async ({ payload }) => { // [!code focus]
+    console.log(payload); // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+`void`
+
 ## Parameters
+
+Type: `InspectRequestHandler`
+
+An async function that receives an object with the request `payload`.

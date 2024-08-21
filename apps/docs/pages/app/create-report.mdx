@@ -1,0 +1,37 @@
+# createReport
+
+Creates a report output while processing a request.
+The difference between a report and a notice is that a report is not provable on the base layer, as it doesn't have a proof.
+It's just informational and can be used to log data.
+
+## Usage
+
+The following simple example creates a report output with the payload `"hello"` string.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { stringToHex } from "viem";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// log incoming advance request
+app.addAdvanceHandler(async (data) => {
+    const id = await app.createReport({ payload: stringToHex("hello") }); // [!code focus]
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `number`
+
+The id of the report output.
+
+## Parameters
+
+### payload
+
+Type: `Hex`
+
+Binary payload of the report, hex-encoded.

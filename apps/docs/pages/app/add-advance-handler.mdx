@@ -1,11 +1,29 @@
 # addAdvanceHandler
 
-:::warning
-Work in progress
-:::
+Appends an advance request handler to the list of handlers managed by the application.
 
 ## Usage
 
+Below is a simple example of adding an advance handler that only logs the request received.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://localhost:5004" });
+
+app.addAdvanceHandler(async ({ metadata, payload }) => { // [!code focus]
+    console.log(metadata, payload); // [!code focus]
+    return "accept"; // [!code focus]
+}); // [!code focus]
+```
+
 ## Returns
 
+`void`
+
 ## Parameters
+
+Type: `AdvanceRequestHandler`
+
+An async function that receives an object with the request `metadata` and `payload`, and returns either `accept` or `reject`.

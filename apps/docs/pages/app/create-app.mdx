@@ -1,11 +1,35 @@
 # createApp
 
-:::warning
-Work in progress
-:::
+Creates an application that fetches requests from the specified URL and handles to request handlers.
 
 ## Usage
 
+Below is a simple example of constructing a new `App` that fetches requests from `http://localhost:5004`, which is a rollups HTTP server.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp({ url: "http://localhost:5004" });
+```
+
 ## Returns
 
+`App`
+
+The application instance.
+
 ## Parameters
+
+### url
+
+Type: `string`
+
+URL of an HTTP server to fetch requests from.
+Can be a HTTP rollups server running inside a Cartesi machine, or any alternative testing HTTP server running on the host.
+
+### broadcastAdvanceRequests
+
+Type: `boolean | undefined`
+
+If value is true application will call every request handler regardless of the return value of each handler. Default is false.

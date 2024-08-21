@@ -1,0 +1,35 @@
+# createNotice
+
+Creates a notice output while processing an advance request.
+
+## Usage
+
+The following simple example creates a notice output with the payload `"hello"` string.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { stringToHex } from "viem";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// log incoming advance request
+app.addAdvanceHandler(async (data) => {
+    const id = await app.createNotice({ payload: stringToHex("hello") }); // [!code focus]
+    return "accept";
+});
+```
+
+## Returns
+
+Type: `number`
+
+The id of the notice output.
+
+## Parameters
+
+### payload
+
+Type: `Hex`
+
+Binary payload of the notice, hex-encoded.
