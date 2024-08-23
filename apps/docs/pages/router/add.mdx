@@ -1,11 +1,53 @@
 # add
 
-:::warning
-Work in progress
-:::
+Adds a new route to a router module.
 
 ## Usage
 
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+import { createRouter } from "@deroll/router";
+
+// create app
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// create router
+const router = createRouter({ app });
+router.add<{ name: string }>( // [!code focus]
+    "hello/:name", // [!code focus]
+    ({ params: { name } }) => `Hello ${name}`, // [!code focus]
+); // [!code focus]
+
+app.addInspectHandler(router.handler);
+
+// start app
+app.start().catch((e) => process.exit(1));
+```
+
 ## Returns
 
+Type: `Route<P>`
+
+```ts
+type Route<P extends object> = {
+    matcher: MatchFunction<P>;
+    handler: Handler<P>;
+};
+```
+
 ## Parameters
+
+Type: `string`
+
+URL of route.
+
+Type: `Handler`
+
+```ts
+type Handler<P extends object = object> = (
+    match: MatchResult<P>,
+    matchedRoute: Route<P>,
+) => string;
+```
