@@ -22,9 +22,10 @@ app.addAdvanceHandler(wallet.handler);
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
 app.addAdvanceHandler(async ({ metadata }) => {
     const user = metadata.msg_sender;
+    const dapp = metadata.app_contract;
     const value = wallet.erc1155BalanceOf(token, user, 1n);
     if (value > 0) {
-        const voucher = wallet.withdrawERC1155(token, user, 1n, value, "0x"); // [!code focus]
+        const voucher = wallet.withdrawERC1155(dapp, token, user, 1n, value, "0x"); // [!code focus]
         await app.createVoucher(voucher);
     }
     return "accept";

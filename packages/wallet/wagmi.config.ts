@@ -7,14 +7,13 @@ export default defineConfig({
         hardhatDeploy({
             directory: "node_modules/@cartesi/rollups/export/abi",
             includes: [
-                /CartesiDApp/,
-                /DAppAddressRelay/,
-                /ERC1155SinglePortal/,
                 /ERC1155BatchPortal/,
+                /ERC1155SinglePortal/,
                 /ERC20Portal/,
                 /ERC721Portal/,
                 /EtherPortal/,
             ],
+            include_networks: ["sepolia"],
         }),
     ],
 });

@@ -23,7 +23,7 @@
         "viem": "^2.21.34"
     },
     "devDependencies": {
-        "@cartesi/rollups": "^1.4.3",
+        "@cartesi/rollups": "2.0.0-rc.12",
         "@deroll/tsconfig": "workspace:*",
         "@sunodo/wagmi-plugin-hardhat-deploy": "^0.3",
         "@vitest/coverage-istanbul": "^2.1.3",

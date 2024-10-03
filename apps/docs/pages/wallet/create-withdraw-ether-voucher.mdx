@@ -18,7 +18,6 @@ const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 app.addAdvanceHandler(async ({ metadata }) => {
     const value = parseEther("1");
     const voucher = createWithdrawEtherVoucher( // [!code focus]
-        application, // [!code focus]
         metadata.msg_sender, // [!code focus]
         value, // [!code focus]
     ); // [!code focus]

@@ -42,6 +42,10 @@ export default defineConfig({
             link: "/structure",
         },
         {
+            text: "Migrating from v1 to v2",
+            link: "/migrating",
+        },
+        {
             text: "API",
             items: [
                 {

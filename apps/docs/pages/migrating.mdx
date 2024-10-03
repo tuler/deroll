@@ -1,0 +1,63 @@
+# Migrating
+
+## From v1 to v2
+
+Deroll v1 is based on Cartesi Rollups v1, while deroll v2 is based on Cartesi Rollups v2.
+
+Here are the changes you should be aware of when migrating from v1 to v2:
+
+### Input metadata
+
+The input metadata received in an advance handler has changed.
+
+```diff
++chain_id: number;
++app_contract: Address;
+msg_sender: Address;
+-epoch_index: number;
+input_index: number;
+block_number: number;
+-timestamp: number;
++block_timestamp: number;
++prev_randao: Hex;
+```
+
+### Voucher value
+
+Vouchers now have a required hex-encoded bigint `value` field, which is the amount of native token to be sent during voucher execution.
+With this new property withdraw vouchers can now be much simpler.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
+
+// create application
+const app = createApp({ url: "http://127.0.0.1:5004" });
+
+// log incoming advance request
+app.addAdvanceHandler(async (data) => {
+    const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+    const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
+    const amount = parseUnits("1", 18);
+
+    const id = await app.createVoucher({
+        destination: token,
+        payload: encodeFunctionData({
+            abi: erc20Abi,
+            functionName: "transfer",
+            args: [to, amount],
+        }),
+        value: "0x", // [!code focus]
+    });
+    return "accept";
+});
+```
+
+### Change in ERC-20 deposit input
+
+The message format of a ERC-20 deposit dropped the byte of the success flag.
+If you use the `@deroll/wallet` module this change is automatically handled for you.
+
+### DAppAddressRelay removed
+
+Now that the input metadata includes the application address there is no need to use the `DAppAddressRelay` contract anymore.

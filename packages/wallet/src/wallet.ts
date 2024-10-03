@@ -1,7 +1,6 @@
 import { AdvanceRequestHandler, Voucher } from "@deroll/core";
 import { Address, Hex, getAddress, isAddress } from "viem";
 
-import { dAppAddressRelayAddress } from "./rollups";
 import {
     createERC1155BatchTransferVoucher,
     createERC1155SingleTransferVoucher,
@@ -81,8 +80,14 @@ export interface WalletApp {
     ): void;
     withdrawEther(address: Address, value: bigint): Voucher;
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher;
-    withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher;
+    withdrawERC721(
+        dapp: Address,
+        token: Address,
+        address: Address,
+        tokenId: bigint,
+    ): Voucher;
     withdrawERC1155(
+        dapp: Address,
         token: Address,
         address: Address,
         tokenId: bigint,
@@ -90,6 +95,7 @@ export interface WalletApp {
         data: Hex,
     ): Voucher;
     withdrawBatchERC1155(
+        dapp: Address,
         token: Address,
         address: Address,
         tokenIds: bigint[],
@@ -99,7 +105,6 @@ export interface WalletApp {
 }
 
 export class WalletAppImpl implements WalletApp {
-    private dapp?: Address;
     private wallets: Record<string, Wallet> = {};
 
     constructor() {
@@ -176,21 +181,18 @@ export class WalletAppImpl implements WalletApp {
             return "accept";
         } else if (isERC20Deposit(data)) {
             // parse payload
-            const { success, token, sender, amount } = parseERC20Deposit(
-                data.payload,
-            );
+            const { token, sender, amount } = parseERC20Deposit(data.payload);
 
-            if (success) {
-                // get or create wallet
-                const wallet = this.wallets[sender] ?? createEmptyWallet();
+            // get or create wallet
+            const wallet = this.wallets[sender] ?? createEmptyWallet();
 
-                // increment balance
-                wallet.erc20[token] = wallet.erc20[token]
-                    ? wallet.erc20[token] + amount
-                    : amount;
+            // increment balance
+            wallet.erc20[token] = wallet.erc20[token]
+                ? wallet.erc20[token] + amount
+                : amount;
 
-                this.wallets[sender] = wallet;
-            }
+            this.wallets[sender] = wallet;
+
             return "accept";
         } else if (isERC721Deposit(data)) {
             // parse payload
@@ -241,12 +243,6 @@ export class WalletAppImpl implements WalletApp {
             });
 
             this.wallets[sender] = wallet;
-            return "accept";
-        } else if (
-            getAddress(data.metadata.msg_sender) === dAppAddressRelayAddress
-        ) {
-            // assign dapp address
-            this.dapp = getAddress(data.payload);
             return "accept";
         }
         return "reject";
@@ -431,18 +427,13 @@ export class WalletAppImpl implements WalletApp {
             );
         }
 
-        // check if dapp address is defined
-        if (!this.dapp) {
-            throw new Error(`undefined application address`);
-        }
-
         const wallet = this.wallets[address];
 
         // reduce balance right away
         wallet.ether = wallet.ether - value;
 
         // create voucher
-        return createWithdrawEtherVoucher(this.dapp, address, value);
+        return createWithdrawEtherVoucher(address, value);
     }
 
     withdrawERC20(token: Address, address: Address, amount: bigint): Voucher {
@@ -466,7 +457,12 @@ export class WalletAppImpl implements WalletApp {
         return createERC20TransferVoucher(token, address, amount);
     }
 
-    withdrawERC721(token: Address, address: Address, tokenId: bigint): Voucher {
+    withdrawERC721(
+        dapp: Address,
+        token: Address,
+        address: Address,
+        tokenId: bigint,
+    ): Voucher {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
@@ -479,21 +475,17 @@ export class WalletAppImpl implements WalletApp {
             );
         }
 
-        // check if dapp address is defined
-        if (!this.dapp) {
-            throw new Error(`undefined application address`);
-        }
-
         const wallet = this.wallets[address];
 
         // remove tokenId right away
         wallet.erc721[token].delete(tokenId);
 
         // create voucher
-        return createERC721TransferVoucher(token, this.dapp, address, tokenId);
+        return createERC721TransferVoucher(token, dapp, address, tokenId);
     }
 
     withdrawERC1155(
+        dapp: Address,
         token: Address,
         address: Address,
         tokenId: bigint,
@@ -512,11 +504,6 @@ export class WalletAppImpl implements WalletApp {
             );
         }
 
-        // check if dapp address is defined
-        if (!this.dapp) {
-            throw new Error(`undefined application address`);
-        }
-
         const wallet = this.wallets[address];
 
         // reduce balance right away
@@ -525,7 +512,7 @@ export class WalletAppImpl implements WalletApp {
         // create voucher
         return createERC1155SingleTransferVoucher(
             token,
-            this.dapp,
+            dapp,
             address,
             tokenId,
             value,
@@ -534,6 +521,7 @@ export class WalletAppImpl implements WalletApp {
     }
 
     withdrawBatchERC1155(
+        dapp: Address,
         token: Address,
         address: Address,
         tokenIds: bigint[],
@@ -562,11 +550,6 @@ export class WalletAppImpl implements WalletApp {
             }
         });
 
-        // check if dapp address is defined
-        if (!this.dapp) {
-            throw new Error(`undefined application address`);
-        }
-
         const wallet = this.wallets[address];
 
         // reduce balance right away
@@ -579,7 +562,7 @@ export class WalletAppImpl implements WalletApp {
         // create voucher
         return createERC1155BatchTransferVoucher(
             token,
-            this.dapp,
+            dapp,
             address,
             tokenIds,
             values,

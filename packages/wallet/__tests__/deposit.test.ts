@@ -5,6 +5,7 @@ import {
     encodeAbiParameters,
     encodePacked,
     parseAbiParameters,
+    zeroHash,
 } from "viem";
 import { describe, expect, test } from "vitest";
 
@@ -20,15 +21,18 @@ import {
 describe("deposit", () => {
     test("ETH", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const value = 123456n;
         const payload = encodePacked(["address", "uint256"], [sender, value]);
-        const metadata = {
-            msg_sender: etherPortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: etherPortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -37,18 +41,21 @@ describe("deposit", () => {
 
     test("ETH non normalized address", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const value = 123456n;
         const payload = encodePacked(
             ["address", "uint256"],
             [sender.toLowerCase() as Address, value],
         );
-        const metadata = {
-            msg_sender: etherPortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: etherPortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -57,20 +64,23 @@ describe("deposit", () => {
 
     test("ERC20", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const amount = 123n;
         expect(wallet.erc20BalanceOf(token, sender)).toBe(0n);
         const payload = encodePacked(
-            ["bool", "address", "address", "uint256"],
-            [true, token, sender, amount],
+            ["address", "address", "uint256"],
+            [token, sender, amount],
         );
         const metadata: RequestMetadata = {
-            msg_sender: erc20PortalAddress,
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc20PortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toBe("accept");
@@ -79,6 +89,7 @@ describe("deposit", () => {
 
     test("ERC721", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const tokenId = 123n;
@@ -88,11 +99,13 @@ describe("deposit", () => {
             [token, sender, tokenId],
         );
         const metadata: RequestMetadata = {
-            msg_sender: erc721PortalAddress,
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc721PortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toBe("accept");
@@ -101,6 +114,7 @@ describe("deposit", () => {
 
     test("ERC1155", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const tokenId = 1n;
@@ -111,11 +125,13 @@ describe("deposit", () => {
             [token, sender, tokenId, value],
         );
         const metadata: RequestMetadata = {
-            msg_sender: erc1155SinglePortalAddress,
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc1155SinglePortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toBe("accept");
@@ -124,6 +140,7 @@ describe("deposit", () => {
 
     test("multiple ERC1155", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const tokenIds = [1n, 2n];
@@ -136,11 +153,13 @@ describe("deposit", () => {
             [tokenIds, values],
         );
         const metadata: RequestMetadata = {
-            msg_sender: erc1155BatchPortalAddress,
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc1155BatchPortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({
             metadata,
