@@ -146,7 +146,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     const dockerfile = gh({
         owner: "cartesi",
         repo: "application-templates",
-        branch: "main",
+        branch: "sdk-0.12",
         path: "typescript/Dockerfile",
     });
 

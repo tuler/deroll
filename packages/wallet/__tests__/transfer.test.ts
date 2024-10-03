@@ -1,8 +1,10 @@
+import { RequestMetadata } from "@deroll/core";
 import {
     concat,
     encodeAbiParameters,
     encodePacked,
     parseAbiParameters,
+    zeroHash,
 } from "viem";
 import { describe, expect, test } from "vitest";
 
@@ -26,6 +28,7 @@ describe("transfer", () => {
 
     test("ETH", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const value = 3n;
@@ -33,12 +36,14 @@ describe("transfer", () => {
 
         // deposit 1 wei to "from"
         const payload = encodePacked(["address", "uint256"], [from, value]);
-        const metadata = {
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             msg_sender: etherPortalAddress,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -61,6 +66,7 @@ describe("transfer", () => {
 
     test("ERC20", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
@@ -69,15 +75,17 @@ describe("transfer", () => {
 
         // deposit 1 wei to "from"
         const payload = encodePacked(
-            ["bool", "address", "address", "uint256"],
-            [true, token, from, value],
+            ["address", "address", "uint256"],
+            [token, from, value],
         );
-        const metadata = {
-            msg_sender: erc20PortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc20PortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -103,6 +111,7 @@ describe("transfer", () => {
 
     test("ERC721", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
@@ -113,12 +122,14 @@ describe("transfer", () => {
             ["address", "address", "uint256"],
             [token, from, tokenId],
         );
-        const metadata = {
-            msg_sender: erc721PortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc721PortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -144,6 +155,7 @@ describe("transfer", () => {
 
     test("ERC1155", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
@@ -156,12 +168,14 @@ describe("transfer", () => {
             ["address", "address", "uint256", "uint256"],
             [token, from, tokenId, value],
         );
-        const metadata = {
-            msg_sender: erc1155SinglePortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc1155SinglePortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({ metadata, payload });
         expect(response).toEqual("accept");
@@ -203,6 +217,7 @@ describe("transfer", () => {
 
     test("ERC1155 batch", async () => {
         const wallet = createWallet();
+        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const from = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
@@ -216,12 +231,14 @@ describe("transfer", () => {
             parseAbiParameters("uint256[], uint256[]"),
             [tokenIds, values],
         );
-        const metadata = {
-            msg_sender: erc1155BatchPortalAddress,
+        const metadata: RequestMetadata = {
+            app_contract: dapp,
             block_number: 0,
-            epoch_index: 0,
+            block_timestamp: 0,
+            chain_id: 1,
             input_index: 0,
-            timestamp: 0,
+            msg_sender: erc1155BatchPortalAddress,
+            prev_randao: zeroHash,
         };
         const response = await wallet.handler({
             metadata,
