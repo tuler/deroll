@@ -8,10 +8,11 @@ import {
     erc721Abi,
     getAddress,
     hexToBigInt,
-    hexToBool,
+    numberToHex,
     parseAbi,
     parseAbiParameters,
     slice,
+    zeroHash,
 } from "viem";
 
 import { WalletApp, WalletAppImpl } from "./wallet";
@@ -22,7 +23,7 @@ import {
     erc721PortalAddress,
     etherPortalAddress,
 } from "./rollups";
-import { cartesiDAppAbi, erc1155Abi } from "./abi";
+import { erc1155Abi } from "./abi";
 
 export type { WalletApp } from "./wallet";
 
@@ -45,7 +46,6 @@ export type EtherDeposit = {
 };
 
 export type ERC20Deposit = {
-    success: boolean;
     token: Address;
     sender: Address;
     amount: bigint;
@@ -89,12 +89,11 @@ export const parseEtherDeposit = (payload: Payload): EtherDeposit => {
  * @returns
  */
 export const parseERC20Deposit = (payload: Payload): ERC20Deposit => {
-    const success = hexToBool(slice(payload, 0, 1)); // 1 byte for boolean
     // normalize addresses, for safety
-    const token = getAddress(slice(payload, 1, 21)); // 20 bytes for address
-    const sender = getAddress(slice(payload, 21, 41)); // 20 bytes for address
-    const amount = hexToBigInt(slice(payload, 41, 73), { size: 32 }); // 32 bytes for uint256
-    return { success, token, sender, amount };
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const amount = hexToBigInt(slice(payload, 40, 72), { size: 32 }); // 32 bytes for uint256
+    return { token, sender, amount };
 };
 
 /**
@@ -170,18 +169,13 @@ export const isERC1155BatchDeposit = (data: AdvanceRequestData): boolean =>
     getAddress(data.metadata.msg_sender) === erc1155BatchPortalAddress;
 
 export const createWithdrawEtherVoucher = (
-    application: Address,
     receiver: Address,
     value: bigint,
 ): Voucher => {
-    const call = encodeFunctionData({
-        abi: cartesiDAppAbi,
-        functionName: "withdrawEther",
-        args: [receiver, value],
-    });
     return {
-        destination: application, // application Address
-        payload: call,
+        destination: receiver,
+        payload: "0x",
+        value: numberToHex(value),
     };
 };
 
@@ -200,6 +194,7 @@ export const createERC20TransferVoucher = (
     return {
         destination: token,
         payload: call,
+        value: zeroHash,
     };
 };
 
@@ -219,6 +214,7 @@ export const createERC721TransferVoucher = (
     return {
         destination: token,
         payload: call,
+        value: zeroHash,
     };
 };
 
@@ -240,6 +236,7 @@ export const createERC1155SingleTransferVoucher = (
     return {
         destination: token,
         payload: call,
+        value: zeroHash,
     };
 };
 
@@ -261,5 +258,6 @@ export const createERC1155BatchTransferVoucher = (
     return {
         destination: token,
         payload: call,
+        value: zeroHash,
     };
 };
