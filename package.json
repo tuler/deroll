@@ -7,14 +7,19 @@
         "clean": "turbo clean && rm -rf node_modules",
         "dev": "turbo dev --no-cache --continue",
         "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "lint": "eslint",
         "release": "turbo build && changeset publish",
         "test": "turbo test",
         "version-packages": "changeset version"
     },
     "devDependencies": {
         "@changesets/cli": "^2.27.9",
+        "@eslint/js": "^9.13.0",
+        "eslint": "^9.13.0",
+        "globals": "^15.11.0",
         "prettier": "^3.3.3",
-        "turbo": "^2.2.3"
+        "turbo": "^2.2.3",
+        "typescript-eslint": "^8.11.0"
     },
     "packageManager": "pnpm@9.7.1"
 }
