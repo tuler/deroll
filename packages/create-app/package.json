@@ -20,10 +20,10 @@
         "@deroll/tsconfig": "workspace:*",
         "@types/figlet": "^1.5.8",
         "@types/fs-extra": "^11.0.4",
-        "@types/node": "^20.14.11",
+        "@types/node": "^22.7.9",
         "@types/validate-npm-package-name": "^4.0.2",
         "npm-run-all": "^4.1.5",
-        "tsup": "^8.2.2",
+        "tsup": "^8.3.0",
         "tsx": "^4.16.2",
         "typescript": "^5.5.3"
     },
@@ -34,6 +34,6 @@
         "figlet": "^1.7.0",
         "fs-extra": "^11.2.0",
         "got": "^14.4.1",
-        "validate-npm-package-name": "^5.0.1"
+        "validate-npm-package-name": "^6.0.0"
     }
 }

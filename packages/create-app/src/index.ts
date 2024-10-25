@@ -20,15 +20,15 @@ const packageJson = (options: CreateAppOptions) => {
     const name = options.packageName;
     const dependencies: Record<string, string> = {};
 
-    dependencies["@deroll/app"] = "^0.7.0";
+    dependencies["@deroll/app"] = "^1.0.0";
     if (options.libraries.includes("router")) {
-        dependencies["@deroll/router"] = "^0.5.0";
+        dependencies["@deroll/router"] = "^1.0.0";
     }
     if (options.libraries.includes("wallet")) {
-        dependencies["@deroll/wallet"] = "^0.8.0";
+        dependencies["@deroll/wallet"] = "^1.0.0";
     }
-    dependencies["abitype"] = "^1.0.5";
-    dependencies["viem"] = "^2.17.9";
+    dependencies["abitype"] = "^1.0.6";
+    dependencies["viem"] = "^2.21.34";
 
     return {
         name,
@@ -37,12 +37,12 @@ const packageJson = (options: CreateAppOptions) => {
         main: "src/index.ts",
         dependencies,
         devDependencies: {
-            "@types/node": "^20.14.11",
-            esbuild: "^0.23.0",
+            "@types/node": "^22.7.9",
+            esbuild: "^0.24.0",
             prettier: "^3.3.3",
             "ts-node": "^10.9.2",
-            typescript: "^5.5.3",
-            vitest: "^2.0.4",
+            typescript: "^5.6.3",
+            vitest: "^2.1.3",
         },
         scripts: {
             build: "esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",
