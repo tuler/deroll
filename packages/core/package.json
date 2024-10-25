@@ -15,7 +15,6 @@
         "codegen": "ts-node schema.ts",
         "compile": "tsup",
         "dev": "tsup --watch",
-        "lint": "eslint",
         "prepack": "run-s build"
     },
     "dependencies": {
@@ -24,8 +23,6 @@
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^20.14.11",
-        "eslint": "^8.57.0",
-        "eslint-config-deroll": "workspace:*",
         "npm-run-all": "^4",
         "openapi-typescript": "^7.0.4",
         "ts-node": "^10.9.2",
