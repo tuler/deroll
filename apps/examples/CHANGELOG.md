@@ -1,5 +1,18 @@
 # @deroll/examples
 
+## 1.0.0
+
+### Major Changes
+
+-   cdcb4fd: bump dependencies
+
+### Patch Changes
+
+-   Updated dependencies [cdcb4fd]
+    -   @deroll/app@1.0.0
+    -   @deroll/wallet@1.0.0
+    -   @deroll/router@1.0.0
+
 ## 0.1.2
 
 ### Patch Changes
