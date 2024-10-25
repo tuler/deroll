@@ -22,6 +22,7 @@ export const exceptionMiddleware: JSONRPCServerMiddleware<void> = async (
 ) => {
     try {
         return await next(request, serverParams);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (error.code && request.id) {
             return createJSONRPCErrorResponse(
