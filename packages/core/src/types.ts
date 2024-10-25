@@ -13,6 +13,7 @@ export type Report = components["schemas"]["Report"];
 export type Voucher = components["schemas"]["Voucher"];
 
 export type NoticeResponse = components["schemas"]["IndexResponse"];
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type ReportResponse = {}; // XXX: should probably be 204 (no content)
 export type VoucherResponse = components["schemas"]["IndexResponse"];
 
