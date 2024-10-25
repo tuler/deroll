@@ -3,6 +3,8 @@ on:
     push:
         branches:
             - main
+            - release/*
+            - prerelease/*
 permissions:
     actions: write
     contents: write
