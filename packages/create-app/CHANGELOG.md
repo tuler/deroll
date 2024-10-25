@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 1.0.0
+
+### Major Changes
+
+-   ec11559: using version 1.0.0
+
 ## 0.1.1
 
 ### Patch Changes
