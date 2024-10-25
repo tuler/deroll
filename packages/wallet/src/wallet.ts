@@ -164,7 +164,7 @@ export class WalletAppImpl implements WalletApp {
     public handler: AdvanceRequestHandler = async (data) => {
         if (isEtherDeposit(data)) {
             // parse payload
-            let { sender, value } = parseEtherDeposit(data.payload);
+            const { sender, value } = parseEtherDeposit(data.payload);
 
             // get or create wallet
             const wallet = this.wallets[sender] ?? createEmptyWallet();
@@ -176,7 +176,7 @@ export class WalletAppImpl implements WalletApp {
             return "accept";
         } else if (isERC20Deposit(data)) {
             // parse payload
-            let { success, token, sender, amount } = parseERC20Deposit(
+            const { success, token, sender, amount } = parseERC20Deposit(
                 data.payload,
             );
 
