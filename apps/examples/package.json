@@ -1,6 +1,6 @@
 {
     "name": "@deroll/examples",
-    "version": "0.1.2",
+    "version": "1.0.0",
     "scripts": {
         "build": "tsup",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",

@@ -1,5 +1,16 @@
 # @deroll/app
 
+## 1.0.0
+
+### Major Changes
+
+-   cdcb4fd: bump dependencies
+
+### Patch Changes
+
+-   Updated dependencies [cdcb4fd]
+    -   @deroll/core@1.0.0
+
 ## 0.7.1
 
 ### Patch Changes
