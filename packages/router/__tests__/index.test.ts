@@ -24,7 +24,7 @@ describe("Router", () => {
     });
 
     test("simple route", async () => {
-        router.add("ping", (a, b) => "pong");
+        router.add("ping", (_a, _b) => "pong");
         await router.handler({ payload: stringToHex("ping") });
         expect(app.createReport).toHaveBeenCalledWith({
             payload: stringToHex("pong"),
@@ -48,7 +48,7 @@ describe("Router", () => {
     });
 
     test("typed params", async () => {
-        const handler: Handler<{ id: string }> = (a, b) => a.params.id;
+        const handler: Handler<{ id: string }> = (a, _b) => a.params.id;
         router.add("tests/:id", handler);
         await router.handler({ payload: stringToHex("tests/123") });
         expect(app.createReport).toHaveBeenCalledWith({
