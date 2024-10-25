@@ -19,4 +19,7 @@ app.addAdvanceHandler(wallet.handler);
 app.addInspectHandler(router.handler);
 
 // start app
-app.start().catch((e) => process.exit(1));
+app.start().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

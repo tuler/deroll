@@ -10,4 +10,7 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 // start app
-app.start().catch((e) => process.exit(1));
+app.start().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

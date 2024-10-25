@@ -13,7 +13,7 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
     const { functionName, args } = decodeFunctionData({ abi, data: payload });
 
     switch (functionName) {
-        case "withdraw":
+        case "withdraw": {
             const [token, amount] = args;
             const recipient = metadata.msg_sender;
 
@@ -27,8 +27,12 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
             // create voucher output
             await app.createVoucher(voucher);
             return "accept";
+        }
     }
 });
 
 // start app
-app.start().catch((e) => process.exit(1));
+app.start().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

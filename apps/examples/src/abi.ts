@@ -15,16 +15,21 @@ app.addAdvanceHandler(async ({ payload }) => {
     const { functionName, args } = decodeFunctionData({ abi, data: payload });
 
     switch (functionName) {
-        case "attackDragon":
+        case "attackDragon": {
             const [dragonId, weapon] = args;
             console.log(`attacking dragon ${dragonId} with ${weapon}...`);
             return "accept";
+        }
 
-        case "drinkPotion":
+        case "drinkPotion": {
             console.log(`drinking potion...`);
             return "accept";
+        }
     }
 });
 
 // start app
-app.start().catch((e) => process.exit(1));
+app.start().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});
