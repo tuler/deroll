@@ -1,0 +1,16 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@deroll/docs": "0.0.0",
+    "@deroll/examples": "1.0.0",
+    "@deroll/app": "1.0.0",
+    "@deroll/core": "1.0.0",
+    "@deroll/create-app": "1.0.0",
+    "@deroll/router": "1.0.0",
+    "@deroll/rpc": "0.1.5",
+    "@deroll/tsconfig": "1.0.0",
+    "@deroll/wallet": "1.0.0"
+  },
+  "changesets": []
+}
