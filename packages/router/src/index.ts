@@ -1,5 +1,5 @@
 import { App, InspectRequestData } from "@deroll/core";
-import { Key, match, MatchResult, MatchFunction, Path } from "path-to-regexp";
+import { match, MatchResult, MatchFunction, Path } from "path-to-regexp";
 import { bytesToString, stringToBytes, toBytes, toHex } from "viem";
 
 export type Handler<P extends object = object> = (
@@ -18,6 +18,7 @@ export type RouterOptions = {
 
 export class Router {
     private options: RouterOptions;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private routes: Route<any>[];
 
     constructor(options: RouterOptions) {
@@ -27,7 +28,6 @@ export class Router {
     }
 
     public add<P extends object>(path: Path, handler: Handler<P>): Route<P> {
-        const keys: Key[] = [];
         const matcher = match<P>(path, { decode: decodeURIComponent });
 
         const route = { matcher, handler };
