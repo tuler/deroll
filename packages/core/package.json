@@ -18,17 +18,17 @@
         "prepack": "run-s build"
     },
     "dependencies": {
-        "viem": "^2.17.4"
+        "viem": "^2.21.34"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^20.14.11",
+        "@types/node": "^22.7.9",
         "npm-run-all": "^4",
-        "openapi-typescript": "^7.0.4",
+        "openapi-typescript": "^7.4.1",
         "ts-node": "^10.9.2",
-        "tsup": "^8.1.2",
-        "typescript": "^5.5.3",
-        "vitest": "^2.0.3"
+        "tsup": "^8.3.0",
+        "typescript": "^5.6.3",
+        "vitest": "^2.1.3"
     },
     "publishConfig": {
         "access": "public"
