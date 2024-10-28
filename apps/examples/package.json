@@ -34,7 +34,7 @@
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^22.7.9",
-        "tsup": "^8.3.0",
+        "tsup": "^8.3.5",
         "typescript": "^5.6.3",
         "vitest": "^2.1.3"
     }
