@@ -218,8 +218,8 @@ importers:
         specifier: workspace:*
         version: link:../core
       path-to-regexp:
-        specifier: ^7.1.0
-        version: 7.2.0
+        specifier: ^8.2.0
+        version: 8.2.0
       viem:
         specifier: ^2.21.34
         version: 2.21.34(bufferutil@4.0.8)(typescript@5.6.3)(utf-8-validate@6.0.4)(zod@3.23.8)
@@ -6605,8 +6605,8 @@ packages:
   path-to-regexp@0.1.10:
     resolution: {integrity: sha512-7lf7qcQidTku0Gu3YDPc8DJ1q7OOucfa/BSsIwjuh56VU7katFvuM8hULfkwB3Fns/rsVF7PwPKVw1sl5KQS9w==}
 
-  path-to-regexp@7.2.0:
-    resolution: {integrity: sha512-0W4AcUxPpFlcS8ql8ZEmFwaI0X5WshUVAFdXe3PBurrt18DK8bvSS+UKHvJUAfGILco/nTtc/E4LcPNfVysfwQ==}
+  path-to-regexp@8.2.0:
+    resolution: {integrity: sha512-TdrF7fW9Rphjq4RjrW0Kp2AW0Ahwu9sRGTkS6bvDi0SCwZlEZYmcfDbEsTz8RVk0EHIS/Vd1bv3JhG+1xZuAyQ==}
     engines: {node: '>=16'}
 
   path-type@3.0.0:
@@ -16938,7 +16938,7 @@ snapshots:
 
   path-to-regexp@0.1.10: {}
 
-  path-to-regexp@7.2.0: {}
+  path-to-regexp@8.2.0: {}
 
   path-type@3.0.0:
     dependencies:
