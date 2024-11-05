@@ -1,7 +1,7 @@
 import { defineConfig } from "vocs";
 
 export default defineConfig({
-    baseUrl: "https://deroll.dev",
+    baseUrl: "https://v2.deroll.dev",
     rootDir: ".",
     editLink: {
         pattern:
