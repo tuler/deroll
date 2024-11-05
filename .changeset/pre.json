@@ -12,5 +12,7 @@
     "@deroll/tsconfig": "1.0.0",
     "@deroll/wallet": "1.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "fair-ladybugs-work"
+  ]
 }

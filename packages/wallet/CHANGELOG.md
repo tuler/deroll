@@ -1,5 +1,16 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.0
+
+### Major Changes
+
+-   f0ff7dc: rollups v2
+
+### Patch Changes
+
+-   Updated dependencies [f0ff7dc]
+    -   @deroll/core@2.0.0-alpha.0
+
 ## 1.0.0
 
 ### Major Changes
