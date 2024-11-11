@@ -145,8 +145,8 @@ importers:
         specifier: ^4
         version: 4.1.5
       openapi-typescript:
-        specifier: ^7.4.1
-        version: 7.4.1(typescript@5.6.3)
+        specifier: ^7.4.3
+        version: 7.4.3(typescript@5.6.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.7.9)(typescript@5.6.3)
@@ -234,8 +234,8 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5
       openapi-typescript:
-        specifier: ^7.4.1
-        version: 7.4.1(typescript@5.6.3)
+        specifier: ^7.4.3
+        version: 7.4.3(typescript@5.6.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.7.9)(typescript@5.6.3)
@@ -2865,11 +2865,11 @@ packages:
   '@redocly/ajv@8.11.2':
     resolution: {integrity: sha512-io1JpnwtIcvojV7QKDUSIuMN/ikdOUd1ReEnUnMKGfDVridQZ31J0MmIuqwuRjWDZfmvr+Q0MqCcfHM2gTivOg==}
 
-  '@redocly/config@0.12.1':
-    resolution: {integrity: sha512-RW3rSirfsPdr0uvATijRDU3f55SuZV3m7/ppdTDvGw4IB0cmeZRkFmqTrchxMqWP50Gfg1tpHnjdxUCNo0E2qg==}
+  '@redocly/config@0.16.0':
+    resolution: {integrity: sha512-t9jnODbUcuANRSl/K4L9nb12V+U5acIHnVSl26NWrtSdDZVtoqUXk2yGFPZzohYf62cCfEQUT8ouJ3bhPfpnJg==}
 
-  '@redocly/openapi-core@1.25.8':
-    resolution: {integrity: sha512-eKKRqo2RYo7UIoDvIgcUB9ynhOjIWJnILXFz+VDevYeOBKd/CxvC0KbNRnuOrFqG3ip6363R/ONal2MyvuVrjg==}
+  '@redocly/openapi-core@1.25.11':
+    resolution: {integrity: sha512-bH+a8izQz4fnKROKoX3bEU8sQ9rjvEIZOqU6qTmxlhOJ0NsKa5e+LmU18SV0oFeg5YhWQhhEDihXkvKJ1wMMNQ==}
     engines: {node: '>=14.19.0', npm: '>=7.0.0'}
 
   '@remix-run/router@1.18.0':
@@ -6430,8 +6430,8 @@ packages:
   openapi-typescript-helpers@0.0.13:
     resolution: {integrity: sha512-z44WK2e7ygW3aUtAtiurfEACohf/Qt9g6BsejmIYgEoY4REHeRzgFJmO3ium0libsuzPc145I+8lE9aiiZrQvQ==}
 
-  openapi-typescript@7.4.1:
-    resolution: {integrity: sha512-HrRoWveViADezHCNgQqZmPKmQ74q7nuH/yg9ursFucZaYQNUqsX38fE/V2sKBHVM+pws4tAHpuh/ext2UJ/AoQ==}
+  openapi-typescript@7.4.3:
+    resolution: {integrity: sha512-xTIjMIIOv9kNhsr8JxaC00ucbIY/6ZwuJPJBZMSh5FA2dicZN5uM805DWVJojXdom8YI4AQTavPDPHMx/3g0vQ==}
     hasBin: true
     peerDependencies:
       typescript: ^5.x
@@ -8510,7 +8510,7 @@ snapshots:
   '@babel/core@7.24.9':
     dependencies:
       '@ampproject/remapping': 2.3.0
-      '@babel/code-frame': 7.24.7
+      '@babel/code-frame': 7.25.9
       '@babel/generator': 7.24.10
       '@babel/helper-compilation-targets': 7.24.8
       '@babel/helper-module-transforms': 7.24.9(@babel/core@7.24.9)
@@ -11686,12 +11686,12 @@ snapshots:
       require-from-string: 2.0.2
       uri-js-replace: 1.0.1
 
-  '@redocly/config@0.12.1': {}
+  '@redocly/config@0.16.0': {}
 
-  '@redocly/openapi-core@1.25.8(supports-color@9.4.0)':
+  '@redocly/openapi-core@1.25.11(supports-color@9.4.0)':
     dependencies:
       '@redocly/ajv': 8.11.2
-      '@redocly/config': 0.12.1
+      '@redocly/config': 0.16.0
       colorette: 1.4.0
       https-proxy-agent: 7.0.5(supports-color@9.4.0)
       js-levenshtein: 1.1.6
@@ -16731,9 +16731,9 @@ snapshots:
 
   openapi-typescript-helpers@0.0.13: {}
 
-  openapi-typescript@7.4.1(typescript@5.6.3):
+  openapi-typescript@7.4.3(typescript@5.6.3):
     dependencies:
-      '@redocly/openapi-core': 1.25.8(supports-color@9.4.0)
+      '@redocly/openapi-core': 1.25.11(supports-color@9.4.0)
       ansi-colors: 4.1.3
       change-case: 5.4.4
       parse-json: 8.1.0
@@ -16885,7 +16885,7 @@ snapshots:
 
   parse-json@5.2.0:
     dependencies:
-      '@babel/code-frame': 7.24.7
+      '@babel/code-frame': 7.25.9
       error-ex: 1.3.2
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
