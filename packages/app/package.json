@@ -18,7 +18,7 @@
     "dependencies": {
         "@deroll/core": "workspace:*",
         "openapi-fetch": "^0.12.2",
-        "viem": "^2.21.34"
+        "viem": "^2.21.47"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
