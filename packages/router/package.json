@@ -20,7 +20,7 @@
     "dependencies": {
         "@deroll/core": "workspace:*",
         "path-to-regexp": "^7.1.0",
-        "viem": "^2.21.34"
+        "viem": "^2.22.8"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
