@@ -9,14 +9,14 @@ import {
 } from "viem";
 import { describe, expect, test } from "vitest";
 
-import { createWallet } from "../src";
 import {
     erc1155BatchPortalAddress,
     erc1155SinglePortalAddress,
     erc20PortalAddress,
     erc721PortalAddress,
     etherPortalAddress,
-} from "../src/rollups";
+} from "@cartesi/viem/abi";
+import { createWallet } from "../src";
 
 describe("deposit", () => {
     test("ETH", async () => {

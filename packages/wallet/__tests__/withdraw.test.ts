@@ -11,15 +11,15 @@ import {
 } from "viem";
 import { describe, expect, test } from "vitest";
 
-import { createWallet } from "../src";
-import { erc1155Abi } from "../src/abi";
 import {
     erc1155BatchPortalAddress,
     erc1155SinglePortalAddress,
     erc20PortalAddress,
     erc721PortalAddress,
     etherPortalAddress,
-} from "../src/rollups";
+} from "@cartesi/viem/abi";
+import { createWallet } from "../src";
+import { erc1155Abi } from "../src/abi";
 
 describe("withdraw", () => {
     test("ETH with no balance", () => {
