@@ -9,6 +9,13 @@ import {
 import { describe, expect, test } from "vitest";
 
 import {
+    erc1155BatchPortalAddress,
+    erc1155SinglePortalAddress,
+    erc20PortalAddress,
+    erc721PortalAddress,
+    etherPortalAddress,
+} from "@cartesi/viem/abi";
+import {
     isERC1155BatchDeposit,
     isERC1155SingleDeposit,
     isERC20Deposit,
@@ -20,13 +27,6 @@ import {
     parseERC721Deposit,
     parseEtherDeposit,
 } from "../src";
-import {
-    erc1155BatchPortalAddress,
-    erc1155SinglePortalAddress,
-    erc20PortalAddress,
-    erc721PortalAddress,
-    etherPortalAddress,
-} from "../src/rollups";
 
 describe("parser", () => {
     test("isEtherDeposit", () => {

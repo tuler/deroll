@@ -15,15 +15,15 @@ import {
     zeroHash,
 } from "viem";
 
-import { WalletApp, WalletAppImpl } from "./wallet";
 import {
     erc1155BatchPortalAddress,
     erc1155SinglePortalAddress,
     erc20PortalAddress,
     erc721PortalAddress,
     etherPortalAddress,
-} from "./rollups";
+} from "@cartesi/viem/abi";
 import { erc1155Abi } from "./abi";
+import { WalletApp, WalletAppImpl } from "./wallet";
 
 export type { WalletApp } from "./wallet";
 
