@@ -13,6 +13,9 @@
     "@deroll/wallet": "1.0.0"
   },
   "changesets": [
-    "fair-ladybugs-work"
+    "busy-berries-rest",
+    "fair-ladybugs-work",
+    "shaggy-zebras-reply",
+    "thirty-onions-grab"
   ]
 }

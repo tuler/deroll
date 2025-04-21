@@ -1,38 +1,45 @@
 # @deroll/core
 
+## 2.0.0-alpha.1
+
+### Patch Changes
+
+- 40cfed6: bump dependencies
+- f8758ad: add delegate call voucher
+
 ## 2.0.0-alpha.0
 
 ### Major Changes
 
--   f0ff7dc: rollups v2
+- f0ff7dc: rollups v2
 
 ## 1.0.0
 
 ### Major Changes
 
--   cdcb4fd: bump dependencies
+- cdcb4fd: bump dependencies
 
 ## 0.2.1
 
 ### Patch Changes
 
--   09c8d46: Moving broadcastAdvanceRequests to AppOptions type
+- 09c8d46: Moving broadcastAdvanceRequests to AppOptions type
 
 ## 0.2.0
 
 ### Minor Changes
 
--   b034d0c: bump viem
--   b034d0c: bump openapi-typescript
+- b034d0c: bump viem
+- b034d0c: bump openapi-typescript
 
 ## 0.1.1
 
 ### Patch Changes
 
--   a85702c: bump dependencies
+- a85702c: bump dependencies
 
 ## 0.1.0
 
 ### Minor Changes
 
--   488d46b: separation of @deroll/app into @deroll/app and @deroll/core
+- 488d46b: separation of @deroll/app into @deroll/app and @deroll/core
