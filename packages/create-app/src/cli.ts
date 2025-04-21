@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import path from "node:path";
-import fs from "fs-extra";
 import {
     cancel,
     intro,
@@ -13,6 +11,8 @@ import {
 } from "@clack/prompts";
 import { Option, program } from "@commander-js/extra-typings";
 import figlet from "figlet";
+import fs from "fs-extra";
+import path from "node:path";
 import validatePackageName from "validate-npm-package-name";
 import { createApp, Library, PackageManager } from "./index.js";
 
@@ -177,8 +177,9 @@ program
         const instructions = [
             `cd ${directory}`,
             "pnpm i",
+            "cartesi rollups start",
             "cartesi build",
-            "cartesi run",
+            "cartesi rollups deploy",
         ];
         note(instructions.join("\n"), "Next steps");
         outro("Happy building! Thanks for choosing deroll!");

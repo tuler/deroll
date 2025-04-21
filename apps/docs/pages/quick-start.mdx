@@ -103,33 +103,22 @@ Storing machine: please wait
 
 ## Run Cartesi Node
 
-Now that you built a Cartesi Machine you can run a Cartesi Node with that machine with the `cartesi run` command, which should produce the following output:
+Now that you built a Cartesi Machine you can run a Cartesi Node with the `cartesi rollups start` command, which should produce the following output:
 
 ```bash
-$ cartesi run
-prompt-1     | Anvil running at http://localhost:8545
-prompt-1     | GraphQL running at http://localhost:8080/graphql
-prompt-1     | Inspect running at http://localhost:8080/inspect/
-prompt-1     | Explorer running at http://localhost:8080/explorer/
-prompt-1     | Bundler running at http://localhost:8080/bundler/rpc
-prompt-1     | Paymaster running at http://localhost:8080/paymaster/
-prompt-1     | Press Ctrl+C to stop the node
+$ cartesi rollups start
+✔ anvil service ready at http://127.0.0.1:8080/anvil
+✔ rpc service ready at http://127.0.0.1:8080/rpc
+✔ inspect service ready at http://127.0.0.1:8080/inspect/<application_address>
 ```
 
 This will run a few services on your machine:
 
-1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://localhost:8545 which contains all Cartesi infrastructure [smart contracts](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/overview/) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
+1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://localhost:8080/anvil which contains all Cartesi infrastructure [smart contracts](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/overview/) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
 
-2. a [GraphQL](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/graphql/overview/) server running at http://localhost:8080/graphql which you can use to query outputs produced by your application.
-It has a playground UI as well.
+2. a [JSON-RPC]() server running at http://localhost:8080/rpc which you can use to query outputs produced by your application.
 
 3. an inspect server running at http://localhost:8080/inspect/ which you can use to simulate an input, or query read-only computations from your application.
-
-4. an explorer server running at http://localhost:8080/explorer/ which is a Web Application that you can use to view inputs and outputs, and also send inputs to your application.
-
-5. an ERC-4337 bundler server running at http://localhost:8080/bundler/rpc which you can use to implement ERC-4337 support in your application.
-
-6. an ERC-4337 paymaster server running at http://localhost:8080/paymaster/ which you can use to implement ERC-4337 gas sponsorship support in your application.
 
 Some of these services will be used below.
 
@@ -179,7 +168,7 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
 ```
 :::
 
-If you check in the `cartesi run` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
 Notice that the `payload` is the hex encoding of the `tuler` string. More on that on the [Data Encoding](/data-encoding) section.
 
 ### Send input using `cast`
@@ -272,7 +261,7 @@ app.addInspectHandler(async (data) => {
 ```
 :::
 
-If you check in the `cartesi run` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
 Inspected state should be returned as report outputs, in this example no reports were produced.
 
 :::warning

@@ -55,23 +55,20 @@ app.start().catch((e) => {
 });
 ```
 
-### Build and run your dApp
+### Build, run a rollups node and deploy your dApp
 
 ```shell
 cartesi build
-cartesi run
+cartesi rollups start
+cartesi deploy
 ```
 
 Expected output:
 
 ```shell
-prompt-1     | Anvil running at http://localhost:8545
-prompt-1     | GraphQL running at http://localhost:8080/graphql
-prompt-1     | Inspect running at http://localhost:8080/inspect/
-prompt-1     | Explorer running at http://localhost:8080/explorer/
-prompt-1     | Bundler running at http://localhost:8080/bundler/rpc
-prompt-1     | Paymaster running at http://localhost:8080/paymaster/
-prompt-1     | Press Ctrl+C to stop the node
+✔ anvil service ready at http://127.0.0.1:8080/anvil
+✔ rpc service ready at http://127.0.0.1:8080/rpc
+✔ inspect service ready at http://127.0.0.1:8080/inspect/<application_address>
 ```
 
 ### Send a message
@@ -106,19 +103,9 @@ cartesi send
 ✔ Input sent: 0xebd90fe6fd50245dfa30f33e2d68236a73b25e2351106484cfa9d815e401939d
 ```
 
-Expected output in the `cartesi run` terminal:
+Expected output in the `cartesi rollups logs` terminal:
 
 ```shell
-prompt-1     | Anvil running at http://localhost:8545
-prompt-1     | GraphQL running at http://localhost:8080/graphql
-prompt-1     | Inspect running at http://localhost:8080/inspect/
-prompt-1     | Explorer running at http://localhost:8080/explorer/
-prompt-1     | Bundler running at http://localhost:8080/bundler/rpc
-prompt-1     | Paymaster running at http://localhost:8080/paymaster/
-prompt-1     | Press Ctrl+C to stop the node
-validator-1  | [INFO  rollup_http_server::http_service] Received new request of type ADVANCE
-validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTTP/1.1" 200 224 "-" "undici" 0.000960
-validator-1  | Hello world!
 ```
 
 Now you're ready to start building your Cartesi application with cartesi and deroll!
