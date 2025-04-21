@@ -1,48 +1,60 @@
 # @deroll/examples
 
+## 2.0.0-alpha.1
+
+### Patch Changes
+
+- 40cfed6: bump dependencies
+- Updated dependencies [40cfed6]
+- Updated dependencies [9558dc0]
+- Updated dependencies [f8758ad]
+    - @deroll/router@2.0.0-alpha.1
+    - @deroll/wallet@2.0.0-alpha.1
+    - @deroll/app@2.0.0-alpha.1
+
 ## 2.0.0-alpha.0
 
 ### Major Changes
 
--   f0ff7dc: rollups v2
+- f0ff7dc: rollups v2
 
 ### Patch Changes
 
--   Updated dependencies [f0ff7dc]
-    -   @deroll/wallet@2.0.0-alpha.0
-    -   @deroll/app@2.0.0-alpha.0
-    -   @deroll/router@2.0.0-alpha.0
+- Updated dependencies [f0ff7dc]
+    - @deroll/wallet@2.0.0-alpha.0
+    - @deroll/app@2.0.0-alpha.0
+    - @deroll/router@2.0.0-alpha.0
 
 ## 1.0.0
 
 ### Major Changes
 
--   cdcb4fd: bump dependencies
+- cdcb4fd: bump dependencies
 
 ### Patch Changes
 
--   Updated dependencies [cdcb4fd]
-    -   @deroll/app@1.0.0
-    -   @deroll/wallet@1.0.0
-    -   @deroll/router@1.0.0
+- Updated dependencies [cdcb4fd]
+    - @deroll/app@1.0.0
+    - @deroll/wallet@1.0.0
+    - @deroll/router@1.0.0
 
 ## 0.1.2
 
 ### Patch Changes
 
--   Updated dependencies [09c8d46]
-    -   @deroll/app@0.7.1
-    -   @deroll/router@0.5.1
-    -   @deroll/wallet@0.8.1
+- Updated dependencies [09c8d46]
+    - @deroll/app@0.7.1
+    - @deroll/router@0.5.1
+    - @deroll/wallet@0.8.1
 
 ## 0.1.1
 
 ### Patch Changes
 
--   152c41c: fix localhost url
+- 152c41c: fix localhost url
 
 ## 0.1.0
 
 ### Minor Changes
 
--   a291db4: examples package
+- a291db4: examples package
