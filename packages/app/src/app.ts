@@ -3,8 +3,9 @@ import {
     AdvanceRequestHandler,
     App,
     AppOptions,
-    InspectRequestHandler,
+    DelegateCallVoucher,
     InspectRequestData,
+    InspectRequestHandler,
     Notice,
     Report,
     RequestHandlerResult,
@@ -56,6 +57,19 @@ export class HttpApp implements App {
 
     public async createVoucher(voucher: Voucher): Promise<number> {
         const { data, response } = await this.POST("/voucher", {
+            body: voucher,
+        });
+        if (data) {
+            return data.index;
+        } else {
+            throw new Error(response.statusText);
+        }
+    }
+
+    public async createDelegateCallVoucher(
+        voucher: DelegateCallVoucher,
+    ): Promise<number> {
+        const { data, response } = await this.POST("/delegate-call-voucher", {
             body: voucher,
         });
         if (data) {

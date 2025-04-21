@@ -76,6 +76,10 @@ export default defineConfig({
                             text: "createVoucher",
                             link: "/app/create-voucher",
                         },
+                        {
+                            text: "createDelegateCallVoucher",
+                            link: "/app/create-delegate-call-voucher",
+                        },
                     ],
                 },
                 {

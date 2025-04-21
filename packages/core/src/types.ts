@@ -11,6 +11,7 @@ export type Notice = components["schemas"]["Notice"];
 export type Payload = components["schemas"]["Payload"];
 export type Report = components["schemas"]["Report"];
 export type Voucher = components["schemas"]["Voucher"];
+export type DelegateCallVoucher = components["schemas"]["DelegateCallVoucher"];
 
 export type NoticeResponse = components["schemas"]["IndexResponse"];
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
