@@ -1,8 +1,8 @@
+import fs from "fs-extra";
+import got from "got";
 import path from "node:path";
 import { pipeline } from "node:stream";
 import { promisify } from "node:util";
-import fs from "fs-extra";
-import got from "got";
 
 // Promisify the pipeline function for easier async/await usage
 const streamPipeline = promisify(pipeline);
@@ -20,15 +20,15 @@ const packageJson = (options: CreateAppOptions) => {
     const name = options.packageName;
     const dependencies: Record<string, string> = {};
 
-    dependencies["@deroll/app"] = "^1.0.0";
+    dependencies["@deroll/app"] = "^2.0.0-alpha.0";
     if (options.libraries.includes("router")) {
-        dependencies["@deroll/router"] = "^1.0.0";
+        dependencies["@deroll/router"] = "^2.0.0-alpha.0";
     }
     if (options.libraries.includes("wallet")) {
-        dependencies["@deroll/wallet"] = "^1.0.0";
+        dependencies["@deroll/wallet"] = "^2.0.0-alpha.0";
     }
     dependencies["abitype"] = "^1.0.6";
-    dependencies["viem"] = "^2.21.34";
+    dependencies["viem"] = "^2.27.2";
 
     return {
         name,
@@ -42,7 +42,7 @@ const packageJson = (options: CreateAppOptions) => {
             prettier: "^3.3.3",
             "ts-node": "^10.9.2",
             typescript: "^5.6.3",
-            vitest: "^2.1.3",
+            vitest: "^3.1.1",
         },
         scripts: {
             build: "esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",

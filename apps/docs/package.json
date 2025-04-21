@@ -12,7 +12,7 @@
         "@types/react": "latest",
         "react": "latest",
         "react-dom": "latest",
-        "vocs": "1.0.0-alpha.61"
+        "vocs": "1.0.11"
     },
     "devDependencies": {
         "@deroll/app": "workspace:*",
@@ -20,7 +20,7 @@
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "@types/node": "^22.4.1",
-        "typescript": "^5.5.4",
-        "viem": "^2.19.8"
+        "typescript": "^5.8.3",
+        "viem": "^2.27.3"
     }
 }

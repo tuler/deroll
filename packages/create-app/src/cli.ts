@@ -114,7 +114,7 @@ const getLibraries = async (options: {
         hint?: string;
     };
 
-    const packages = await multiselect<LibraryOption[], Library>({
+    const packages = await multiselect({
         message: "Select the optional packages to use",
         options: [
             {
