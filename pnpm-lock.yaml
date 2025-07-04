@@ -318,8 +318,8 @@ importers:
   packages/wallet:
     dependencies:
       '@cartesi/viem':
-        specifier: 2.0.0-alpha.4
-        version: 2.0.0-alpha.4(viem@2.27.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))
+        specifier: 2.0.0-alpha.12
+        version: 2.0.0-alpha.12(typescript@5.8.3)(viem@2.27.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)
       '@deroll/core':
         specifier: workspace:*
         version: link:../core
@@ -597,11 +597,11 @@ packages:
     resolution: {integrity: sha512-H45s8fVLYjbhFH62dIJ3WtmJ6RSPt/3DRO0ZcT2SUiYiQyz3BLVb9ADEnLl91m74aQPS3AzzeajZHYOalWe3bg==}
     engines: {node: '>=6.9.0'}
 
-  '@cartesi/rpc@2.0.0-alpha.2':
-    resolution: {integrity: sha512-HkaAAWsaUUE6pEu5GHEOmKfK5WTb5oz2snDZbR/UJMRlDekNND00mPo8epcbB7FRA9JIoqSOCmUquKNhvqACRQ==}
+  '@cartesi/rpc@2.0.0-alpha.8':
+    resolution: {integrity: sha512-HmGCVYKG5XdO9WV+NH9T+7nyM14UmIkjHuATLVho9wsIvcklXJN5GOFPGex5gZZEEr3eYvZ6S2bnLB7ii7XKaQ==}
 
-  '@cartesi/viem@2.0.0-alpha.4':
-    resolution: {integrity: sha512-+7AhqR9EL1i3t07iMdOMWHk0sjaFUjlKfjdkrDVv3nLOOuTpjLLYc4lEBiBo9sPoM1P/loTdLCOV1Jqw+SzkcQ==}
+  '@cartesi/viem@2.0.0-alpha.12':
+    resolution: {integrity: sha512-GdNc0JZ28mnbFAG3MnzliLVeVWDa8yJKcNNXsuFLnoo9elGoaP2UGCvkP+ICPEjGFb3jV2cJgaWJXeRMHxdV0A==}
     peerDependencies:
       viem: ^2.0.0
 
@@ -6778,15 +6778,19 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@cartesi/rpc@2.0.0-alpha.2':
+  '@cartesi/rpc@2.0.0-alpha.8':
     dependencies:
       json-rpc-2.0: 1.7.0
 
-  '@cartesi/viem@2.0.0-alpha.4(viem@2.27.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))':
+  '@cartesi/viem@2.0.0-alpha.12(typescript@5.8.3)(viem@2.27.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)':
     dependencies:
-      '@cartesi/rpc': 2.0.0-alpha.2
+      '@cartesi/rpc': 2.0.0-alpha.8
+      abitype: 1.0.8(typescript@5.8.3)(zod@3.24.3)
       p-retry: 6.2.1
       viem: 2.27.3(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3)
+    transitivePeerDependencies:
+      - typescript
+      - zod
 
   '@changesets/apply-release-plan@7.0.12':
     dependencies:
