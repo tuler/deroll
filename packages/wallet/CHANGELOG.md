@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.2
+
+### Major Changes
+
+- 4dae713: Bump @cartesi/viem version to alpha.12
+
 ## 2.0.0-alpha.1
 
 ### Major Changes
