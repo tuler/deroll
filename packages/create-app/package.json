@@ -34,6 +34,7 @@
         "figlet": "^1.8.2",
         "fs-extra": "^11.3.0",
         "got": "^14.4.7",
+        "latest-version": "^9.0.0",
         "validate-npm-package-name": "^6.0.2"
     }
 }

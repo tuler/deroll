@@ -1,6 +1,7 @@
 import fs from "fs";
 import fsExtra from "fs-extra";
 import got from "got";
+import latestVersion from "latest-version";
 import path from "node:path";
 import { pipeline } from "node:stream";
 import { promisify } from "node:util";
@@ -17,19 +18,31 @@ export type CreateAppOptions = {
     directory: string;
 };
 
-const packageJson = (options: CreateAppOptions) => {
+const packageJson = async (options: CreateAppOptions) => {
     const name = options.packageName;
     const dependencies: Record<string, string> = {};
 
-    dependencies["@deroll/app"] = "^2.0.0-alpha.0";
+    dependencies["@deroll/app"] =
+        `^${await latestVersion("@deroll/app", { version: "alpha" })}`;
     if (options.libraries.includes("router")) {
-        dependencies["@deroll/router"] = "^2.0.0-alpha.0";
+        dependencies["@deroll/router"] =
+            `^${await latestVersion("@deroll/router", { version: "alpha" })}`;
     }
     if (options.libraries.includes("wallet")) {
-        dependencies["@deroll/wallet"] = "^2.0.0-alpha.0";
+        dependencies["@deroll/wallet"] =
+            `^${await latestVersion("@deroll/wallet", { version: "alpha" })}`;
     }
-    dependencies["abitype"] = "^1.0.6";
-    dependencies["viem"] = "^2.33.1";
+    dependencies["abitype"] = `^${await latestVersion("abitype")}`;
+    dependencies["viem"] = `^${await latestVersion("viem")}`;
+
+    const devDependencies = {
+        "@types/node": `^${await latestVersion("@types/node")}`,
+        esbuild: `^${await latestVersion("esbuild")}`,
+        prettier: `^${await latestVersion("prettier")}`,
+        "ts-node": `^${await latestVersion("ts-node")}`,
+        typescript: `^${await latestVersion("typescript")}`,
+        vitest: `^${await latestVersion("vitest")}`,
+    };
 
     return {
         name,
@@ -37,14 +50,7 @@ const packageJson = (options: CreateAppOptions) => {
         description: "Deroll application template",
         main: "src/index.ts",
         dependencies,
-        devDependencies: {
-            "@types/node": "^24.1.0",
-            esbuild: "^0.25.8",
-            prettier: "^3.3.3",
-            "ts-node": "^10.9.2",
-            typescript: "^5.8.3",
-            vitest: "^3.2.4",
-        },
+        devDependencies,
         scripts: {
             build: "esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",
             clean: "rm -rf node_modules && rm -rf dist",
@@ -127,25 +133,25 @@ const fileCreator = (filename: string, result: Promise<void>): Task => ({
  * @param newString Replacement string
  */
 const patch = (filename: string, oldString: string, newString: string) => {
-  const content = fs.readFileSync(filename, "utf8");
-  const patched = content.split(oldString).join(newString);
-  fs.writeFileSync(filename, patched, "utf8");
-}
-    
+    const content = fs.readFileSync(filename, "utf8");
+    const patched = content.split(oldString).join(newString);
+    fs.writeFileSync(filename, patched, "utf8");
+};
+
 const buildBlocks = {
-    "yarn": `COPY package.json yarn.lock ./
+    yarn: `COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY . .
 RUN yarn build`,
-    "npm": `COPY package.json package-lock.json ./
+    npm: `COPY package.json package-lock.json ./
 RUN npm install --frozen-lockfile
 COPY . .
 RUN npm run build`,
-    "pnpm": `RUN corepack enable pnpm
+    pnpm: `RUN corepack enable pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm run build`
+RUN pnpm run build`,
 };
 
 const dockerfile = async (
@@ -158,7 +164,7 @@ const dockerfile = async (
 
     // patch file according to selected package manager, as the template is for yarn
     if (packageManager !== "yarn") {
-        patch(outputPath, buildBlocks["yarn"], buildBlocks[packageManager])
+        patch(outputPath, buildBlocks["yarn"], buildBlocks[packageManager]);
     }
 };
 
@@ -199,7 +205,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             (async () => {
                 await fsExtra.writeJSON(
                     path.join(directory, "package.json"),
-                    packageJson(options),
+                    await packageJson(options),
                     { spaces },
                 );
             })(),
@@ -207,14 +213,21 @@ export const createApp = (options: CreateAppOptions): Task[] => {
         fileCreator(
             "tsconfig.json",
             (async () => {
-                await fsExtra.writeJSON(path.join(directory, "tsconfig.json"), tsConfig, {
-                    spaces,
-                });
+                await fsExtra.writeJSON(
+                    path.join(directory, "tsconfig.json"),
+                    tsConfig,
+                    {
+                        spaces,
+                    },
+                );
             })(),
         ),
         fileCreator(
             ".dockerignore",
-            fs.promises.writeFile(path.join(directory, ".dockerignore"), ignore),
+            fs.promises.writeFile(
+                path.join(directory, ".dockerignore"),
+                ignore,
+            ),
         ),
         fileCreator(
             ".gitignore",
