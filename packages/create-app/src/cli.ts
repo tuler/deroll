@@ -6,6 +6,7 @@ import {
     multiselect,
     note,
     outro,
+    select,
     spinner,
     text,
 } from "@clack/prompts";
@@ -51,8 +52,25 @@ const getLocation = async (pathArg: string | undefined): Promise<string> => {
 const getPackageManager = async (
     arg?: PackageManager,
 ): Promise<PackageManager> => {
-    // TODO: implement package manager selection
-    return arg || "pnpm";
+    if (arg) {
+        return arg;
+    }
+
+    const packageManager = await select({
+        message: "Select the package manager to use",
+        options: [
+            { value: "pnpm", label: "pnpm", hint: "recommended" },
+            { value: "npm", label: "npm" },
+            { value: "yarn", label: "yarn" },
+        ],
+    });
+
+    if (isCancel(packageManager)) {
+        cancel(cancelMessage);
+        process.exit(0);
+    }
+
+    return packageManager;
 };
 
 const getPackageName = async (options: {
@@ -176,7 +194,7 @@ program
 
         const instructions = [
             `cd ${directory}`,
-            "pnpm i",
+            `${packageManager} i`,
             "cartesi build",
             "cartesi run",
         ];
