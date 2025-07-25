@@ -14,7 +14,7 @@
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@changesets/cli": "^2.29.5",
-        "globals": "^16.0.0",
+        "globals": "^16.3.0",
         "turbo": "^2.5.5"
     },
     "packageManager": "pnpm@10.13.1"
