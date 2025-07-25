@@ -1,4 +1,5 @@
-import fs from "fs-extra";
+import fs from "fs";
+import fsExtra from "fs-extra";
 import got from "got";
 import path from "node:path";
 import { pipeline } from "node:stream";
@@ -11,7 +12,7 @@ export type Library = "wallet" | "router";
 export type PackageManager = "npm" | "yarn" | "pnpm";
 export type CreateAppOptions = {
     libraries: Library[];
-    packageManager?: PackageManager;
+    packageManager: PackageManager;
     packageName: string;
     directory: string;
 };
@@ -28,7 +29,7 @@ const packageJson = (options: CreateAppOptions) => {
         dependencies["@deroll/wallet"] = "^2.0.0-alpha.0";
     }
     dependencies["abitype"] = "^1.0.6";
-    dependencies["viem"] = "^2.27.2";
+    dependencies["viem"] = "^2.33.1";
 
     return {
         name,
@@ -37,17 +38,16 @@ const packageJson = (options: CreateAppOptions) => {
         main: "src/index.ts",
         dependencies,
         devDependencies: {
-            "@types/node": "^22.7.9",
-            esbuild: "^0.24.0",
+            "@types/node": "^24.1.0",
+            esbuild: "^0.25.8",
             prettier: "^3.3.3",
             "ts-node": "^10.9.2",
-            typescript: "^5.6.3",
-            vitest: "^3.1.1",
+            typescript: "^5.8.3",
+            vitest: "^3.2.4",
         },
         scripts: {
             build: "esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",
             clean: "rm -rf node_modules && rm -rf dist",
-            dev: 'ROLLUP_HTTP_SERVER_URL="http://127.0.0.1:8080/host-runner" ts-node src/index.ts',
             test: "vitest",
         },
         keywords: ["cartesi", "deroll"],
@@ -83,13 +83,13 @@ const ignore = `.cartesi
 /node_modules
 `;
 
-const readme = `# Deroll template
+const readme = `# deroll template
 
 This is a template for [Cartesi](https://cartesi.io) applications that use the [Deroll](https://github.com/tuler/deroll) framework.
 
 For documentation on how to develop Cartesi applications refer to https://docs.cartesi.io
 
-For documentation on how to use Deroll refer to https://github.com/tuler/deroll
+For documentation on how to use Deroll refer to https://deroll.dev
 
 Application logic should go in \`src/index.ts\`.
 `;
@@ -120,6 +120,48 @@ const fileCreator = (filename: string, result: Promise<void>): Task => ({
     result,
 });
 
+/**
+ * Patches a file in-place, replacing all occurrences of oldString with newString.
+ * @param filename Path to the file to patch
+ * @param oldString String to be replaced
+ * @param newString Replacement string
+ */
+const patch = (filename: string, oldString: string, newString: string) => {
+  const content = fs.readFileSync(filename, "utf8");
+  const patched = content.split(oldString).join(newString);
+  fs.writeFileSync(filename, patched, "utf8");
+}
+    
+const buildBlocks = {
+    "yarn": `COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+COPY . .
+RUN yarn build`,
+    "npm": `COPY package.json package-lock.json ./
+RUN npm install --frozen-lockfile
+COPY . .
+RUN npm run build`,
+    "pnpm": `RUN corepack enable pnpm
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm run build`
+};
+
+const dockerfile = async (
+    dockerfileUrl: string,
+    outputPath: string,
+    packageManager: PackageManager,
+): Promise<void> => {
+    // download Dockerfile from application-templates
+    await download(dockerfileUrl, outputPath);
+
+    // patch file according to selected package manager, as the template is for yarn
+    if (packageManager !== "yarn") {
+        patch(outputPath, buildBlocks["yarn"], buildBlocks[packageManager])
+    }
+};
+
 export const createApp = (options: CreateAppOptions): Task[] => {
     const { directory, libraries } = options;
 
@@ -133,8 +175,8 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     }
 
     // create destination directory if not exists
-    fs.ensureDirSync(directory);
-    fs.ensureDirSync(path.join(directory, "src"));
+    fsExtra.ensureDirSync(directory);
+    fsExtra.ensureDirSync(path.join(directory, "src"));
 
     const source = gh({
         owner: "tuler",
@@ -143,7 +185,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
         path: `apps/examples/src/${example}.ts`,
     });
 
-    const dockerfile = gh({
+    const dockerfileUrl = gh({
         owner: "cartesi",
         repo: "application-templates",
         branch: "prerelease/sdk-12",
@@ -154,29 +196,33 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     return [
         fileCreator(
             "package.json",
-            fs.writeJSON(
-                path.join(directory, "package.json"),
-                packageJson(options),
-                { spaces },
-            ),
+            (async () => {
+                await fsExtra.writeJSON(
+                    path.join(directory, "package.json"),
+                    packageJson(options),
+                    { spaces },
+                );
+            })(),
         ),
         fileCreator(
             "tsconfig.json",
-            fs.writeJSON(path.join(directory, "tsconfig.json"), tsConfig, {
-                spaces,
-            }),
+            (async () => {
+                await fsExtra.writeJSON(path.join(directory, "tsconfig.json"), tsConfig, {
+                    spaces,
+                });
+            })(),
         ),
         fileCreator(
             ".dockerignore",
-            fs.writeFile(path.join(directory, ".dockerignore"), ignore),
+            fs.promises.writeFile(path.join(directory, ".dockerignore"), ignore),
         ),
         fileCreator(
             ".gitignore",
-            fs.writeFile(path.join(directory, ".gitignore"), ignore),
+            fs.promises.writeFile(path.join(directory, ".gitignore"), ignore),
         ),
         fileCreator(
             "README.md",
-            fs.writeFile(path.join(directory, "README.md"), readme),
+            fs.promises.writeFile(path.join(directory, "README.md"), readme),
         ),
         {
             startText: `downloading ${source}`,
@@ -186,7 +232,11 @@ export const createApp = (options: CreateAppOptions): Task[] => {
         {
             startText: `downloading ${dockerfile}`,
             stopText: `downloaded ${dockerfile}`,
-            result: download(dockerfile, path.join(directory, "Dockerfile")),
+            result: dockerfile(
+                dockerfileUrl,
+                path.join(directory, "Dockerfile"),
+                options.packageManager,
+            ),
         },
     ];
 };
