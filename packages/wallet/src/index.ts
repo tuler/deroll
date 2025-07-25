@@ -1,7 +1,6 @@
-import { AdvanceRequestData, Payload, Voucher } from "@deroll/core";
+import type { AdvanceRequestData, Payload, Voucher } from "@deroll/core";
+import type { Address, Hex } from "viem";
 import {
-    Address,
-    Hex,
     decodeAbiParameters,
     encodeFunctionData,
     erc20Abi,
@@ -12,7 +11,7 @@ import {
     parseAbi,
     parseAbiParameters,
     slice,
-    zeroHash,
+    zeroHash
 } from "viem";
 
 import {
@@ -23,7 +22,7 @@ import {
     etherPortalAddress,
 } from "@cartesi/viem/abi";
 import { erc1155Abi } from "./abi";
-import { WalletApp, WalletAppImpl } from "./wallet";
+import { type WalletApp, WalletAppImpl } from "./wallet";
 
 export type { WalletApp } from "./wallet";
 

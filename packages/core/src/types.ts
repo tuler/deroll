@@ -1,4 +1,4 @@
-import { components } from "./schema";
+import type { components } from "./schema";
 
 export type RollupRequest = components["schemas"]["RollupRequest"];
 export type RequestType = RollupRequest["request_type"];
@@ -12,10 +12,11 @@ export type Payload = components["schemas"]["Payload"];
 export type Report = components["schemas"]["Report"];
 export type Voucher = components["schemas"]["Voucher"];
 export type DelegateCallVoucher = components["schemas"]["DelegateCallVoucher"];
+export type Exception = components["schemas"]["Exception"];
 
 export type NoticeResponse = components["schemas"]["IndexResponse"];
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type ReportResponse = {}; // XXX: should probably be 204 (no content)
+export type ReportResponse = Record<string, never>; // XXX: should probably be 204 (no content)
 export type VoucherResponse = components["schemas"]["IndexResponse"];
 
 export type InspectRequestHandler = (data: InspectRequestData) => Promise<void>;

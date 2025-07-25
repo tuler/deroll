@@ -1,5 +1,10 @@
-import { App, InspectRequestData } from "@deroll/core";
-import { match, MatchResult, MatchFunction, Path } from "path-to-regexp";
+import type { App, InspectRequestData } from "@deroll/core";
+import {
+    type MatchFunction,
+    type MatchResult,
+    type Path,
+    match,
+} from "path-to-regexp";
 import { bytesToString, stringToBytes, toBytes, toHex } from "viem";
 
 export type Handler<P extends object = object> = (

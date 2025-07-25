@@ -1,9 +1,10 @@
-import {
+import type {
     AdvanceRequestData,
     AdvanceRequestHandler,
     App,
     AppOptions,
     DelegateCallVoucher,
+    Exception,
     InspectRequestData,
     InspectRequestHandler,
     Notice,
@@ -41,9 +42,8 @@ export class HttpApp implements App {
         });
         if (data) {
             return data.index;
-        } else {
-            throw new Error(response.statusText);
         }
+        throw new Error(response.statusText);
     }
 
     public async createReport(report: Report): Promise<void> {
@@ -61,9 +61,8 @@ export class HttpApp implements App {
         });
         if (data) {
             return data.index;
-        } else {
-            throw new Error(response.statusText);
         }
+        throw new Error(response.statusText);
     }
 
     public async createDelegateCallVoucher(
@@ -74,9 +73,16 @@ export class HttpApp implements App {
         });
         if (data) {
             return data.index;
-        } else {
-            throw new Error(response.statusText);
         }
+        throw new Error(response.statusText);
+    }
+
+    public async registerException(exception: Exception): Promise<void> {
+        const { response } = await this.POST("/exception", { body: exception });
+        if (response.ok) {
+            return;
+        }
+        throw new Error(response.statusText);
     }
 
     private handleAdvance: AdvanceRequestHandler = async (data) => {
@@ -87,7 +93,7 @@ export class HttpApp implements App {
         for (const handler of this.advanceHandlers) {
             try {
                 const result = await handler(data);
-                if (result == "accept") {
+                if (result === "accept") {
                     if (!this.options.broadcastAdvanceRequests) {
                         // not broadcast, return accept immediately
                         return result;
@@ -132,7 +138,7 @@ export class HttpApp implements App {
                 body: { status },
                 parseAs: "text",
             });
-            if (response.status == 200 && data) {
+            if (response.status === 200 && data) {
                 const request = JSON.parse(data) as RollupRequest;
                 switch (request.request_type) {
                     case "advance_state":
@@ -146,7 +152,7 @@ export class HttpApp implements App {
                         );
                         break;
                 }
-            } else if (response.status == 202) {
+            } else if (response.status === 202) {
                 // no rollup request available
             }
         }

@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import openapiTS, { astToString } from "openapi-typescript";
 import ts from "typescript";
 
@@ -21,7 +21,7 @@ const inputFile =
 const outputFile = "src/schema.ts";
 
 // import types from viem in generated code
-const inject = "import { Address, Hex } from 'viem';\n";
+const inject = "import type { Address, Hex } from 'viem';\n";
 
 console.log(`${inputFile} -> ${outputFile}`);
 openapiTS(inputFile, {
@@ -31,10 +31,8 @@ openapiTS(inputFile, {
             return schemaObject.nullable
                 ? ts.factory.createUnionTypeNode([HEX, NULL])
                 : HEX;
-        } else if (
-            "format" in schemaObject &&
-            schemaObject.format === "address"
-        ) {
+        }
+        if ("format" in schemaObject && schemaObject.format === "address") {
             // use viem.Address if format is address
             return schemaObject.nullable
                 ? ts.factory.createUnionTypeNode([ADDRESS, NULL])

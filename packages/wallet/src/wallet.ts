@@ -1,5 +1,5 @@
-import { AdvanceRequestHandler, Voucher } from "@deroll/core";
-import { Address, Hex, getAddress, isAddress } from "viem";
+import type { AdvanceRequestHandler, Voucher } from "@deroll/core";
+import { type Address, type Hex, getAddress, isAddress } from "viem";
 
 import {
     createERC1155BatchTransferVoucher,
