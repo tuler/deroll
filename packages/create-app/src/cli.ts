@@ -177,9 +177,8 @@ program
         const instructions = [
             `cd ${directory}`,
             "pnpm i",
-            "cartesi rollups start",
             "cartesi build",
-            "cartesi rollups deploy",
+            "cartesi run",
         ];
         note(instructions.join("\n"), "Next steps");
         outro("Happy building! Thanks for choosing deroll!");
