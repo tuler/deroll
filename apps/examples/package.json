@@ -2,9 +2,9 @@
     "name": "@deroll/examples",
     "version": "2.0.0-alpha.2",
     "scripts": {
-        "build": "tsup",
+        "build": "tsdown",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-        "dev": "tsup --watch",
+        "dev": "tsdown --watch",
         "dev:abi": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/abi.ts",
         "dev:echo": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/echo.ts",
         "dev:minimal": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/minimal.ts",
@@ -29,13 +29,13 @@
         "@deroll/app": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.27.3"
+        "viem": "^2.33.1"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^22.7.9",
-        "tsup": "^8.4.0",
+        "@types/node": "^24.1.0",
+        "tsdown": "^0.13.0",
         "typescript": "^5.8.3",
-        "vitest": "^3.1.1"
+        "vitest": "^3.2.4"
     }
 }

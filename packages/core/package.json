@@ -1,34 +1,45 @@
 {
     "name": "@deroll/core",
     "version": "2.0.0-alpha.1",
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "sideEffects": false,
     "license": "MIT",
     "files": [
         "dist/**"
     ],
+    "exports": {
+        "import": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "require": {
+            "types": "./dist/index.d.cts",
+            "require": "./dist/index.cjs"
+        }
+    },
     "scripts": {
         "build": "run-s codegen compile",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-        "codegen": "ts-node schema.ts",
-        "compile": "tsup",
-        "dev": "tsup --watch",
+        "codegen": "tsx schema.ts",
+        "compile": "tsdown",
+        "dev": "tsdown --watch",
         "prepack": "run-s build"
     },
     "dependencies": {
-        "viem": "^2.27.3"
+        "viem": "^2.33.1"
     },
     "devDependencies": {
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^22.14.1",
+        "@types/node": "^24.1.0",
         "npm-run-all": "^4",
-        "openapi-typescript": "^7.6.1",
-        "ts-node": "^10.9.2",
-        "tsup": "^8.4.0",
+        "openapi-typescript": "^7.8.0",
+        "tsdown": "^0.13.0",
+        "tsx": "^4.20.3",
         "typescript": "^5.8.3",
-        "vitest": "^3.1.1"
+        "vitest": "^3.2.4"
     },
     "publishConfig": {
         "access": "public"

@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "bin": "dist/cli.js",
     "scripts": {
-        "build": "tsup",
+        "build": "tsdown",
         "start": "tsx src/cli.ts",
         "prepack": "run-s build"
     },
@@ -20,20 +20,20 @@
         "@deroll/tsconfig": "workspace:*",
         "@types/figlet": "^1.5.8",
         "@types/fs-extra": "^11.0.4",
-        "@types/node": "^22.14.1",
+        "@types/node": "^24.1.0",
         "@types/validate-npm-package-name": "^4.0.2",
         "npm-run-all": "^4.1.5",
-        "tsup": "^8.4.0",
-        "tsx": "^4.19.3",
+        "tsdown": "^0.13.0",
+        "tsx": "^4.20.3",
         "typescript": "^5.8.3"
     },
     "dependencies": {
-        "@clack/prompts": "^0.10.1",
-        "@commander-js/extra-typings": "^13.1.0",
-        "commander": "^13.1.0",
-        "figlet": "^1.8.1",
+        "@clack/prompts": "^0.11.0",
+        "@commander-js/extra-typings": "^14.0.0",
+        "commander": "^14.0.0",
+        "figlet": "^1.8.2",
         "fs-extra": "^11.3.0",
         "got": "^14.4.7",
-        "validate-npm-package-name": "^6.0.0"
+        "validate-npm-package-name": "^6.0.2"
     }
 }
