@@ -1,5 +1,15 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.2
+
+### Patch Changes
+
+- 69bd3c1: fetching latest version of project dependencies
+- b940b9a: package manager selection
+- e8fd88a: update instructions
+- b009910: package manager selection
+- 7a6ed6c: fix packaging
+
 ## 2.0.0-alpha.1
 
 ### Patch Changes

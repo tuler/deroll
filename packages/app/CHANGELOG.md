@@ -1,5 +1,13 @@
 # @deroll/app
 
+## 2.0.0-alpha.2
+
+### Patch Changes
+
+- 7a6ed6c: fix packaging
+- Updated dependencies [7a6ed6c]
+  - @deroll/core@2.0.0-alpha.2
+
 ## 2.0.0-alpha.1
 
 ### Patch Changes
@@ -8,7 +16,7 @@
 - f8758ad: add delegate call voucher
 - Updated dependencies [40cfed6]
 - Updated dependencies [f8758ad]
-    - @deroll/core@2.0.0-alpha.1
+  - @deroll/core@2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
 
@@ -19,7 +27,7 @@
 ### Patch Changes
 
 - Updated dependencies [f0ff7dc]
-    - @deroll/core@2.0.0-alpha.0
+  - @deroll/core@2.0.0-alpha.0
 
 ## 1.0.0
 
@@ -30,7 +38,7 @@
 ### Patch Changes
 
 - Updated dependencies [cdcb4fd]
-    - @deroll/core@1.0.0
+  - @deroll/core@1.0.0
 
 ## 0.7.1
 
@@ -38,7 +46,7 @@
 
 - 09c8d46: Moving broadcastAdvanceRequests to AppOptions type
 - Updated dependencies [09c8d46]
-    - @deroll/core@0.2.1
+  - @deroll/core@0.2.1
 
 ## 0.7.0
 
@@ -51,7 +59,7 @@
 
 - Updated dependencies [b034d0c]
 - Updated dependencies [b034d0c]
-    - @deroll/core@0.2.0
+  - @deroll/core@0.2.0
 
 ## 0.6.1
 
@@ -59,7 +67,7 @@
 
 - a85702c: bump dependencies
 - Updated dependencies [a85702c]
-    - @deroll/core@0.1.1
+  - @deroll/core@0.1.1
 
 ## 0.6.0
 
@@ -70,7 +78,7 @@
 ### Patch Changes
 
 - Updated dependencies [488d46b]
-    - @deroll/core@0.1.0
+  - @deroll/core@0.1.0
 
 ## 0.5.3
 

@@ -1,5 +1,11 @@
 # @deroll/core
 
+## 2.0.0-alpha.2
+
+### Patch Changes
+
+- 7a6ed6c: fix packaging
+
 ## 2.0.0-alpha.1
 
 ### Patch Changes
