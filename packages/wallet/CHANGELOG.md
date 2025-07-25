@@ -1,5 +1,13 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.3
+
+### Patch Changes
+
+- 7a6ed6c: fix packaging
+- Updated dependencies [7a6ed6c]
+  - @deroll/core@2.0.0-alpha.2
+
 ## 2.0.0-alpha.2
 
 ### Major Changes
@@ -17,7 +25,7 @@
 - 40cfed6: bump dependencies
 - Updated dependencies [40cfed6]
 - Updated dependencies [f8758ad]
-    - @deroll/core@2.0.0-alpha.1
+  - @deroll/core@2.0.0-alpha.1
 
 ## 2.0.0-alpha.0
 
@@ -28,7 +36,7 @@
 ### Patch Changes
 
 - Updated dependencies [f0ff7dc]
-    - @deroll/core@2.0.0-alpha.0
+  - @deroll/core@2.0.0-alpha.0
 
 ## 1.0.0
 
@@ -39,14 +47,14 @@
 ### Patch Changes
 
 - Updated dependencies [cdcb4fd]
-    - @deroll/core@1.0.0
+  - @deroll/core@1.0.0
 
 ## 0.8.1
 
 ### Patch Changes
 
 - Updated dependencies [09c8d46]
-    - @deroll/core@0.2.1
+  - @deroll/core@0.2.1
 
 ## 0.8.0
 
@@ -59,7 +67,7 @@
 
 - Updated dependencies [b034d0c]
 - Updated dependencies [b034d0c]
-    - @deroll/core@0.2.0
+  - @deroll/core@0.2.0
 
 ## 0.7.0
 
@@ -71,7 +79,7 @@
 
 - a85702c: bump dependencies
 - Updated dependencies [a85702c]
-    - @deroll/core@0.1.1
+  - @deroll/core@0.1.1
 
 ## 0.6.0
 
@@ -82,21 +90,21 @@
 ### Patch Changes
 
 - Updated dependencies [488d46b]
-    - @deroll/core@0.1.0
+  - @deroll/core@0.1.0
 
 ## 0.5.2
 
 ### Patch Changes
 
 - Updated dependencies [1f556f4]
-    - @deroll/app@0.5.3
+  - @deroll/app@0.5.3
 
 ## 0.5.1
 
 ### Patch Changes
 
 - Updated dependencies [ab0e599]
-    - @deroll/app@0.5.2
+  - @deroll/app@0.5.2
 
 ## 0.5.0
 
@@ -109,7 +117,7 @@
 
 - 00dbe37: bump dependencies
 - Updated dependencies [00dbe37]
-    - @deroll/app@0.5.1
+  - @deroll/app@0.5.1
 
 ## 0.4.0
 
@@ -122,7 +130,7 @@
 
 - Updated dependencies [583e2fa]
 - Updated dependencies [903d8ec]
-    - @deroll/app@0.5.0
+  - @deroll/app@0.5.0
 
 ## 0.3.7
 
@@ -141,7 +149,7 @@
 ### Patch Changes
 
 - Updated dependencies [2f65b2f]
-    - @deroll/app@0.4.0
+  - @deroll/app@0.4.0
 
 ## 0.3.4
 
@@ -177,14 +185,14 @@
 
 - 71f992e: export low level types
 - Updated dependencies [be34557]
-    - @deroll/app@0.3.0
+  - @deroll/app@0.3.0
 
 ## 0.2.2
 
 ### Patch Changes
 
 - fc2df22: fix ether balance for unexisting wallet
-    - @deroll/app@0.2.0
+  - @deroll/app@0.2.0
 
 ## 0.2.1
 
@@ -202,7 +210,7 @@
 ### Patch Changes
 
 - Updated dependencies [15db7f1]
-    - @deroll/app@0.2.0
+  - @deroll/app@0.2.0
 
 ## 0.1.0
 
@@ -213,4 +221,4 @@
 ### Patch Changes
 
 - Updated dependencies [575ec7b]
-    - @deroll/app@0.1.0
+  - @deroll/app@0.1.0
