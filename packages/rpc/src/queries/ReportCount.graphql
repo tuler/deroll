@@ -1,7 +1,0 @@
-query ReportCount($inputNumber: Int!) {
-    input(index: $inputNumber) {
-        reports {
-            totalCount
-        }
-    }
-}

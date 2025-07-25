@@ -1,7 +1,0 @@
-query NoticeCount($inputNumber: Int!) {
-    input(index: $inputNumber) {
-        notices {
-            totalCount
-        }
-    }
-}
