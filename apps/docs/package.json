@@ -9,18 +9,18 @@
         "preview": "vocs preview"
     },
     "dependencies": {
-        "@types/react": "latest",
+        "@types/react": "^19.1.8",
         "react": "latest",
         "react-dom": "latest",
-        "vocs": "1.0.11"
+        "vocs": "1.0.13"
     },
     "devDependencies": {
         "@deroll/app": "workspace:*",
         "@deroll/core": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "@types/node": "^22.4.1",
+        "@types/node": "^24.1.0",
         "typescript": "^5.8.3",
-        "viem": "^2.27.3"
+        "viem": "^2.33.1"
     }
 }
