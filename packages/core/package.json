@@ -26,12 +26,14 @@
         "codegen": "tsx schema.ts",
         "compile": "tsdown",
         "dev": "tsdown --watch",
+        "lint": "biome check",
         "prepack": "run-s build"
     },
     "dependencies": {
         "viem": "^2.33.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^24.1.0",
         "npm-run-all": "^4",

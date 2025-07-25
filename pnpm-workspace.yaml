@@ -1,5 +1,7 @@
 packages:
     - apps/*
     - packages/*
+catalog:
+    "@biomejs/biome": "2.1.2"
 onlyBuiltDependencies:
     - sharp

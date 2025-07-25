@@ -24,6 +24,7 @@
         "build": "tsdown",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsdown --watch",
+        "lint": "biome check",
         "prepack": "run-s build",
         "test": "vitest"
     },
@@ -33,6 +34,7 @@
         "viem": "^2.33.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@vitest/coverage-istanbul": "^3.2.4",
         "@vitest/ui": "^3.2.4",

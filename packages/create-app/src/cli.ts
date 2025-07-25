@@ -15,7 +15,7 @@ import figlet from "figlet";
 import fs from "fs-extra";
 import path from "node:path";
 import validatePackageName from "validate-npm-package-name";
-import { createApp, Library, PackageManager } from "./index.js";
+import { createApp, type Library, type PackageManager } from "./index.js";
 
 const cancelMessage = "Application creation cancelled";
 
@@ -125,12 +125,6 @@ const getLibraries = async (options: {
     if (useWallet !== undefined && useRouter !== undefined) {
         return initialValues;
     }
-
-    type LibraryOption = {
-        value: Library;
-        label?: string;
-        hint?: string;
-    };
 
     const packages = await multiselect({
         message: "Select the optional packages to use",

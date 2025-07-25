@@ -6,6 +6,7 @@
     "bin": "dist/cli.js",
     "scripts": {
         "build": "tsdown",
+        "lint": "biome check",
         "start": "tsx src/cli.ts",
         "prepack": "run-s build"
     },
@@ -17,6 +18,7 @@
     "author": "Danilo Tuler",
     "license": "MIT",
     "devDependencies": {
+        "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@types/figlet": "^1.5.8",
         "@types/fs-extra": "^11.0.4",

@@ -1,5 +1,5 @@
 import {
-    Address,
+    type Address,
     concat,
     encodeAbiParameters,
     encodePacked,

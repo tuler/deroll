@@ -11,7 +11,8 @@
         "dev:router": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/router.ts",
         "dev:wallet": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/wallet.ts",
         "dev:walletRouter": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/walletRouter.ts",
-        "dev:withdraw": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/withdraw.ts"
+        "dev:withdraw": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/withdraw.ts",
+        "lint": "biome check"
     },
     "bin": {
         "deroll-example-abi": "dist/abi.js",
@@ -32,6 +33,7 @@
         "viem": "^2.33.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^24.1.0",
         "tsdown": "^0.13.0",

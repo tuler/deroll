@@ -24,6 +24,7 @@
         "build": "tsdown",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsdown --watch",
+        "lint": "biome check",
         "prepack": "run-s build"
     },
     "dependencies": {
@@ -32,6 +33,7 @@
         "viem": "^2.33.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "npm-run-all": "^4.1.5",
         "ts-node": "^10.9.2",

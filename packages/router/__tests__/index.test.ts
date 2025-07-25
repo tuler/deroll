@@ -1,9 +1,9 @@
-import { App } from "@deroll/core";
+import type { App } from "@deroll/core";
 import { stringToHex } from "viem";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { mock, mockClear } from "vitest-mock-extended";
 
-import { Router, Handler, createRouter } from "../src";
+import { type Handler, type Router, createRouter } from "../src";
 
 describe("Router", () => {
     let app: App;

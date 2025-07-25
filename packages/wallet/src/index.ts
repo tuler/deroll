@@ -11,7 +11,7 @@ import {
     parseAbi,
     parseAbiParameters,
     slice,
-    zeroHash
+    zeroHash,
 } from "viem";
 
 import {

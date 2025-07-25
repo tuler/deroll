@@ -1,7 +1,7 @@
-import fs from "fs";
 import fsExtra from "fs-extra";
 import got from "got";
 import latestVersion from "latest-version";
+import fs from "node:fs";
 import path from "node:path";
 import { pipeline } from "node:stream";
 import { promisify } from "node:util";
@@ -32,8 +32,8 @@ const packageJson = async (options: CreateAppOptions) => {
         dependencies["@deroll/wallet"] =
             `^${await latestVersion("@deroll/wallet", { version: "alpha" })}`;
     }
-    dependencies["abitype"] = `^${await latestVersion("abitype")}`;
-    dependencies["viem"] = `^${await latestVersion("viem")}`;
+    dependencies.abitype = `^${await latestVersion("abitype")}`;
+    dependencies.viem = `^${await latestVersion("viem")}`;
 
     const devDependencies = {
         "@types/node": `^${await latestVersion("@types/node")}`,
@@ -164,7 +164,7 @@ const dockerfile = async (
 
     // patch file according to selected package manager, as the template is for yarn
     if (packageManager !== "yarn") {
-        patch(outputPath, buildBlocks["yarn"], buildBlocks[packageManager]);
+        patch(outputPath, buildBlocks.yarn, buildBlocks[packageManager]);
     }
 };
 

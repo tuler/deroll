@@ -1,6 +1,6 @@
-import { RequestMetadata } from "@deroll/core";
+import type { RequestMetadata } from "@deroll/core";
 import {
-    Address,
+    type Address,
     concat,
     encodeAbiParameters,
     encodePacked,

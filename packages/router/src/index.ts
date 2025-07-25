@@ -23,7 +23,7 @@ export type RouterOptions = {
 
 export class Router {
     private options: RouterOptions;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: router type
     private routes: Route<any>[];
 
     constructor(options: RouterOptions) {
