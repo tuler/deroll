@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.3
+
+### Patch Changes
+
+- c2527d8: exposing ClientOptions at HttpApp
+
 ## 2.0.0-alpha.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @deroll/app
 
+## 2.0.0-alpha.3
+
+### Patch Changes
+
+- c2527d8: changing createApp param name from url to baseUrl
+
 ## 2.0.0-alpha.2
 
 ### Patch Changes

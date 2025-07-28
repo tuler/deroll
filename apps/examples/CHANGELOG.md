@@ -1,5 +1,13 @@
 # @deroll/examples
 
+## 2.0.0-alpha.4
+
+### Patch Changes
+
+- c2527d8: exposing ClientOptions at HttpApp
+- Updated dependencies [c2527d8]
+  - @deroll/app@2.0.0-alpha.3
+
 ## 2.0.0-alpha.3
 
 ### Patch Changes
