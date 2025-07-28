@@ -12,7 +12,7 @@ import { createERC20TransferVoucher } from "@deroll/wallet";
 import { parseUnits } from "viem";
 
 // create app
-const app = createApp({ url: "http://127.0.0.1:5004" });
+const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
 app.addAdvanceHandler(async ({ metadata }) => {

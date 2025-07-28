@@ -14,11 +14,10 @@ import type {
     Voucher,
     paths,
 } from "@deroll/core";
+import type { ClientOptions } from "openapi-fetch";
 import createClient from "openapi-fetch";
 
-export type HttpAppOptions = AppOptions & {
-    url: string;
-};
+export type HttpAppOptions = AppOptions & ClientOptions;
 
 export class HttpApp implements App {
     private options: HttpAppOptions;
@@ -32,7 +31,7 @@ export class HttpApp implements App {
         this.inspectHandlers = [];
 
         // create openapi typescript client
-        const { POST } = createClient<paths>({ baseUrl: options.url });
+        const { POST } = createClient<paths>(options);
         this.POST = POST;
     }
 

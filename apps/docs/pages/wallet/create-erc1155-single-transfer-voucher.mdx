@@ -12,7 +12,7 @@ import { createERC1155SingleTransferVoucher } from "@deroll/wallet";
 import { parseUnits } from "viem";
 
 // create app
-const app = createApp({ url: "http://127.0.0.1:5004" });
+const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address

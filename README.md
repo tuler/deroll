@@ -36,22 +36,22 @@ import { createApp } from "@deroll/app";
 
 // Create the application
 const app = createApp({
-    url: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004",
+  baseUrl: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004",
 });
 
 // Handle input encoded in hex
 app.addAdvanceHandler(async ({ payload }) => {
-    // read payload as string
-    const str = hexToString(payload);
+  // read payload as string
+  const str = hexToString(payload);
 
-    // create a notice with the string in uppercase
-    await app.createNotice({ payload: stringToHex(str.toUpperCase()) });
+  // create a notice with the string in uppercase
+  await app.createNotice({ payload: stringToHex(str.toUpperCase()) });
 });
 
 // Start the application
 app.start().catch((e) => {
-    console.error(e);
-    process.exit(1);
+  console.error(e);
+  process.exit(1);
 });
 ```
 
@@ -82,9 +82,9 @@ cartesi send
 1. Choose `Send generic input to the application.`
 2. After choose `Foundry`
 3. Select the defaults:
-    1. Select the RPC URL `http://127.0.0.1:8545`
-    2. Select Mnemonic
-    3. Account, DApp address
+   1. Select the RPC URL `http://127.0.0.1:8545`
+   2. Select Mnemonic
+   3. Account, DApp address
 4. Select `Input String encoding` and in the input type `Hello world!` and hit enter.
 
 Expected output:
@@ -106,6 +106,7 @@ cartesi send
 Expected output in the `cartesi rollups logs` terminal:
 
 ```shell
+
 ```
 
 Now you're ready to start building your Cartesi application with cartesi and deroll!
@@ -114,8 +115,8 @@ Now you're ready to start building your Cartesi application with cartesi and der
 
 ### Requirements
 
--   Corepack (with pnpm) or pnpm v9 (9.7.1 recommended)
--   Node 20 or greater (LTS)
+- Corepack (with pnpm) or pnpm v9 (9.7.1 recommended)
+- Node 20 or greater (LTS)
 
 ### Installation
 
