@@ -1,6 +1,10 @@
 {
     "name": "@deroll/wallet",
     "version": "2.0.0-alpha.4",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
     "type": "module",
     "main": "./dist/index.cjs",
     "module": "./dist/index.js",

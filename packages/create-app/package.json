@@ -2,6 +2,10 @@
     "name": "@deroll/create-app",
     "version": "2.0.0-alpha.4",
     "description": "deroll application creator",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
     "main": "dist/index.js",
     "bin": "dist/cli.js",
     "scripts": {
