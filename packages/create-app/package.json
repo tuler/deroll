@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "bin": "dist/cli.js",
     "scripts": {
-        "build": "tsdown",
+        "build": "tsup",
         "lint": "biome check",
         "start": "tsx src/cli.ts",
         "prepack": "run-s build"
@@ -25,7 +25,7 @@
         "@types/node": "^25.4.0",
         "@types/validate-npm-package-name": "^4.0.2",
         "npm-run-all": "^4.1.5",
-        "tsdown": "^0.21.1",
+        "tsup": "^8.5.1",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     },

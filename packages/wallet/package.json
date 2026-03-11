@@ -21,9 +21,9 @@
         }
     },
     "scripts": {
-        "build": "tsdown",
+        "build": "tsup",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-        "dev": "tsdown --watch",
+        "dev": "tsup --watch",
         "lint": "biome check",
         "prepack": "run-s build",
         "test": "vitest"
@@ -39,7 +39,7 @@
         "@vitest/coverage-istanbul": "^4.0.18",
         "@vitest/ui": "^4.0.18",
         "npm-run-all": "^4.1.5",
-        "tsdown": "^0.21.1",
+        "tsup": "^8.5.1",
         "typescript": "^5.9.3",
         "vitest": "^4.0.18"
     },

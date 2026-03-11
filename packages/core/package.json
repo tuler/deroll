@@ -24,8 +24,8 @@
         "build": "run-s codegen compile",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "codegen": "tsx schema.ts",
-        "compile": "tsdown",
-        "dev": "tsdown --watch",
+        "compile": "tsup",
+        "dev": "tsup --watch",
         "lint": "biome check",
         "prepack": "run-s build"
     },
@@ -38,7 +38,7 @@
         "@types/node": "^25.4.0",
         "npm-run-all": "^4",
         "openapi-typescript": "^7.8.0",
-        "tsdown": "^0.21.1",
+        "tsup": "^8.5.1",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
         "vitest": "^4.0.18"
