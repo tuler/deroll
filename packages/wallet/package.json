@@ -29,7 +29,7 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@cartesi/viem": "2.0.0-alpha.12",
+        "@cartesi/viem": "2.0.0-alpha.28",
         "@deroll/core": "workspace:*",
         "viem": "^2.33.1"
     },

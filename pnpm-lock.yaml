@@ -269,8 +269,8 @@ importers:
   packages/wallet:
     dependencies:
       '@cartesi/viem':
-        specifier: 2.0.0-alpha.12
-        version: 2.0.0-alpha.12(typescript@5.8.3)(viem@2.33.1(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)
+        specifier: 2.0.0-alpha.28
+        version: 2.0.0-alpha.28(typescript@5.8.3)(viem@2.33.1(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)
       '@deroll/core':
         specifier: workspace:*
         version: link:../core
@@ -488,11 +488,11 @@ packages:
   '@braintree/sanitize-url@7.1.1':
     resolution: {integrity: sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==}
 
-  '@cartesi/rpc@2.0.0-alpha.8':
-    resolution: {integrity: sha512-HmGCVYKG5XdO9WV+NH9T+7nyM14UmIkjHuATLVho9wsIvcklXJN5GOFPGex5gZZEEr3eYvZ6S2bnLB7ii7XKaQ==}
+  '@cartesi/rpc@2.0.0-alpha.19':
+    resolution: {integrity: sha512-KOA3dzeq0B7iQe9RCYvNPC/VaKDFoNHZHqjSfjhXUSJA6VsJzJgKjAnkZm1bKpSIiMnq/eKAhPW/+Urr194phA==}
 
-  '@cartesi/viem@2.0.0-alpha.12':
-    resolution: {integrity: sha512-GdNc0JZ28mnbFAG3MnzliLVeVWDa8yJKcNNXsuFLnoo9elGoaP2UGCvkP+ICPEjGFb3jV2cJgaWJXeRMHxdV0A==}
+  '@cartesi/viem@2.0.0-alpha.28':
+    resolution: {integrity: sha512-6IhO5dqtij7jVv9pyxCCcArPSGqimcUjuKzZwUPLBEDiojJjeOUCJFljt44nlQGg3/5gbdrN5DNb5Hm9sovlsA==}
     peerDependencies:
       viem: ^2.0.0
 
@@ -2093,9 +2093,6 @@ packages:
   '@types/react@19.1.8':
     resolution: {integrity: sha512-AwAfQ2Wa5bCx9WP8nZL2uMZWod7J7/JSplxbTmBQ5ms6QpqNYm672H0Vu9ZVKVngQ+ii4R/byguVEUZQyeg44g==}
 
-  '@types/retry@0.12.2':
-    resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
-
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
@@ -2189,6 +2186,17 @@ packages:
     peerDependencies:
       typescript: '>=5.0.4'
       zod: ^3 >=3.22.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      zod:
+        optional: true
+
+  abitype@1.2.3:
+    resolution: {integrity: sha512-Ofer5QUnuUdTFsBRwARMoWKOH1ND5ehwYhJ3OJ/BQO+StkwQjHw0XyVh4vDttzHB7QOFhPHa/o413PJ82gU/Tg==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -3557,8 +3565,8 @@ packages:
   json-parse-better-errors@1.0.2:
     resolution: {integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==}
 
-  json-rpc-2.0@1.7.0:
-    resolution: {integrity: sha512-asnLgC1qD5ytP+fvBP8uL0rvj+l8P6iYICbzZ8dVxCpESffVjzA7KkYkbKCIbavs7cllwH1ZUaNtJwphdeRqpg==}
+  json-rpc-2.0@1.7.1:
+    resolution: {integrity: sha512-JqZjhjAanbpkXIzFE7u8mE/iFblawwlXtONaCvRqI+pyABVz7B4M1EUNpyVW+dZjqgQ2L5HFmZCmOCgUKm00hg==}
 
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
@@ -4141,9 +4149,9 @@ packages:
     resolution: {integrity: sha512-y3b8Kpd8OAN444hxfBbFfj1FY/RjtTd8tzYwhUqNYXx0fXx2iX4maP4Qr6qhIKbQXI02wTLAda4fYUbDagTUFw==}
     engines: {node: '>=6'}
 
-  p-retry@6.2.1:
-    resolution: {integrity: sha512-hEt02O4hUct5wtwg4H4KcWgDdm+l1bOaEy/hWzd8xtXB9BqxTWBBhb+2ImAtH4Cv4rPjV76xN3Zumqk3k3AhhQ==}
-    engines: {node: '>=16.17'}
+  p-retry@7.1.1:
+    resolution: {integrity: sha512-J5ApzjyRkkf601HpEeykoiCvzHQjWxPAHhyjFcEUP2SWq0+35NKh8TLhpLw+Dkq5TZBFvUM6UigdE9hIVYTl5w==}
+    engines: {node: '>=20'}
 
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
@@ -4513,10 +4521,6 @@ packages:
   restore-cursor@4.0.0:
     resolution: {integrity: sha512-I9fPXU9geO9bHOt9pHHOhOkYerIMsmVaWB0rA2AI9ERh/+x/i7MV5HKBNrg+ljO5eoPVgCcnFuRjJ9uH6I/3eg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-
-  retry@0.13.1:
-    resolution: {integrity: sha512-XQBQ3I8W1Cge0Seh+6gjj03LbmRFWuoszgK9ooCpwYIrhhoO80pfq4cUkU5DkknwfOfFteRwlZ56PYOGYyFWdg==}
-    engines: {node: '>= 4'}
 
   reusify@1.1.0:
     resolution: {integrity: sha512-g6QUff04oZpHs0eG5p83rFLhHeV00ug/Yf9nZM6fLeUrPguBTkTQOdpAWWspMh55TZfVQDPaN3NQJfbVRAxdIw==}
@@ -5514,15 +5518,15 @@ snapshots:
 
   '@braintree/sanitize-url@7.1.1': {}
 
-  '@cartesi/rpc@2.0.0-alpha.8':
+  '@cartesi/rpc@2.0.0-alpha.19':
     dependencies:
-      json-rpc-2.0: 1.7.0
+      json-rpc-2.0: 1.7.1
 
-  '@cartesi/viem@2.0.0-alpha.12(typescript@5.8.3)(viem@2.33.1(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)':
+  '@cartesi/viem@2.0.0-alpha.28(typescript@5.8.3)(viem@2.33.1(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3))(zod@3.24.3)':
     dependencies:
-      '@cartesi/rpc': 2.0.0-alpha.8
-      abitype: 1.0.8(typescript@5.8.3)(zod@3.24.3)
-      p-retry: 6.2.1
+      '@cartesi/rpc': 2.0.0-alpha.19
+      abitype: 1.2.3(typescript@5.8.3)(zod@3.24.3)
+      p-retry: 7.1.1
       viem: 2.33.1(bufferutil@4.0.9)(typescript@5.8.3)(utf-8-validate@6.0.5)(zod@3.24.3)
     transitivePeerDependencies:
       - typescript
@@ -7207,8 +7211,6 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
-  '@types/retry@0.12.2': {}
-
   '@types/trusted-types@2.0.7':
     optional: true
 
@@ -7394,6 +7396,11 @@ snapshots:
       tinyrainbow: 2.0.0
 
   abitype@1.0.8(typescript@5.8.3)(zod@3.24.3):
+    optionalDependencies:
+      typescript: 5.8.3
+      zod: 3.24.3
+
+  abitype@1.2.3(typescript@5.8.3)(zod@3.24.3):
     optionalDependencies:
       typescript: 5.8.3
       zod: 3.24.3
@@ -8870,7 +8877,7 @@ snapshots:
 
   json-parse-better-errors@1.0.2: {}
 
-  json-rpc-2.0@1.7.0: {}
+  json-rpc-2.0@1.7.1: {}
 
   json-schema-traverse@1.0.0: {}
 
@@ -9742,11 +9749,9 @@ snapshots:
 
   p-map@2.1.0: {}
 
-  p-retry@6.2.1:
+  p-retry@7.1.1:
     dependencies:
-      '@types/retry': 0.12.2
       is-network-error: 1.1.0
-      retry: 0.13.1
 
   p-try@2.2.0: {}
 
@@ -10223,8 +10228,6 @@ snapshots:
     dependencies:
       onetime: 5.1.2
       signal-exit: 3.0.7
-
-  retry@0.13.1: {}
 
   reusify@1.1.0: {}
 
