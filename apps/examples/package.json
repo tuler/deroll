@@ -30,14 +30,14 @@
         "@deroll/app": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.33.1"
+        "viem": "^2.47.1"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^24.1.0",
-        "tsdown": "^0.13.0",
-        "typescript": "^5.8.3",
-        "vitest": "^3.2.4"
+        "@types/node": "^25.4.0",
+        "tsdown": "^0.21.1",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18"
     }
 }

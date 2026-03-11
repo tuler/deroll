@@ -30,18 +30,18 @@
         "prepack": "run-s build"
     },
     "dependencies": {
-        "viem": "^2.33.1"
+        "viem": "^2.47.1"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^24.1.0",
+        "@types/node": "^25.4.0",
         "npm-run-all": "^4",
         "openapi-typescript": "^7.8.0",
-        "tsdown": "^0.13.0",
-        "tsx": "^4.20.3",
-        "typescript": "^5.8.3",
-        "vitest": "^3.2.4"
+        "tsdown": "^0.21.1",
+        "tsx": "^4.21.0",
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18"
     },
     "publishConfig": {
         "access": "public"
