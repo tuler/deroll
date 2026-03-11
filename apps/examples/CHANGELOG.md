@@ -1,5 +1,16 @@
 # @deroll/examples
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- 9498721: Bump dependencies
+- Updated dependencies [9498721]
+- Updated dependencies [ce7ae8a]
+  - @deroll/router@2.0.0-alpha.3
+  - @deroll/wallet@2.0.0-alpha.4
+  - @deroll/app@2.0.0-alpha.4
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes
