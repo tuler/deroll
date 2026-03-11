@@ -1,5 +1,13 @@
 # @deroll/app
 
+## 2.0.0-alpha.4
+
+### Patch Changes
+
+- 9498721: Bump dependencies
+- Updated dependencies [9498721]
+  - @deroll/core@2.0.0-alpha.3
+
 ## 2.0.0-alpha.3
 
 ### Patch Changes
