@@ -1,10 +1,12 @@
 packages:
-    - apps/*
-    - packages/*
+  - apps/*
+  - packages/*
+allowBuilds:
+  esbuild: true
 catalog:
-    "@biomejs/biome": "2.4.6"
+  "@biomejs/biome": "2.5.0"
 onlyBuiltDependencies:
-    - bufferutil
-    - esbuild
-    - sharp
-    - utf-8-validate
+  - bufferutil
+  - esbuild
+  - sharp
+  - utf-8-validate
