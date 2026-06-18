@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- d1b448d: New wallet based on binding
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes
