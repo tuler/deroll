@@ -1,5 +1,15 @@
-import type { AdvanceRequestHandler, Voucher } from "@deroll/core";
+import type { RunHandlers, Voucher } from "@tuler/node-libcmt";
 import { type Address, type Hex, getAddress, isAddress } from "viem";
+
+type LibcmtAdvanceHandler = NonNullable<RunHandlers["advance"]>;
+
+// Same shape as libcmt's advance handler, but the Rollup instance is optional:
+// the wallet handler only mutates the in-memory ledger and emits no outputs, so
+// it can be invoked with just the request.
+type AdvanceRequestHandler = (
+    request: Parameters<LibcmtAdvanceHandler>[0],
+    rollup?: Parameters<LibcmtAdvanceHandler>[1],
+) => ReturnType<LibcmtAdvanceHandler>;
 
 import {
     createERC1155BatchTransferVoucher,
@@ -108,7 +118,7 @@ export class WalletAppImpl implements WalletApp {
     private wallets: Record<string, Wallet> = {};
 
     constructor() {
-        this.handler = this.handler.bind(this);
+        this.handler = this.handler?.bind(this);
     }
 
     public etherBalanceOf(address: string): bigint {
@@ -178,7 +188,7 @@ export class WalletAppImpl implements WalletApp {
             wallet.ether += value;
 
             this.wallets[sender] = wallet;
-            return "accept";
+            return true;
         } else if (isERC20Deposit(data)) {
             // parse payload
             const { token, sender, amount } = parseERC20Deposit(data.payload);
@@ -193,7 +203,7 @@ export class WalletAppImpl implements WalletApp {
 
             this.wallets[sender] = wallet;
 
-            return "accept";
+            return true;
         } else if (isERC721Deposit(data)) {
             // parse payload
             const { sender, token, tokenId } = parseERC721Deposit(data.payload);
@@ -206,7 +216,7 @@ export class WalletAppImpl implements WalletApp {
             wallet.erc721[token].add(tokenId);
 
             this.wallets[sender] = wallet;
-            return "accept";
+            return true;
         } else if (isERC1155SingleDeposit(data)) {
             // parse payload
             const { sender, token, tokenId, value } = parseERC1155SingleDeposit(
@@ -224,7 +234,7 @@ export class WalletAppImpl implements WalletApp {
             );
 
             this.wallets[sender] = wallet;
-            return "accept";
+            return true;
         } else if (isERC1155BatchDeposit(data)) {
             // parse payload
             const { sender, token, tokenIds, values } =
@@ -243,9 +253,9 @@ export class WalletAppImpl implements WalletApp {
             });
 
             this.wallets[sender] = wallet;
-            return "accept";
+            return true;
         }
-        return "reject";
+        return false;
     };
 
     public transferEther(from: string, to: string, value: bigint): void {

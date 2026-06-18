@@ -1,10 +1,11 @@
+import type { AdvanceRequest } from "@tuler/node-libcmt";
 import {
     type Address,
+    type Hex,
     concat,
     encodeAbiParameters,
     encodePacked,
     parseAbiParameters,
-    zeroHash,
 } from "viem";
 import { describe, expect, test } from "vitest";
 
@@ -28,290 +29,86 @@ import {
     parseEtherDeposit,
 } from "../src";
 
+const hexToBuffer = (hex: string): Buffer => Buffer.from(hex.slice(2), "hex");
+
+// the deposit detectors only inspect the sender, so a minimal advance request
+// (with a dummy payload) is enough to exercise them
+const advance = (msgSender: Hex): AdvanceRequest => ({
+    type: "advance",
+    chainId: 1n,
+    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+    msgSender,
+    blockNumber: 0n,
+    blockTimestamp: 0n,
+    prevRandao: 0n,
+    index: 0n,
+    payload: Buffer.from("deadbeef", "hex"),
+});
+
 describe("parser", () => {
     test("isEtherDeposit", () => {
+        expect(isEtherDeposit(advance(etherPortalAddress))).toBeTruthy();
         expect(
-            isEtherDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isEtherDeposit(
+                advance(etherPortalAddress.toLowerCase() as Address),
+            ),
         ).toBeTruthy();
-
-        expect(
-            isEtherDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress.toLowerCase() as Address,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeTruthy();
-
-        expect(
-            isEtherDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
+        expect(isEtherDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
     test("isERC20Deposit", () => {
+        expect(isERC20Deposit(advance(erc20PortalAddress))).toBeTruthy();
         expect(
-            isERC20Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC20Deposit(
+                advance(erc20PortalAddress.toLowerCase() as Address),
+            ),
         ).toBeTruthy();
-
-        expect(
-            isERC20Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress.toLowerCase() as Address,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeTruthy();
-
-        expect(
-            isERC20Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
+        expect(isERC20Deposit(advance(etherPortalAddress))).toBeFalsy();
     });
 
     test("isERC721Deposit", () => {
+        expect(isERC721Deposit(advance(erc721PortalAddress))).toBeTruthy();
         expect(
-            isERC721Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc721PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC721Deposit(
+                advance(erc721PortalAddress.toLowerCase() as Address),
+            ),
         ).toBeTruthy();
-
-        expect(
-            isERC721Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc721PortalAddress.toLowerCase() as Address,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeTruthy();
-
-        expect(
-            isERC721Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
-        expect(
-            isERC721Deposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
+        expect(isERC721Deposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isERC721Deposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
     test("isERC1155SingleDeposit", () => {
         expect(
-            isERC1155SingleDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc1155SinglePortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC1155SingleDeposit(advance(erc1155SinglePortalAddress)),
         ).toBeTruthy();
-
         expect(
-            isERC1155SingleDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender:
-                        erc1155SinglePortalAddress.toLowerCase() as Address,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC1155SingleDeposit(
+                advance(erc1155SinglePortalAddress.toLowerCase() as Address),
+            ),
         ).toBeTruthy();
-
-        expect(
-            isERC1155SingleDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
-        expect(
-            isERC1155SingleDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
+        expect(isERC1155SingleDeposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isERC1155SingleDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
     test("isERC1155BatchDeposit", () => {
         expect(
-            isERC1155BatchDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc1155BatchPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC1155BatchDeposit(advance(erc1155BatchPortalAddress)),
         ).toBeTruthy();
-
         expect(
-            isERC1155BatchDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender:
-                        erc1155BatchPortalAddress.toLowerCase() as Address,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
+            isERC1155BatchDeposit(
+                advance(erc1155BatchPortalAddress.toLowerCase() as Address),
+            ),
         ).toBeTruthy();
-
-        expect(
-            isERC1155BatchDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: etherPortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
-        expect(
-            isERC1155BatchDeposit({
-                metadata: {
-                    app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                    block_number: 0,
-                    block_timestamp: 0,
-                    chain_id: 1,
-                    input_index: 0,
-                    msg_sender: erc20PortalAddress,
-                    prev_randao: zeroHash,
-                },
-                payload: "0xdeadbeef",
-            }),
-        ).toBeFalsy();
+        expect(isERC1155BatchDeposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isERC1155BatchDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
     test("parseEtherDeposit", () => {
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const value = 123456n;
-        const payload = encodePacked(["address", "uint256"], [sender, value]);
+        const payload = hexToBuffer(
+            encodePacked(["address", "uint256"], [sender, value]),
+        );
         const deposit = parseEtherDeposit(payload);
         expect(deposit).toEqual({
             sender,
@@ -323,9 +120,11 @@ describe("parser", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const amount = 123456n;
-        const payload = encodePacked(
-            ["address", "address", "uint256"],
-            [token, sender, amount],
+        const payload = hexToBuffer(
+            encodePacked(
+                ["address", "address", "uint256"],
+                [token, sender, amount],
+            ),
         );
         const deposit = parseERC20Deposit(payload);
         expect(deposit).toEqual({
@@ -339,9 +138,11 @@ describe("parser", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 123n;
-        const payload = encodePacked(
-            ["address", "address", "uint256"],
-            [token, sender, tokenId],
+        const payload = hexToBuffer(
+            encodePacked(
+                ["address", "address", "uint256"],
+                [token, sender, tokenId],
+            ),
         );
         const deposit = parseERC721Deposit(payload);
         expect(deposit).toEqual({
@@ -356,9 +157,11 @@ describe("parser", () => {
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 123n;
         const value = 456n;
-        const payload = encodePacked(
-            ["address", "address", "uint256", "uint256"],
-            [token, sender, tokenId, value],
+        const payload = hexToBuffer(
+            encodePacked(
+                ["address", "address", "uint256", "uint256"],
+                [token, sender, tokenId, value],
+            ),
         );
         const deposit = parseERC1155SingleDeposit(payload);
         expect(deposit).toEqual({
@@ -379,7 +182,9 @@ describe("parser", () => {
             parseAbiParameters("uint256[], uint256[]"),
             [tokenIds, values],
         );
-        const deposit = parseERC1155BatchDeposit(concat([payload, rest]));
+        const deposit = parseERC1155BatchDeposit(
+            hexToBuffer(concat([payload, rest])),
+        );
         expect(deposit).toEqual({
             token,
             sender,

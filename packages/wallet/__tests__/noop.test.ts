@@ -1,4 +1,3 @@
-import { zeroHash } from "viem";
 import { describe, expect, test } from "vitest";
 
 import { createWallet } from "../src";
@@ -20,17 +19,16 @@ describe("noop", () => {
     test("reject", async () => {
         const wallet = createWallet();
         const response = await wallet.handler({
-            metadata: {
-                app_contract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                block_number: 0,
-                block_timestamp: 0,
-                chain_id: 1,
-                input_index: 0,
-                msg_sender: "0x18930e8a66a1DbE21D00581216789AAB7460Afd0",
-                prev_randao: zeroHash,
-            },
-            payload: "0xdeadbeef",
+            type: "advance",
+            chainId: 1n,
+            appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+            msgSender: "0x18930e8a66a1DbE21D00581216789AAB7460Afd0",
+            blockNumber: 0n,
+            blockTimestamp: 0n,
+            prevRandao: 0n,
+            index: 0n,
+            payload: Buffer.from("deadbeef", "hex"),
         });
-        expect(response).toBe("reject");
+        expect(response).toBeFalsy();
     });
 });

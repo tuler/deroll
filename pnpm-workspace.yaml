@@ -2,9 +2,12 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  "@tuler/node-libcmt": true
   esbuild: true
 catalog:
   "@biomejs/biome": "2.5.0"
+minimumReleaseAgeExclude:
+  - "@tuler/node-libcmt"
 onlyBuiltDependencies:
   - bufferutil
   - esbuild
