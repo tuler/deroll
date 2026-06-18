@@ -1,5 +1,12 @@
 # @deroll/examples
 
+## 2.0.0-alpha.6
+
+### Patch Changes
+
+- Updated dependencies [d1b448d]
+  - @deroll/wallet@2.0.0-alpha.5
+
 ## 2.0.0-alpha.5
 
 ### Patch Changes
