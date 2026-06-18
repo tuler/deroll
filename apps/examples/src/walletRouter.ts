@@ -15,7 +15,7 @@ router.add<{ address: string }>("wallet/:address", ({ params: { address } }) =>
     ),
 );
 
-app.addAdvanceHandler(wallet.handler);
+// app.addAdvanceHandler(wallet.handler);
 app.addInspectHandler(router.handler);
 
 // start app

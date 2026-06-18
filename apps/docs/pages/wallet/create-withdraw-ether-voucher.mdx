@@ -17,11 +17,11 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 app.addAdvanceHandler(async ({ metadata }) => {
     const value = parseEther("1");
-    const voucher = createWithdrawEtherVoucher( // [!code focus]
+    /*const voucher = createWithdrawEtherVoucher( // [!code focus]
         metadata.msg_sender, // [!code focus]
         value, // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    await app.createVoucher(voucher);*/
     return "accept";
 });
 ```

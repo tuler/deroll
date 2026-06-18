@@ -25,7 +25,7 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
             );
 
             // create voucher output
-            await app.createVoucher(voucher);
+            // await app.createVoucher(voucher);
             return "accept";
         }
     }

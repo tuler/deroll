@@ -18,12 +18,12 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
+// app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
 app.addAdvanceHandler(async ({ metadata, payload }) => {
     const value = parseUnits("1", 18);
-    wallet.transferERC20(token, metadata.msg_sender, payload, value); // [!code focus]
+    // wallet.transferERC20(token, metadata.msg_sender, payload, value); // [!code focus]
     return "accept";
 });
 ```

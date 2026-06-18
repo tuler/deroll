@@ -19,7 +19,7 @@ const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
 app.addAdvanceHandler(async ({ metadata }) => {
     const value1 = parseUnits("1", 18);
     const value2 = parseUnits("1", 18);
-    const voucher = createERC1155BatchTransferVoucher( // [!code focus]
+    /*const voucher = createERC1155BatchTransferVoucher( // [!code focus]
         token, // [!code focus]
         application, // [!code focus]
         metadata.msg_sender, // [!code focus]
@@ -27,7 +27,7 @@ app.addAdvanceHandler(async ({ metadata }) => {
         [value1, value2], // [!code focus]
         "0x", // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    await app.createVoucher(voucher);*/
     return "accept";
 });
 ```

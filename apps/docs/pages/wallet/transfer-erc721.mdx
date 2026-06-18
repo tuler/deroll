@@ -17,11 +17,11 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
+// app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
 app.addAdvanceHandler(async ({ metadata, payload }) => {
-    wallet.transferERC721(token, metadata.msg_sender, payload, 1n); // [!code focus]
+    // wallet.transferERC721(token, metadata.msg_sender, payload, 1n); // [!code focus]
     return "accept";
 });
 ```

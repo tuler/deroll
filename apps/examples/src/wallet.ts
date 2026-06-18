@@ -7,7 +7,7 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
+// app.addAdvanceHandler(wallet.handler);
 
 // start app
 app.start().catch((e) => {

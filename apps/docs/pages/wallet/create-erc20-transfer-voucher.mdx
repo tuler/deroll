@@ -17,12 +17,12 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
 app.addAdvanceHandler(async ({ metadata }) => {
     const value = parseUnits("1", 18);
-    const voucher = createERC20TransferVoucher( // [!code focus]
+    /*const voucher = createERC20TransferVoucher( // [!code focus]
         token, // [!code focus]
         metadata.msg_sender, // [!code focus]
         value, // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    await app.createVoucher(voucher);*/
     return "accept";
 });
 ```

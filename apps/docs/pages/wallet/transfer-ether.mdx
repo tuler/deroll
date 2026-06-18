@@ -18,11 +18,11 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
+// app.addAdvanceHandler(wallet.handler);
 
 app.addAdvanceHandler(async ({ metadata, payload }) => {
     const value = parseEther("1");
-    wallet.transferEther(metadata.msg_sender, payload, value); // [!code focus]
+    // wallet.transferEther(metadata.msg_sender, payload, value); // [!code focus]
     return "accept";
 });
 ```
