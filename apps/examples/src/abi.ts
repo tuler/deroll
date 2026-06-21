@@ -1,8 +1,8 @@
 import { createApp } from "@deroll/app";
-import { decodeFunctionData, parseAbi } from "viem";
+import { decodeFunctionData, parseAbi, toHex } from "viem";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // define application ABI
 const abi = parseAbi([
@@ -12,7 +12,10 @@ const abi = parseAbi([
 
 // handle input encoded as ABI function call
 app.addAdvanceHandler(async ({ payload }) => {
-    const { functionName, args } = decodeFunctionData({ abi, data: payload });
+    const { functionName, args } = decodeFunctionData({
+        abi,
+        data: toHex(payload),
+    });
 
     switch (functionName) {
         case "attackDragon": {

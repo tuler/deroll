@@ -1,17 +1,19 @@
 import { createApp } from "@deroll/app";
+import { toHex } from "viem";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async (data) => {
-    console.log(data);
+    console.log(data.metadata);
+    console.log(data.payload.toString());
     return "accept";
 });
 
 // log incoming inspect request
 app.addInspectHandler(async (data) => {
-    console.log(data);
+    console.log(toHex(data.payload));
 });
 
 // start app

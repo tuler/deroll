@@ -3,7 +3,7 @@ import { createRouter } from "@deroll/router";
 import { createWallet } from "@deroll/wallet";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet
 const wallet = createWallet();
@@ -15,7 +15,7 @@ router.add<{ address: string }>("wallet/:address", ({ params: { address } }) =>
     ),
 );
 
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 app.addInspectHandler(router.handler);
 
 // start app

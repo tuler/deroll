@@ -1,21 +1,24 @@
 import { createApp } from "@deroll/app";
 import { createERC20TransferVoucher } from "@deroll/wallet";
-import { decodeFunctionData, parseAbi } from "viem";
+import { decodeFunctionData, parseAbi, toHex } from "viem";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // define application ABI
 const abi = parseAbi(["function withdraw(address token, uint256 amount)"]);
 
 // handle input encoded as ABI function call
 app.addAdvanceHandler(async ({ metadata, payload }) => {
-    const { functionName, args } = decodeFunctionData({ abi, data: payload });
+    const { functionName, args } = decodeFunctionData({
+        abi,
+        data: toHex(payload),
+    });
 
     switch (functionName) {
         case "withdraw": {
             const [token, amount] = args;
-            const recipient = metadata.msg_sender;
+            const recipient = metadata.msgSender;
 
             // encode voucher of token transfer to requester
             const voucher = createERC20TransferVoucher(
@@ -25,7 +28,7 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
             );
 
             // create voucher output
-            // await app.createVoucher(voucher);
+            await app.createVoucher(voucher);
             return "accept";
         }
     }

@@ -10,13 +10,13 @@
         "build": "tsup",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsup --watch",
-        "dev:abi": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/abi.ts",
-        "dev:echo": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/echo.ts",
-        "dev:minimal": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/minimal.ts",
-        "dev:router": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/router.ts",
-        "dev:wallet": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/wallet.ts",
-        "dev:walletRouter": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/walletRouter.ts",
-        "dev:withdraw": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:8080/host-runner\" ts-node src/withdraw.ts",
+        "dev:abi": "CMT_INPUTS=\"0:0.bin\" tsx src/abi.ts",
+        "dev:echo": "CMT_INPUTS=\"0:0.bin\" tsx src/echo.ts",
+        "dev:minimal": "CMT_INPUTS=\"0:0.bin\" tsx src/minimal.ts",
+        "dev:router": "CMT_INPUTS=\"0:0.bin\" tsx src/router.ts",
+        "dev:wallet": "CMT_INPUTS=\"0:0.bin\" tsx src/wallet.ts",
+        "dev:walletRouter": "CMT_INPUTS=\"0:0.bin\" tsx src/walletRouter.ts",
+        "dev:withdraw": "CMT_INPUTS=\"0:0.bin\" tsx src/withdraw.ts",
         "lint": "biome check"
     },
     "bin": {
@@ -35,14 +35,15 @@
         "@deroll/app": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.47.1"
+        "viem": "^2.52.2"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^25.4.0",
+        "@types/node": "^26.0.0",
         "tsup": "^8.5.1",
-        "typescript": "^5.9.3",
-        "vitest": "^4.0.18"
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
     }
 }
