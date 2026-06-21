@@ -1,8 +1,7 @@
-import type { App } from "@deroll/core";
-export type { HttpAppOptions as AppOptions } from "./app";
+import type { App, AppOptions } from "@deroll/core";
 
-import { HttpApp, type HttpAppOptions } from "./app";
+import { NativeApp } from "./app.js";
 
-export const createApp = (options: HttpAppOptions): App => {
-    return new HttpApp(options);
+export const createApp = (options?: AppOptions): App => {
+    return new NativeApp(options);
 };

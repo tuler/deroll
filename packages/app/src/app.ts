@@ -1,87 +1,52 @@
 import type {
-    AdvanceRequestData,
     AdvanceRequestHandler,
     App,
     AppOptions,
     DelegateCallVoucher,
     Exception,
-    InspectRequestData,
     InspectRequestHandler,
     Notice,
     Report,
     RequestHandlerResult,
-    RollupRequest,
     Voucher,
-    paths,
 } from "@deroll/core";
-import type { ClientOptions } from "openapi-fetch";
-import createClient from "openapi-fetch";
+import { Rollup } from "@tuler/node-libcmt";
 
-export type HttpAppOptions = AppOptions & ClientOptions;
-
-export class HttpApp implements App {
-    private options: HttpAppOptions;
+export class NativeApp implements App {
+    private options: AppOptions;
     private advanceHandlers: AdvanceRequestHandler[];
     private inspectHandlers: InspectRequestHandler[];
-    private POST;
+    private rollup: Rollup;
 
-    constructor(options: HttpAppOptions) {
-        this.options = options;
+    constructor(options?: AppOptions) {
+        this.options = options || {};
         this.advanceHandlers = [];
         this.inspectHandlers = [];
 
-        // create openapi typescript client
-        const { POST } = createClient<paths>(options);
-        this.POST = POST;
+        // create Rollup instance
+        this.rollup = new Rollup();
     }
 
     public async createNotice(notice: Notice): Promise<number> {
-        const { data, response } = await this.POST("/notice", {
-            body: notice,
-        });
-        if (data) {
-            return data.index;
-        }
-        throw new Error(response.statusText);
+        return this.rollup.emitNotice(notice.payload);
     }
 
     public async createReport(report: Report): Promise<void> {
-        const { response } = await this.POST("/report", {
-            body: report,
-        });
-        if (!response.ok) {
-            throw new Error(response.statusText);
-        }
+        this.rollup.emitReport(report.payload);
     }
 
     public async createVoucher(voucher: Voucher): Promise<number> {
-        const { data, response } = await this.POST("/voucher", {
-            body: voucher,
-        });
-        if (data) {
-            return data.index;
-        }
-        throw new Error(response.statusText);
+        return this.rollup.emitVoucher(voucher);
     }
 
     public async createDelegateCallVoucher(
         voucher: DelegateCallVoucher,
     ): Promise<number> {
-        const { data, response } = await this.POST("/delegate-call-voucher", {
-            body: voucher,
-        });
-        if (data) {
-            return data.index;
-        }
-        throw new Error(response.statusText);
+        return this.rollup.emitDelegateCallVoucher(voucher);
     }
 
     public async registerException(exception: Exception): Promise<void> {
-        const { response } = await this.POST("/exception", { body: exception });
-        if (response.ok) {
-            return;
-        }
-        throw new Error(response.statusText);
+        this.rollup.emitException(exception.payload);
     }
 
     private handleAdvance: AdvanceRequestHandler = async (data) => {
@@ -133,26 +98,20 @@ export class HttpApp implements App {
     async start() {
         let status: RequestHandlerResult = "accept";
         while (true) {
-            const { data, response } = await this.POST("/finish", {
-                body: { status },
-                parseAs: "text",
-            });
-            if (response.status === 200 && data) {
-                const request = JSON.parse(data) as RollupRequest;
-                switch (request.request_type) {
-                    case "advance_state":
-                        status = await this.handleAdvance(
-                            request.data as AdvanceRequestData,
-                        );
-                        break;
-                    case "inspect_state":
-                        await this.handleInspect(
-                            request.data as InspectRequestData,
-                        );
-                        break;
+            const request = this.rollup.finish({ accept: status === "accept" });
+            switch (request.type) {
+                case "advance": {
+                    const { payload, type, ...metadata } = request;
+                    status = await this.handleAdvance({
+                        metadata,
+                        payload,
+                    });
+                    break;
                 }
-            } else if (response.status === 202) {
-                // no rollup request available
+                case "inspect": {
+                    await this.handleInspect({ payload: request.payload });
+                    break;
+                }
             }
         }
     }

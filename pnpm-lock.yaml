@@ -103,12 +103,12 @@ importers:
       '@deroll/core':
         specifier: workspace:*
         version: link:../core
-      openapi-fetch:
-        specifier: ^0.14.0
-        version: 0.14.1
+      '@tuler/node-libcmt':
+        specifier: ^0.1.3
+        version: 0.1.3
       viem:
-        specifier: ^2.47.1
-        version: 2.47.1(typescript@5.9.3)
+        specifier: ^2.53.1
+        version: 2.53.1(typescript@6.0.3)
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -121,16 +121,16 @@ importers:
         version: 4.1.5
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@25.4.0)(typescript@5.9.3)
+        version: 10.9.2(@types/node@25.4.0)(typescript@6.0.3)
       tsup:
         specifier: ^8.5.1
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.8.2)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.2)
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
       vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.4.0)(@vitest/ui@4.0.18)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2)
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
 
   packages/core:
     dependencies:
@@ -267,13 +267,13 @@ importers:
     dependencies:
       '@cartesi/viem':
         specifier: 2.0.0-alpha.31
-        version: 2.0.0-alpha.31(typescript@6.0.3)(viem@2.52.2(typescript@6.0.3))
+        version: 2.0.0-alpha.31(typescript@6.0.3)(viem@2.53.1(typescript@6.0.3))
       '@deroll/core':
         specifier: workspace:*
         version: link:../core
       viem:
         specifier: ^2.52.2
-        version: 2.52.2(typescript@6.0.3)
+        version: 2.53.1(typescript@6.0.3)
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -2064,6 +2064,10 @@ packages:
 
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
+
+  '@tuler/node-libcmt@0.1.3':
+    resolution: {integrity: sha512-k4YhLkJ50AdK/+iUGNRXvv1K+9yNXYa2UQBDrUoCTKGIAGDFs+DPp1zpFaOtz79L23/ZEovron7eACEihTrgMg==}
+    engines: {node: '>=18'}
 
   '@turbo/darwin-64@2.9.18':
     resolution: {integrity: sha512-9f27peFu16ur8c0v9nUFUEyBnbKuuFsUTjHFWfmwGfzySBXbHwzU44QhZon6Mznz0cHsIr3984NQj/bVrnGSRw==}
@@ -4137,6 +4141,14 @@ packages:
   nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
 
+  node-addon-api@8.8.0:
+    resolution: {integrity: sha512-c5Ko1fZJIJmzhFIkhRN76WTq+fC6tWnGy9CXA0fA+XygsWZmEwG8vmbkNqxMyoaa0Tin4djul49NzdVcJJcjeA==}
+    engines: {node: ^18 || ^20 || >= 21}
+
+  node-gyp-build@4.8.4:
+    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
+
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
 
@@ -4213,12 +4225,6 @@ packages:
 
   oniguruma-to-es@2.3.0:
     resolution: {integrity: sha512-bwALDxriqfKGfUufKGGepCzu9x7nJQuoRoAFp4AnwehhC2crqrDIAP/uN2qdlsAvSMpeRC3+Yzhqc7hLmle5+g==}
-
-  openapi-fetch@0.14.1:
-    resolution: {integrity: sha512-l7RarRHxlEZYjMLd/PR0slfMVse2/vvIAGm75/F7J6MlQ8/b9uUQmUF2kCPrQhJqMXSxmYWObVgeYXbFYzZR+A==}
-
-  openapi-typescript-helpers@0.0.15:
-    resolution: {integrity: sha512-opyTPaunsklCBpTK8JGef6mfPhLSnyy5a0IN9vKtx3+4aExf+KxEqYwIy3hqkedXIB97u357uLMJsOnm3GVjsw==}
 
   openapi-typescript@7.13.0:
     resolution: {integrity: sha512-EFP392gcqXS7ntPvbhBzbF8TyBA+baIYEm791Hy5YkjDYKTnk/Tn5OQeKm5BIZvJihpp8Zzr4hzx0Irde1LNGQ==}
@@ -5664,12 +5670,12 @@ snapshots:
     dependencies:
       json-rpc-2.0: 1.7.1
 
-  '@cartesi/viem@2.0.0-alpha.31(typescript@6.0.3)(viem@2.52.2(typescript@6.0.3))':
+  '@cartesi/viem@2.0.0-alpha.31(typescript@6.0.3)(viem@2.53.1(typescript@6.0.3))':
     dependencies:
       '@cartesi/rpc': 2.0.0-alpha.22
       abitype: 1.2.3(typescript@6.0.3)
       p-retry: 7.1.1
-      viem: 2.52.2(typescript@6.0.3)
+      viem: 2.53.1(typescript@6.0.3)
     transitivePeerDependencies:
       - typescript
       - zod
@@ -7192,6 +7198,11 @@ snapshots:
   '@tsconfig/node14@1.0.3': {}
 
   '@tsconfig/node16@1.0.4': {}
+
+  '@tuler/node-libcmt@0.1.3':
+    dependencies:
+      node-addon-api: 8.8.0
+      node-gyp-build: 4.8.4
 
   '@turbo/darwin-64@2.9.18':
     optional: true
@@ -9854,6 +9865,10 @@ snapshots:
 
   nice-try@1.0.5: {}
 
+  node-addon-api@8.8.0: {}
+
+  node-gyp-build@4.8.4: {}
+
   node-releases@2.0.36: {}
 
   normalize-package-data@2.5.0:
@@ -9924,12 +9939,6 @@ snapshots:
       emoji-regex-xs: 1.0.0
       regex: 5.1.1
       regex-recursion: 5.1.1
-
-  openapi-fetch@0.14.1:
-    dependencies:
-      openapi-typescript-helpers: 0.0.15
-
-  openapi-typescript-helpers@0.0.15: {}
 
   openapi-typescript@7.13.0(typescript@5.9.3):
     dependencies:
@@ -10904,7 +10913,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-node@10.9.2(@types/node@25.4.0)(typescript@5.9.3):
+  ts-node@10.9.2(@types/node@25.4.0)(typescript@6.0.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.12
@@ -10918,7 +10927,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.4
       make-error: 1.3.6
-      typescript: 5.9.3
+      typescript: 6.0.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
