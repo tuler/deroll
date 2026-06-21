@@ -13,12 +13,6 @@
         "indentStyle": "space",
         "indentWidth": 4
     },
-    "linter": {
-        "enabled": true,
-        "rules": {
-            "recommended": true
-        }
-    },
     "javascript": {
         "formatter": {
             "quoteStyle": "double"
