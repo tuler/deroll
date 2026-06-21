@@ -1,4 +1,4 @@
-import type { AdvanceRequest } from "@tuler/node-libcmt";
+import type { AdvanceRequestData } from "@deroll/core";
 import {
     type Hex,
     concat,
@@ -15,18 +15,19 @@ import {
     erc721PortalAddress,
     etherPortalAddress,
 } from "@cartesi/viem/abi";
-import { createWallet } from "../src";
+import { createWallet } from "../src/index.js";
 
 // build a libcmt-shaped advance request from the portal sender and a hex payload
-const advance = (msgSender: Hex, payload: Hex): AdvanceRequest => ({
-    type: "advance",
-    chainId: 1n,
-    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-    msgSender,
-    blockNumber: 0n,
-    blockTimestamp: 0n,
-    prevRandao: 0n,
-    index: 0n,
+const advance = (msgSender: Hex, payload: Hex): AdvanceRequestData => ({
+    metadata: {
+        chainId: 1n,
+        appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+        msgSender,
+        blockNumber: 0n,
+        blockTimestamp: 0n,
+        prevRandao: 0n,
+        index: 0n,
+    },
     payload: Buffer.from(payload.slice(2), "hex"),
 });
 

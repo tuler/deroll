@@ -2,7 +2,7 @@
     "extends": "@deroll/tsconfig/base.json",
     "compilerOptions": {
         "resolveJsonModule": true,
-        "moduleResolution": "bundler"
+        "types": ["node"]
     },
     "include": ["."],
     "exclude": ["dist", "build", "node_modules"]

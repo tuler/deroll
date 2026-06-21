@@ -1,4 +1,4 @@
-import type { AdvanceRequest, Voucher } from "@tuler/node-libcmt";
+import type { AdvanceRequestData, Voucher } from "@deroll/core";
 import type { Address, Hex } from "viem";
 import {
     decodeAbiParameters,
@@ -7,11 +7,9 @@ import {
     erc721Abi,
     getAddress,
     hexToBigInt,
-    numberToHex,
     parseAbi,
     parseAbiParameters,
     toHex,
-    zeroHash,
 } from "viem";
 
 import {
@@ -21,10 +19,10 @@ import {
     erc721PortalAddress,
     etherPortalAddress,
 } from "@cartesi/viem/abi";
-import { erc1155Abi } from "./abi";
-import { type WalletApp, WalletAppImpl } from "./wallet";
+import { erc1155Abi } from "./abi/index.js";
+import { type WalletApp, WalletAppImpl } from "./wallet.js";
 
-export type { WalletApp } from "./wallet";
+export type { WalletApp } from "./wallet.js";
 
 // wallet ABI
 export const WalletABI = parseAbi([
@@ -152,20 +150,20 @@ export const parseERC1155BatchDeposit = (
     return { token, sender, tokenIds, values };
 };
 
-export const isEtherDeposit = (data: AdvanceRequest): boolean =>
-    getAddress(data.msgSender) === etherPortalAddress;
+export const isEtherDeposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msgSender) === etherPortalAddress;
 
-export const isERC20Deposit = (data: AdvanceRequest): boolean =>
-    getAddress(data.msgSender) === erc20PortalAddress;
+export const isERC20Deposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msgSender) === erc20PortalAddress;
 
-export const isERC721Deposit = (data: AdvanceRequest): boolean =>
-    getAddress(data.msgSender) === erc721PortalAddress;
+export const isERC721Deposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msgSender) === erc721PortalAddress;
 
-export const isERC1155SingleDeposit = (data: AdvanceRequest): boolean =>
-    getAddress(data.msgSender) === erc1155SinglePortalAddress;
+export const isERC1155SingleDeposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msgSender) === erc1155SinglePortalAddress;
 
-export const isERC1155BatchDeposit = (data: AdvanceRequest): boolean =>
-    getAddress(data.msgSender) === erc1155BatchPortalAddress;
+export const isERC1155BatchDeposit = (data: AdvanceRequestData): boolean =>
+    getAddress(data.metadata.msgSender) === erc1155BatchPortalAddress;
 
 export const createWithdrawEtherVoucher = (
     receiver: Address,
@@ -174,7 +172,7 @@ export const createWithdrawEtherVoucher = (
     return {
         destination: receiver,
         payload: "0x",
-        value: numberToHex(value),
+        value,
     };
 };
 
@@ -193,7 +191,6 @@ export const createERC20TransferVoucher = (
     return {
         destination: token,
         payload: call,
-        value: zeroHash,
     };
 };
 
@@ -213,7 +210,6 @@ export const createERC721TransferVoucher = (
     return {
         destination: token,
         payload: call,
-        value: zeroHash,
     };
 };
 
@@ -235,7 +231,6 @@ export const createERC1155SingleTransferVoucher = (
     return {
         destination: token,
         payload: call,
-        value: zeroHash,
     };
 };
 
@@ -257,6 +252,5 @@ export const createERC1155BatchTransferVoucher = (
     return {
         destination: token,
         payload: call,
-        value: zeroHash,
     };
 };

@@ -161,7 +161,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.9
-        version: 4.1.9(@types/node@26.0.0)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
+        version: 4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
 
   packages/create-app:
     dependencies:
@@ -267,10 +267,13 @@ importers:
     dependencies:
       '@cartesi/viem':
         specifier: 2.0.0-alpha.31
-        version: 2.0.0-alpha.31(typescript@5.9.3)(viem@2.47.1(typescript@5.9.3))
+        version: 2.0.0-alpha.31(typescript@6.0.3)(viem@2.52.2(typescript@6.0.3))
+      '@deroll/core':
+        specifier: workspace:*
+        version: link:../core
       viem:
-        specifier: ^2.47.1
-        version: 2.47.1(typescript@5.9.3)
+        specifier: ^2.52.2
+        version: 2.52.2(typescript@6.0.3)
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -278,27 +281,27 @@ importers:
       '@deroll/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@tuler/node-libcmt':
-        specifier: ^0.1.3
-        version: 0.1.3
+      '@types/node':
+        specifier: ^26.0.0
+        version: 26.0.0
       '@vitest/coverage-istanbul':
-        specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18)
+        specifier: ^4.1.9
+        version: 4.1.9(vitest@4.1.9)
       '@vitest/ui':
-        specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18)
+        specifier: ^4.1.9
+        version: 4.1.9(vitest@4.1.9)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
       tsup:
         specifier: ^8.5.1
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.8.2)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.8)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.8.2)
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
       vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@25.4.0)(@vitest/ui@4.0.18)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2)
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
 
 packages:
 
@@ -2062,10 +2065,6 @@ packages:
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
-  '@tuler/node-libcmt@0.1.3':
-    resolution: {integrity: sha512-k4YhLkJ50AdK/+iUGNRXvv1K+9yNXYa2UQBDrUoCTKGIAGDFs+DPp1zpFaOtz79L23/ZEovron7eACEihTrgMg==}
-    engines: {node: '>=18'}
-
   '@turbo/darwin-64@2.9.18':
     resolution: {integrity: sha512-9f27peFu16ur8c0v9nUFUEyBnbKuuFsUTjHFWfmwGfzySBXbHwzU44QhZon6Mznz0cHsIr3984NQj/bVrnGSRw==}
     cpu: [x64]
@@ -2308,10 +2307,10 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
-  '@vitest/coverage-istanbul@4.0.18':
-    resolution: {integrity: sha512-0OhjP30owEDihYTZGWuq20rNtV1RjjJs1Mv4MaZIKcFBmiLUXX7HJLX4fU7wE+Mrc3lQxI2HKq6WrSXi5FGuCQ==}
+  '@vitest/coverage-istanbul@4.1.9':
+    resolution: {integrity: sha512-4a7DsIwycTf4eYwEDtnMfMV8H80KSKH9PuMHhqL5SwPZzDyUKq2X/TPCVZ7NqIuSz7UbZckmEmkip6iZBI/gEA==}
     peerDependencies:
-      vitest: 4.0.18
+      vitest: 4.1.9
 
   '@vitest/expect@4.0.18':
     resolution: {integrity: sha512-8sCWUyckXXYvx4opfzVY03EOiYVxyNrHS5QxX3DAIi5dpJAAkyJezHCP77VMX4HKA2LDT/Jpfo8i2r5BE3GnQQ==}
@@ -2369,6 +2368,11 @@ packages:
     resolution: {integrity: sha512-CGJ25bc8fRi8Lod/3GHSvXRKi7nBo3kxh0ApW4yCjmrWmRmlT53B5E08XRSZRliygG0aVNxLrBEqPYdz/KcCtQ==}
     peerDependencies:
       vitest: 4.0.18
+
+  '@vitest/ui@4.1.9':
+    resolution: {integrity: sha512-U/cRvtqfEPj27FI1n9cyUvi4vXXdcLhjJiI+InYKdk8hP4VrS6RXOjGL7rfFaeBc37iRKANsR6eEzIoC7lmgBQ==}
+    peerDependencies:
+      vitest: 4.1.9
 
   '@vitest/utils@4.0.18':
     resolution: {integrity: sha512-msMRKLMVLWygpK3u2Hybgi4MNjcYJvwTb0Ru09+fOyCXIgT5raYP041DRRdiJiI3k/2U6SEbAETB3YtBrUkCFA==}
@@ -3184,8 +3188,8 @@ packages:
   fix-dts-default-cjs-exports@1.0.1:
     resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
 
-  flatted@3.4.1:
-    resolution: {integrity: sha512-IxfVbRFVlV8V/yRaGzk0UVIcsKKHMSfYw66T/u4nTwlWteQePsxe//LjudR1AMX4tZW3WFCh3Zqa/sjlqpbURQ==}
+  flatted@3.4.2:
+    resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -3630,10 +3634,6 @@ packages:
   istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
     engines: {node: '>=8'}
-
-  istanbul-lib-instrument@6.0.3:
-    resolution: {integrity: sha512-Vtgk7L/R2JHyyGW07spoFlB8/lpjiOLTjMdms6AFMraYt3BaJauod/NGrfnVG/y4Ix1JEuMRPDPEj2ua+zz1/Q==}
-    engines: {node: '>=10'}
 
   istanbul-lib-report@3.0.1:
     resolution: {integrity: sha512-GCfE1mtsHGOELCU8e/Z7YWzpmybrx/+dSTfLrvY8qRmaY6zXTKWn6WQIjaAFw069icm6GVMNkgu0NzI4iPZUNw==}
@@ -4136,14 +4136,6 @@ packages:
 
   nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
-
-  node-addon-api@8.8.0:
-    resolution: {integrity: sha512-c5Ko1fZJIJmzhFIkhRN76WTq+fC6tWnGy9CXA0fA+XygsWZmEwG8vmbkNqxMyoaa0Tin4djul49NzdVcJJcjeA==}
-    engines: {node: ^18 || ^20 || >= 21}
-
-  node-gyp-build@4.8.4:
-    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
-    hasBin: true
 
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
@@ -5672,12 +5664,12 @@ snapshots:
     dependencies:
       json-rpc-2.0: 1.7.1
 
-  '@cartesi/viem@2.0.0-alpha.31(typescript@5.9.3)(viem@2.47.1(typescript@5.9.3))':
+  '@cartesi/viem@2.0.0-alpha.31(typescript@6.0.3)(viem@2.52.2(typescript@6.0.3))':
     dependencies:
       '@cartesi/rpc': 2.0.0-alpha.22
-      abitype: 1.2.3(typescript@5.9.3)
+      abitype: 1.2.3(typescript@6.0.3)
       p-retry: 7.1.1
-      viem: 2.47.1(typescript@5.9.3)
+      viem: 2.52.2(typescript@6.0.3)
     transitivePeerDependencies:
       - typescript
       - zod
@@ -7201,11 +7193,6 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
-  '@tuler/node-libcmt@0.1.3':
-    dependencies:
-      node-addon-api: 8.8.0
-      node-gyp-build: 4.8.4
-
   '@turbo/darwin-64@2.9.18':
     optional: true
 
@@ -7396,7 +7383,7 @@ snapshots:
 
   '@types/jsonfile@6.1.4':
     dependencies:
-      '@types/node': 25.4.0
+      '@types/node': 26.0.0
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -7541,19 +7528,19 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-istanbul@4.0.18(vitest@4.0.18)':
+  '@vitest/coverage-istanbul@4.1.9(vitest@4.1.9)':
     dependencies:
+      '@babel/core': 7.29.0
       '@istanbuljs/schema': 0.1.3
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       istanbul-lib-coverage: 3.2.2
-      istanbul-lib-instrument: 6.0.3
       istanbul-lib-report: 3.0.1
       istanbul-reports: 3.2.0
       magicast: 0.5.2
       obug: 2.1.1
-      tinyrainbow: 3.0.3
-      vitest: 4.0.18(@types/node@25.4.0)(@vitest/ui@4.0.18)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2)
+      tinyrainbow: 3.1.0
+      vitest: 4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
     transitivePeerDependencies:
       - supports-color
 
@@ -7564,7 +7551,7 @@ snapshots:
       '@vitest/spy': 4.0.18
       '@vitest/utils': 4.0.18
       chai: 6.2.2
-      tinyrainbow: 3.0.3
+      tinyrainbow: 3.1.0
 
   '@vitest/expect@4.1.9':
     dependencies:
@@ -7601,7 +7588,7 @@ snapshots:
 
   '@vitest/pretty-format@4.0.18':
     dependencies:
-      tinyrainbow: 3.0.3
+      tinyrainbow: 3.1.0
 
   '@vitest/pretty-format@4.1.9':
     dependencies:
@@ -7638,12 +7625,24 @@ snapshots:
     dependencies:
       '@vitest/utils': 4.0.18
       fflate: 0.8.2
-      flatted: 3.4.1
+      flatted: 3.4.2
       pathe: 2.0.3
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
       vitest: 4.0.18(@types/node@25.4.0)(@vitest/ui@4.0.18)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)(yaml@2.8.2)
+    optional: true
+
+  '@vitest/ui@4.1.9(vitest@4.1.9)':
+    dependencies:
+      '@vitest/utils': 4.1.9
+      fflate: 0.8.2
+      flatted: 3.4.2
+      pathe: 2.0.3
+      sirv: 3.0.2
+      tinyglobby: 0.2.15
+      tinyrainbow: 3.1.0
+      vitest: 4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
 
   '@vitest/utils@4.0.18':
     dependencies:
@@ -8488,7 +8487,7 @@ snapshots:
 
   eval@0.1.8:
     dependencies:
-      '@types/node': 25.4.0
+      '@types/node': 26.0.0
       require-like: 0.1.2
 
   eventemitter3@5.0.1: {}
@@ -8559,7 +8558,7 @@ snapshots:
       mlly: 1.8.1
       rollup: 4.59.0
 
-  flatted@3.4.1: {}
+  flatted@3.4.2: {}
 
   for-each@0.3.5:
     dependencies:
@@ -9094,16 +9093,6 @@ snapshots:
       ws: 8.20.1
 
   istanbul-lib-coverage@3.2.2: {}
-
-  istanbul-lib-instrument@6.0.3:
-    dependencies:
-      '@babel/core': 7.29.0
-      '@babel/parser': 7.29.0
-      '@istanbuljs/schema': 0.1.3
-      istanbul-lib-coverage: 3.2.2
-      semver: 7.7.4
-    transitivePeerDependencies:
-      - supports-color
 
   istanbul-lib-report@3.0.1:
     dependencies:
@@ -9864,10 +9853,6 @@ snapshots:
   negotiator@0.6.4: {}
 
   nice-try@1.0.5: {}
-
-  node-addon-api@8.8.0: {}
-
-  node-gyp-build@4.8.4: {}
 
   node-releases@2.0.36: {}
 
@@ -11427,7 +11412,7 @@ snapshots:
       - tsx
       - yaml
 
-  vitest@4.1.9(@types/node@26.0.0)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2)):
+  vitest@4.1.9(@types/node@26.0.0)(@vitest/coverage-istanbul@4.1.9)(@vitest/ui@4.1.9)(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2)):
     dependencies:
       '@vitest/expect': 4.1.9
       '@vitest/mocker': 4.1.9(vite@7.3.1(@types/node@26.0.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.22.4)(yaml@2.8.2))
@@ -11451,6 +11436,8 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 26.0.0
+      '@vitest/coverage-istanbul': 4.1.9(vitest@4.1.9)
+      '@vitest/ui': 4.1.9(vitest@4.1.9)
     transitivePeerDependencies:
       - msw
 

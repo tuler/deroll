@@ -1,4 +1,4 @@
-import type { AdvanceRequest } from "@tuler/node-libcmt";
+import type { AdvanceRequestData } from "@deroll/core";
 import {
     type Address,
     type Hex,
@@ -27,21 +27,22 @@ import {
     parseERC20Deposit,
     parseERC721Deposit,
     parseEtherDeposit,
-} from "../src";
+} from "../src/index.js";
 
 const hexToBuffer = (hex: string): Buffer => Buffer.from(hex.slice(2), "hex");
 
 // the deposit detectors only inspect the sender, so a minimal advance request
 // (with a dummy payload) is enough to exercise them
-const advance = (msgSender: Hex): AdvanceRequest => ({
-    type: "advance",
-    chainId: 1n,
-    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-    msgSender,
-    blockNumber: 0n,
-    blockTimestamp: 0n,
-    prevRandao: 0n,
-    index: 0n,
+const advance = (msgSender: Hex): AdvanceRequestData => ({
+    metadata: {
+        chainId: 1n,
+        appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+        msgSender,
+        blockNumber: 0n,
+        blockTimestamp: 0n,
+        prevRandao: 0n,
+        index: 0n,
+    },
     payload: Buffer.from("deadbeef", "hex"),
 });
 
