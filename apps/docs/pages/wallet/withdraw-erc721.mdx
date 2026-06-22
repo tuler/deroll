@@ -12,22 +12,22 @@ import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet
 const wallet = createWallet();
 
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
 app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msg_sender;
-    const dapp = metadata.app_contract;
-    /*const hasOne = wallet.erc721Has(token, user, 1n);
+    const user = metadata.msgSender;
+    const dapp = metadata.appContract;
+    const hasOne = wallet.erc721Has(token, user, 1n);
     if (hasOne) {
         const voucher = wallet.withdrawERC721(dapp, token, user, 1n); // [!code focus]
         await app.createVoucher(voucher);
-    }*/
+    }
     return "accept";
 });
 ```

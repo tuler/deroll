@@ -34,13 +34,13 @@ import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet"; // [!code ++]
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet // [!code ++]
 const wallet = createWallet(); // [!code ++]
 
 // wire wallet advance handler // [!code ++]
-// app.addAdvanceHandler(wallet.handler); // [!code ++]
+app.addAdvanceHandler(wallet.handler); // [!code ++]
 
 // start app
 app.start().catch((e) => process.exit(1));
@@ -55,18 +55,18 @@ You can then, as an example, query the CTSI balance in an inspect handler:
 // ---cut---
 import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
-import { numberToHex } from "viem"; // [!code ++]
+import { numberToHex, toHex } from "viem"; // [!code ++]
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet
 const wallet = createWallet();
 
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 
 app.addInspectHandler(async (data) => { // [!code ++]
-    const address = data.payload; // [!code ++]
+    const address = toHex(data.payload); // [!code ++]
     const balance = wallet.erc20BalanceOf( // [!code ++]
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
         address, // [!code ++]
@@ -94,28 +94,28 @@ If the user doesn't have enough balance an exception is raised, which makes the 
 // ---cut---
 import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
-import { hexToBigInt, numberToHex } from "viem"; // [!code ++]
+import { hexToBigInt, numberToHex, toHex } from "viem"; // [!code ++]
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet and wire its handler
 const wallet = createWallet();
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 
 app.addAdvanceHandler(async (data) => { // [!code ++]
-    const amount = hexToBigInt(data.payload); // [!code ++]
-    /*const voucher = wallet.withdrawERC20( // [!code ++]
+    const amount = hexToBigInt(toHex(data.payload)); // [!code ++]
+    const voucher = wallet.withdrawERC20( // [!code ++]
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
-        data.metadata.msg_sender, // [!code ++]
+        data.metadata.msgSender, // [!code ++]
         amount, // [!code ++]
     ); // [!code ++]
-    await app.createVoucher(voucher); // [!code ++]*/
+    await app.createVoucher(voucher); // [!code ++]
     return "accept"; // [!code ++]
 }); // [!code ++]
 
 app.addInspectHandler(async (data) => {
-    const address = data.payload;
+    const address = toHex(data.payload);
     const balance = wallet.erc20BalanceOf(
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
         address,
@@ -144,10 +144,10 @@ import {
 } from "@deroll/wallet";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 app.addAdvanceHandler(async (data) => { // [!code focus]
-    /*if (isERC20Deposit(data)) { // [!code focus]
+    if (isERC20Deposit(data)) { // [!code focus]
         const deposit = parseERC20Deposit(data.payload); // [!code focus]
         const voucher = createERC20TransferVoucher( // [!code focus]
             deposit.token, // [!code focus]
@@ -155,7 +155,7 @@ app.addAdvanceHandler(async (data) => { // [!code focus]
             deposit.amount, // [!code focus]
         ); // [!code focus]
         await app.createVoucher(voucher); // [!code focus]
-    } // [!code focus]*/
+    } // [!code focus]
     return "accept"; // [!code focus]
 }); // [!code focus]
 

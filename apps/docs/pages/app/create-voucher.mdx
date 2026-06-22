@@ -11,7 +11,7 @@ import { createApp } from "@deroll/app";
 import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async (data) => {
@@ -26,7 +26,6 @@ app.addAdvanceHandler(async (data) => {
             functionName: "transfer", // [!code focus]
             args: [to, amount], // [!code focus]
         }), // [!code focus]
-        value: "0x", // [!code focus]
     }); // [!code focus]
     return "accept";
 });

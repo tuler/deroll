@@ -1,16 +1,16 @@
 # createApp
 
-Creates an application that fetches requests from the specified URL and handles to request handlers.
+Creates an application that fetches requests from the Cartesi device and handles to request handlers.
 
 ## Usage
 
-Below is a simple example of constructing a new `App` that fetches requests from `http://127.0.0.1:5004`, which is a rollups HTTP server.
+Below is a simple example of constructing a new `App`.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 ```
 
 ## Returns
@@ -20,13 +20,6 @@ const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
 The application instance.
 
 ## Parameters
-
-### url
-
-Type: `string`
-
-URL of an HTTP server to fetch requests from.
-Can be a HTTP rollups server running inside a Cartesi machine, or any alternative testing HTTP server running on the host.
 
 ### broadcastAdvanceRequests
 

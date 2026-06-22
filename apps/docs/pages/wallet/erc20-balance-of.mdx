@@ -11,12 +11,12 @@ import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet
 const wallet = createWallet();
 
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
 app.addInspectHandler(async ({ payload }) => { // [!code focus]

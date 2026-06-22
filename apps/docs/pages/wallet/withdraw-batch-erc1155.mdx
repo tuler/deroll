@@ -12,18 +12,18 @@ import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // create wallet
 const wallet = createWallet();
 
-// app.addAdvanceHandler(wallet.handler);
+app.addAdvanceHandler(wallet.handler);
 
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
 app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msg_sender;
-    const dapp = metadata.app_contract;
-    /*const value1 = wallet.erc1155BalanceOf(token, user, 1n);
+    const user = metadata.msgSender;
+    const dapp = metadata.appContract;
+    const value1 = wallet.erc1155BalanceOf(token, user, 1n);
     const value2 = wallet.erc1155BalanceOf(token, user, 2n);
     if (value1 > 0 && value2 > 0) {
         const voucher = wallet.withdrawBatchERC1155( // [!code focus]
@@ -35,7 +35,7 @@ app.addAdvanceHandler(async ({ metadata }) => {
             "0x", // [!code focus]
         ); // [!code focus]
         await app.createVoucher(voucher);
-    }*/
+    }
     return "accept";
 });
 ```

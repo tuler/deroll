@@ -4,7 +4,7 @@ Utility to create a `Voucher` to transfer ERC-1155 tokens from one address to an
 
 ## Usage
 
-The example below shows how to create a `Voucher` to withdraw 1 token of token id 1 and 2 from the application to the `msg_sender` of the an input.
+The example below shows how to create a `Voucher` to withdraw 1 token of token id 1 and 2 from the application to the `msgSender` of the an input.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
@@ -12,22 +12,22 @@ import { createERC1155BatchTransferVoucher } from "@deroll/wallet";
 import { parseUnits } from "viem";
 
 // create app
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
 app.addAdvanceHandler(async ({ metadata }) => {
     const value1 = parseUnits("1", 18);
     const value2 = parseUnits("1", 18);
-    /*const voucher = createERC1155BatchTransferVoucher( // [!code focus]
+    const voucher = createERC1155BatchTransferVoucher( // [!code focus]
         token, // [!code focus]
         application, // [!code focus]
-        metadata.msg_sender, // [!code focus]
+        metadata.msgSender, // [!code focus]
         [1n, 2n], // [!code focus]
         [value1, value2], // [!code focus]
         "0x", // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);*/
+    await app.createVoucher(voucher);
     return "accept";
 });
 ```

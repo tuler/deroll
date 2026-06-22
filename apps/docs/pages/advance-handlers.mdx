@@ -17,7 +17,7 @@ const handler: AdvanceRequestHandler = async ({ metadata, payload }) => {
 }
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 app.addAdvanceHandler(handler);
 ```
 
@@ -31,7 +31,7 @@ By default, when a handler returns `"accept"` the execution chain stops.
 import { createApp } from "@deroll/app";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // ---cut---
 app.addAdvanceHandler(async (data) => {
@@ -51,7 +51,7 @@ If a handler returns `"reject"` or **raises an exception**, the next handler in 
 import { createApp } from "@deroll/app";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // ---cut---
 app.addAdvanceHandler(async (data) => {
@@ -76,7 +76,6 @@ import { createApp } from "@deroll/app";
 
 // create application
 const app = createApp({
-    baseUrl: "http://127.0.0.1:5004",
     broadcastAdvanceRequests: true
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 });

@@ -17,7 +17,7 @@ const handler: InspectRequestHandler = async ({ payload }) => {
 }
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 app.addInspectHandler(handler);
 ```
 
@@ -31,7 +31,7 @@ The following `curl` command creates an inspect request to the local node execut
 
 :::code-group
 ```bash [command]
-curl http://localhost:8080/inspect/tuler | jq
+curl http://localhost:6751/inspect/tuler | jq
 ```
 ```json [output]
 {
@@ -51,7 +51,7 @@ Let's use some command line utilities, `jq` and `xxd`, to decode the report payl
 
 :::code-group
 ```bash [command]
-curl -slL http://localhost:8080/inspect/tuler | jq -r '.reports[0].payload' | xxd -r -p
+curl -slL http://localhost:6751/inspect/tuler | jq -r '.reports[0].payload' | xxd -r -p
 ```
 ```bash [output]
 TULER

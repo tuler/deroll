@@ -51,7 +51,7 @@ If you select the default options (no wallet or router library, more on that lat
 import { createApp } from "@deroll/app";
 
 // create application
-const app = createApp({ baseUrl: "http://127.0.0.1:5004" });
+const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async ({ metadata, payload }) => {
@@ -68,7 +68,7 @@ app.addInspectHandler(async ({ payload }) => {
 app.start().catch((e) => process.exit(1));
 ```
 
-This application reads inputs (requests) from an HTTP server running at port 5004 inside the Cartesi machine, and only prints those inputs to the `console`.
+This application reads inputs (requests) from the Cartesi device inside the Cartesi machine, and only prints those inputs to the `console`.
 
 ## Build Cartesi Machine
 
@@ -107,18 +107,18 @@ Now that you built a Cartesi Machine you can run a Cartesi Node with the `cartes
 
 ```bash
 $ cartesi rollups start
-✔ anvil service ready at http://127.0.0.1:8080/anvil
-✔ rpc service ready at http://127.0.0.1:8080/rpc
-✔ inspect service ready at http://127.0.0.1:8080/inspect/<application_address>
+✔ anvil service ready at http://127.0.0.1:6751/anvil
+✔ rpc service ready at http://127.0.0.1:6751/rpc
+✔ inspect service ready at http://127.0.0.1:6751/inspect/<application_address>
 ```
 
 This will run a few services on your machine:
 
-1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://localhost:8080/anvil which contains all Cartesi infrastructure [smart contracts](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/overview/) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
+1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://localhost:6751/anvil which contains all Cartesi infrastructure [smart contracts](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/overview/) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
 
-2. a [JSON-RPC]() server running at http://localhost:8080/rpc which you can use to query outputs produced by your application.
+2. a [JSON-RPC]() server running at http://localhost:6751/rpc which you can use to query outputs produced by your application.
 
-3. an inspect server running at http://localhost:8080/inspect/ which you can use to simulate an input, or query read-only computations from your application.
+3. an inspect server running at http://localhost:6751/inspect/ which you can use to simulate an input, or query read-only computations from your application.
 
 Some of these services will be used below.
 
@@ -199,41 +199,16 @@ where:
 The address of the InputBox can also be obtained by executing the command `cartesi address-book --json | jq -r '.InputBox'` and the address of the application with the command `cartesi address-book --json | jq -r '.CartesiDApp'`.
 :::
 
-## Querying GraphQL
+## Querying JSON-RPC
 
-The inputs received and outputs produced by your application can be queried using a GraphQL API.
-Ultimately these GraphQL queries will come from your application front-end, or some intermediate application-specific server.
-The local node provides a GraphQL Playground interface running at http://localhost:8080/graphql where you can test your queries.
+The inputs received and outputs produced by your application can be queried using a JSON-RPC API.
+Ultimately these RPC queries will come from your application front-end, or some intermediate application-specific server.
 
-![GraphQL Playground](/img/graphql-playground.png)
+The following example queries the list of inputs received by an application deployed name `cartesi`.
 
-The following example queries the last input received by the application and the first notice of that input.
-
-```graphql
-query LatestInput {
-    inputs(last: 1) {
-        edges {
-            node {
-                index
-                status
-                msgSender
-                timestamp
-                blockNumber
-                payload
-                notices(first: 1) {
-                    edges {
-                        node {
-                            payload
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+```shell
+cast rpc --rpc-url http://127.0.0.1:6751/rpc cartesi_listInputs cartesi
 ```
-
-For a comprehensive guide on how to use the Cartesi GraphQL API, please refer to the [official documentation](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/graphql/overview/).
 
 ## Inspecting State
 
@@ -245,7 +220,7 @@ The path is converted to hex encoding and passed as `payload` to the application
 
 :::code-group
 ```bash [command]
-$ curl -s http://localhost:8080/inspect/tuler
+$ curl -s http://localhost:6751/inspect/tuler
 {"status":"Accepted","exception_payload":null,"reports":[],"processed_input_count":1}
 ```
 ```bash [log]
@@ -261,12 +236,12 @@ app.addInspectHandler(async (data) => {
 ```
 :::
 
-If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
 Inspected state should be returned as report outputs, in this example no reports were produced.
 
 :::warning
-Inspect is a costly operation when compared to querying the GraphQL API.
-It actually executes the application code using the Cartesi VM, which is much slower than bare metal execution performance of the GraphQL Server.
+Inspect is a costly operation when compared to querying the JSON-RPC API.
+It actually executes the application code using the Cartesi VM, which is much slower than bare metal execution performance of the JSON-RPC Server.
 So be careful when designing its use in your application.
 :::
 

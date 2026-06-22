@@ -6,7 +6,7 @@ Deroll, a TypeScript framework, facilitates the development of decentralized app
 
 ### Prerequisites
 
-Ensure you have Node.js and Yarn installed; you can download them from [nodejs.org](https://nodejs.org/) and [yarnpkg.com](https://yarnpkg.com/). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
+Ensure you have Node.js and pnpm installed; you can download them from [nodejs.org](https://nodejs.org/) and [pnpm.io](https://pnpm.io). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
 
 ### Creating a project
 
@@ -33,16 +33,15 @@ Open the file `src/index.ts` and copy and paste the following code:
 ```ts
 // Import necessary modules
 import { createApp } from "@deroll/app";
+import { stringToHex } from "viem";
 
 // Create the application
-const app = createApp({
-  baseUrl: process.env.ROLLUP_HTTP_SERVER_URL || "http://127.0.0.1:5004",
-});
+const app = createApp();
 
 // Handle input encoded in hex
 app.addAdvanceHandler(async ({ payload }) => {
   // read payload as string
-  const str = hexToString(payload);
+  const str = payload.toString();
 
   // create a notice with the string in uppercase
   await app.createNotice({ payload: stringToHex(str.toUpperCase()) });
@@ -55,20 +54,19 @@ app.start().catch((e) => {
 });
 ```
 
-### Build, run a rollups node and deploy your dApp
+### Build and run a rollups node with the application
 
 ```shell
 cartesi build
-cartesi rollups start
-cartesi deploy
+cartesi run
 ```
 
 Expected output:
 
 ```shell
-✔ anvil service ready at http://127.0.0.1:8080/anvil
-✔ rpc service ready at http://127.0.0.1:8080/rpc
-✔ inspect service ready at http://127.0.0.1:8080/inspect/<application_address>
+✔ anvil service ready at http://127.0.0.1:6751/anvil
+✔ rpc service ready at http://127.0.0.1:6751/rpc
+✔ inspect service ready at http://127.0.0.1:6751/inspect/<application_address>
 ```
 
 ### Send a message
@@ -103,7 +101,7 @@ cartesi send
 ✔ Input sent: 0xebd90fe6fd50245dfa30f33e2d68236a73b25e2351106484cfa9d815e401939d
 ```
 
-Expected output in the `cartesi rollups logs` terminal:
+Expected output in the `cartesi logs` terminal:
 
 ```shell
 
@@ -115,8 +113,8 @@ Now you're ready to start building your Cartesi application with cartesi and der
 
 ### Requirements
 
-- Corepack (with pnpm) or pnpm v9 (9.7.1 recommended)
-- Node 20 or greater (LTS)
+-   Corepack (with pnpm) or pnpm v11
+-   Node 24 or greater (LTS)
 
 ### Installation
 
