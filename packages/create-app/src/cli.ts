@@ -20,8 +20,8 @@ import { createApp, type Library, type PackageManager } from "./index.js";
 const cancelMessage = "Application creation cancelled";
 
 const getLocation = async (pathArg: string | undefined): Promise<string> => {
-    const pathValidator = (value: string) => {
-        if (value === "") {
+    const pathValidator = (value?: string) => {
+        if (value === "" || !value) {
             return "Path required";
         }
         if (fs.existsSync(value)) {
@@ -95,9 +95,11 @@ const getPackageName = async (options: {
         message: "What is the name of the npm package",
         initialValue,
         validate: (value) =>
-            validatePackageName(value).validForNewPackages
-                ? undefined
-                : "Invalid package name",
+            value !== undefined
+                ? validatePackageName(value).validForNewPackages
+                    ? undefined
+                    : "Invalid package name"
+                : "Package name required",
     });
 
     if (isCancel(packageName)) {
