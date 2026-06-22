@@ -3,7 +3,7 @@ import { stringToHex } from "viem";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { mock, mockClear } from "vitest-mock-extended";
 
-import { type Handler, type Router, createRouter } from "../src";
+import { type Handler, type Router, createRouter } from "../src/index.js";
 
 describe("Router", () => {
     let app: App;
