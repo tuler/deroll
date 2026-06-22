@@ -25,27 +25,24 @@
         }
     },
     "scripts": {
-        "build": "run-s codegen compile",
+        "build": "tsup",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-        "codegen": "tsx schema.ts",
-        "compile": "tsup",
         "dev": "tsup --watch",
         "lint": "biome check",
         "prepack": "run-s build"
     },
     "dependencies": {
-        "viem": "^2.47.1"
+        "viem": "^2.53.1"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^25.4.0",
+        "@types/node": "^26.0.0",
         "npm-run-all": "^4",
-        "openapi-typescript": "^7.8.0",
         "tsup": "^8.5.1",
-        "tsx": "^4.21.0",
-        "typescript": "^5.9.3",
-        "vitest": "^4.0.18"
+        "tsx": "^4.22.4",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
     },
     "publishConfig": {
         "access": "public"

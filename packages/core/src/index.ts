@@ -5,10 +5,9 @@ import type {
     Notice,
     Report,
     Voucher,
-} from "./types";
+} from "./types.js";
 
-export * from "./schema";
-export * from "./types";
+export * from "./types.js";
 
 export type AppOptions = {
     broadcastAdvanceRequests?: boolean;
