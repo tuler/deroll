@@ -10,7 +10,7 @@ import type {
     RequestHandlerResult,
     Voucher,
 } from "@deroll/core";
-import { Rollup } from "@tuler/node-libcmt";
+import { Rollup, RollupError } from "@tuler/node-libcmt";
 
 export class NativeApp implements App {
     private options: AppOptions;
@@ -96,22 +96,40 @@ export class NativeApp implements App {
     }
 
     async start() {
+        // set to true if there is a CMT_INPUTS env var defined
+        const hostMode = !!process.env.CMT_INPUTS;
+
         let status: RequestHandlerResult = "accept";
+
+        // loop forever
         while (true) {
-            const request = this.rollup.finish({ accept: status === "accept" });
-            switch (request.type) {
-                case "advance": {
-                    const { payload, type, ...metadata } = request;
-                    status = await this.handleAdvance({
-                        metadata,
-                        payload,
-                    });
-                    break;
+            try {
+                const request = this.rollup.finish({
+                    accept: status === "accept",
+                });
+                switch (request.type) {
+                    case "advance": {
+                        const { payload, type, ...metadata } = request;
+                        status = await this.handleAdvance({
+                            metadata,
+                            payload,
+                        });
+                        break;
+                    }
+                    case "inspect": {
+                        await this.handleInspect({ payload: request.payload });
+                        break;
+                    }
                 }
-                case "inspect": {
-                    await this.handleInspect({ payload: request.payload });
-                    break;
+            } catch (e: unknown) {
+                if (e instanceof RollupError) {
+                    if (hostMode && e.errno === -96) {
+                        // No message available on STREAM
+                        // exit gracefully
+                        break;
+                    }
                 }
+                throw e;
             }
         }
     }
