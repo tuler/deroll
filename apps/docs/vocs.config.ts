@@ -1,11 +1,10 @@
-import { defineConfig } from "vocs";
+import { defineConfig } from "vocs/config";
 
 export default defineConfig({
     baseUrl: "https://v2.deroll.dev",
-    rootDir: ".",
+    srcDir: ".",
     editLink: {
-        pattern:
-            "https://github.com/tuler/deroll/edit/main/apps/docs/pages/:path",
+        link: "https://github.com/tuler/deroll/edit/main/apps/docs/pages/:path",
         text: "Edit on GitHub",
     },
     sidebar: [
