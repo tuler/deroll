@@ -55,7 +55,7 @@ importers:
         version: 2.53.1(typescript@6.0.3)(zod@4.4.3)
       vocs:
         specifier: latest
-        version: 2.0.15(@types/react@19.2.17)(mermaid@11.13.0)(react-dom@19.2.7(react@19.2.7))(react-router@7.13.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(rollup@4.59.0)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))(waku@1.0.0-beta.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@19.2.7(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))
+        version: 2.0.17(@types/react@19.2.17)(mermaid@11.13.0)(react-dom@19.2.7(react@19.2.7))(react-router@7.13.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(rollup@4.59.0)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))(waku@1.0.0-beta.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@19.2.7(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))
       waku:
         specifier: ^1.0.0-beta.3
         version: 1.0.0-beta.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@19.2.7(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2)
@@ -186,9 +186,6 @@ importers:
       '@commander-js/extra-typings':
         specifier: ^15.0.0
         version: 15.0.0(commander@15.0.0)
-      '@iarna/toml':
-        specifier: ^2.2.5
-        version: 2.2.5
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -972,9 +969,6 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       hono: ^4
-
-  '@iarna/toml@2.2.5':
-    resolution: {integrity: sha512-trnsAYxU3xnS1gPHPyU961coFyLkh4gAD/0zQ5mymY4yOZ+CYvsPqUbOFSw0aDM4y0tV7tiFxL/1XfXPNC6IPg==}
 
   '@iconify-json/lucide@1.2.114':
     resolution: {integrity: sha512-NbvH3B1BYo6wBtS7joLi7f2UVQOqK2dtZodMFf3kkBs+Tnh9TkRuy8oVHr1RM8UK6bUtvAXxfNlGAah0CuvPCw==}
@@ -5055,8 +5049,8 @@ packages:
       jsdom:
         optional: true
 
-  vocs@2.0.15:
-    resolution: {integrity: sha512-Q7PrHD2z22qc3g2Ly6D/wZfp7oxnzMINE9a4O0aXjoYCHih0pfKGuHwzM7mRDSr/kCe1k3bXxUfZMaW6aoDYxQ==}
+  vocs@2.0.17:
+    resolution: {integrity: sha512-U4iHyLt6e8XR8TtMky6vmzIv5Sckc9y3QL4xrvbAGk4USUXRoS1GUkkQ3+lDCDLZ/2isO/IdAyLjIdupdtPobw==}
     hasBin: true
     peerDependencies:
       '@vocs/twoslash-rust': ^0.1.0
@@ -5880,8 +5874,6 @@ snapshots:
   '@hono/node-server@2.0.5(hono@4.12.26)':
     dependencies:
       hono: 4.12.26
-
-  '@iarna/toml@2.2.5': {}
 
   '@iconify-json/lucide@1.2.114':
     dependencies:
@@ -10642,7 +10634,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vocs@2.0.15(@types/react@19.2.17)(mermaid@11.13.0)(react-dom@19.2.7(react@19.2.7))(react-router@7.13.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(rollup@4.59.0)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))(waku@1.0.0-beta.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@19.2.7(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2)):
+  vocs@2.0.17(@types/react@19.2.17)(mermaid@11.13.0)(react-dom@19.2.7(react@19.2.7))(react-router@7.13.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(rollup@4.59.0)(supports-color@10.2.2)(typescript@6.0.3)(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2))(waku@1.0.0-beta.3(@types/node@26.0.0)(esbuild@0.28.1)(jiti@2.7.0)(react-dom@19.2.7(react@19.2.7))(react-server-dom-webpack@19.2.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(webpack@5.107.2(esbuild@0.28.1)))(react@19.2.7)(terser@5.48.0)(tsx@4.22.4)(yaml@2.8.2)):
     dependencies:
       '@base-ui/react': 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@codesandbox/sandpack-react': 2.20.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
