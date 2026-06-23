@@ -12,7 +12,7 @@ import { stringToHex, hexToString } from "viem";
 
 const handler: InspectRequestHandler = async ({ payload }) => {
     console.log(payload);
-    const str = hexToString(payload);
+    const str = payload.toString();
     await app.createReport({ payload: stringToHex(str.toUpperCase()) });
 }
 

@@ -22,7 +22,8 @@ app.addAdvanceHandler(wallet.handler);
 
 app.addAdvanceHandler(async ({ metadata, payload }) => {
     const value = parseEther("1");
-    wallet.transferEther(metadata.msgSender, payload, value); // [!code focus]
+    const address = payload.toString();
+    wallet.transferEther(metadata.msgSender, address, value); // [!code focus]
     return "accept";
 });
 ```

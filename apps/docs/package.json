@@ -17,6 +17,7 @@
         "@types/react": "^19.2.17",
         "react": "^19",
         "react-dom": "^19",
+        "viem": "^2.53.1",
         "vocs": "latest",
         "waku": "^1.0.0-beta.3"
     },

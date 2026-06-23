@@ -20,7 +20,7 @@ app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address // [!code focus]
 app.addInspectHandler(async ({ payload }) => { // [!code focus]
-    const address = payload; // [!code focus]
+    const address = payload.toString(); // [!code focus]
     const hasOne = wallet.erc721Has(token, address, 1n); // [!code focus]
     console.log(hasOne); // [!code focus]
 }); // [!code focus]
