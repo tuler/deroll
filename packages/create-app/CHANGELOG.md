@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- 0b3bbdf: bump deps
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes

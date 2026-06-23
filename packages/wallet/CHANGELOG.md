@@ -1,5 +1,13 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.6
+
+### Patch Changes
+
+- 42f97d1: revert wallet back to depend on @deroll/core
+- Updated dependencies [7970c89]
+  - @deroll/core@2.0.0-alpha.4
+
 ## 2.0.0-alpha.5
 
 ### Patch Changes

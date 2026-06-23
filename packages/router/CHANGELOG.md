@@ -1,5 +1,13 @@
 # @deroll/router
 
+## 2.0.0-alpha.4
+
+### Patch Changes
+
+- e8be2c9: bump deps
+- Updated dependencies [7970c89]
+  - @deroll/core@2.0.0-alpha.4
+
 ## 2.0.0-alpha.3
 
 ### Patch Changes

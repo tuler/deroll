@@ -1,6 +1,6 @@
 {
     "name": "@deroll/create-app",
-    "version": "2.0.0-alpha.4",
+    "version": "2.0.0-alpha.5",
     "description": "deroll application creator",
     "repository": {
         "type": "git",

@@ -1,5 +1,11 @@
 # @deroll/core
 
+## 2.0.0-alpha.4
+
+### Patch Changes
+
+- 7970c89: types aligned to native (instead of http)
+
 ## 2.0.0-alpha.3
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @deroll/examples
 
+## 2.0.0-alpha.7
+
+### Patch Changes
+
+- f9bb7ae: update examples
+- Updated dependencies [e8be2c9]
+- Updated dependencies [42f97d1]
+- Updated dependencies [1de94d9]
+  - @deroll/router@2.0.0-alpha.4
+  - @deroll/wallet@2.0.0-alpha.6
+  - @deroll/app@2.0.0-alpha.5
+
 ## 2.0.0-alpha.6
 
 ### Patch Changes
