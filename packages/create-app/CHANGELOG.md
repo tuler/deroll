@@ -1,5 +1,12 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.6
+
+### Patch Changes
+
+- 42c6401: embedded Dockerfile
+- 42c6401: new cartesi version compatibility
+
 ## 2.0.0-alpha.5
 
 ### Patch Changes
