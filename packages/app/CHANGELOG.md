@@ -1,5 +1,13 @@
 # @deroll/app
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- 1de94d9: native app
+- Updated dependencies [7970c89]
+  - @deroll/core@2.0.0-alpha.4
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes
