@@ -6,6 +6,24 @@ Deroll v1 is based on Cartesi Rollups v1, while deroll v2 is based on Cartesi Ro
 
 Here are the changes you should be aware of when migrating from v1 to v2:
 
+### Rollup transport
+
+Deroll v1 communicates with the Cartesi Machine through the **Rollup HTTP Server**, so `createApp` required its `url`:
+
+```ts
+// v1
+const app = createApp({ url: "http://127.0.0.1:5004" });
+```
+
+Deroll v2 talks to the machine directly through a native Node.js binding instead of polling the HTTP server, so `createApp` no longer takes a `url`:
+
+```ts
+// v2
+const app = createApp();
+```
+
+The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used. The only remaining option is [`broadcastAdvanceRequests`](/app/create-app), which is unchanged.
+
 ### Input metadata
 
 The input metadata received in an advance handler has changed.
@@ -69,3 +87,25 @@ If you use the `@deroll/wallet` module this change is automatically handled for 
 ### DAppAddressRelay removed
 
 Now that the input metadata includes the application address there is no need to use the `DAppAddressRelay` contract anymore.
+
+### Delegate-call vouchers
+
+Cartesi Rollups v2 introduces a new output type, the **delegate-call voucher**, which the application contract executes with `DELEGATECALL` instead of `CALL`, running the target code in the application's own context.
+Deroll v2 exposes it through [`createDelegateCallVoucher`](/app/create-delegate-call-voucher).
+
+### Executing outputs on the base layer
+
+In v1 each output type had its own entry point on the `CartesiDApp` contract (for example `executeVoucher`).
+In Cartesi Rollups v2 all outputs — vouchers, delegate-call vouchers and notices — share a single Merkle tree and are executed and validated through unified functions on the application contract:
+
+```solidity
+function executeOutput(bytes output, OutputValidityProof proof);
+function validateOutput(bytes output, OutputValidityProof proof);
+```
+
+This mainly affects the frontend or relayer code that executes vouchers, not the advance and inspect handlers you write with deroll.
+
+### Application contract renamed
+
+The application's base-layer contract was renamed from `CartesiDApp` (v1) to `Application` (v2).
+Update any `cartesi address-book` lookups (for example `jq -r '.CartesiDApp'` becomes `jq -r '.Application'`) and any frontend wiring accordingly.
