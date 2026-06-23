@@ -89,15 +89,10 @@ $ cartesi build
         \ /   MACHINE
          '
 
-[INFO  rollup_http_server] starting http dispatcher service...
-[INFO  rollup_http_server::http_service] starting http dispatcher http service!
-[INFO  actix_server::builder] starting 1 workers
-[INFO  actix_server::server] Actix runtime found; starting in Actix runtime
-[INFO  rollup_http_server::dapp_process] starting dapp: node index.js
 
-Manual yield rx-accepted (0x100000000 data)
-Cycles: 912099534
-912099534: 09125a4ff02d0e8d095ab102189318698c71aafe5469f9fddd004b8d44c0ee0e
+Manual yield rx-accepted (1) (0x000020 data)
+Cycles: 514075423
+514075423: ab02926c6b95088e96a71df8a94aff86bd9e72628315db08e2481a9856592e6a
 Storing machine: please wait
 ```
 
@@ -106,19 +101,20 @@ Storing machine: please wait
 Now that you built a Cartesi Machine you can run a Cartesi Node with the `cartesi rollups start` command, which should produce the following output:
 
 ```bash
-$ cartesi rollups start
+$ cartesi run
+✔ <application> starting at http://127.0.0.1:6751
 ✔ anvil service ready at http://127.0.0.1:6751/anvil
 ✔ rpc service ready at http://127.0.0.1:6751/rpc
-✔ inspect service ready at http://127.0.0.1:6751/inspect/<application_address>
+✔ inspect service ready at http://127.0.0.1:6751/inspect/<application>
 ```
 
 This will run a few services on your machine:
 
-1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://localhost:6751/anvil which contains all Cartesi infrastructure [smart contracts](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/overview/) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
+1. an [anvil](https://book.getfoundry.sh/anvil/) instance running at http://127.0.0.1:6751/anvil which contains all Cartesi infrastructure [smart contracts](https://github.com/cartesi/rollups-contracts/tree/next/3.0) deployed to it, and also a few test contracts. You can see the addresses of these contracts by executing the `cartesi address-book` command.
 
-2. a [JSON-RPC]() server running at http://localhost:6751/rpc which you can use to query outputs produced by your application.
+2. a [JSON-RPC]() server running at http://127.0.0.1:6751/rpc which you can use to query outputs produced by your application.
 
-3. an inspect server running at http://localhost:6751/inspect/ which you can use to simulate an input, or query read-only computations from your application.
+3. an inspect server running at http://127.0.0.1:6751/inspect/ which you can use to simulate an input, or query read-only computations from your application.
 
 Some of these services will be used below.
 
@@ -129,35 +125,29 @@ For testing you can send inputs directly to the local `anvil` instance using the
 
 ### Send input using `cartesi send`
 
-The `cartesi send` command will guide you through some steps to send different kinds of inputs, like in the example below where we send a string `tuler` as the input to the application.
+The `cartesi send` command will guide you through some steps to send different kinds of inputs, like in the example below where we send a string `hello` as the input to the application.
 
 :::code-group
 ```bash [command]
 cartesi send
-? Select send sub-command Send generic input to the application.
-? Chain Foundry
-? RPC URL http://127.0.0.1:8545
-? Wallet Mnemonic
-? Mnemonic test test test test test test test test test test test junk
-? Account 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 9999.964983134519619707 ETH
-? Application address 0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e
-? Input String encoding
-? Input (as string) tuler
-✔ Input sent: 0x5f5286566a77de72d5b1c21870a250f15a0d0134c1743624aaa6280a9e5ab8df
+✔ Input String encoding
+✔ Input (as string) hello
+✔ Input sent: 0x79b4d8dec9a3b4705a4a95d4dc3f73f75ac330a12d5eff94714edb77258e8e8f
 ```
+
 ```bash [log]
-validator-1  | [INFO  rollup_http_server::http_service] Received new request of type ADVANCE
-validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTTP/1.1" 200 212 "-" "undici" 0.001408
-validator-1  | {
-validator-1  |   metadata: {
-validator-1  |     msg_sender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-validator-1  |     epoch_index: 0,
-validator-1  |     input_index: 0,
-validator-1  |     block_number: 1487,
-validator-1  |     timestamp: 1721999534
-validator-1  |   },
-validator-1  |   payload: '0x74756c6572'
-validator-1  | }
+{
+  metadata: {
+    chainId: 31337n,
+    appContract: '0xa418ed392a99a1a0c08f96345e9a9b7514047ee2',
+    msgSender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+    blockNumber: 158n,
+    blockTimestamp: 1782243979n,
+    prevRandao: 50953495096857333910293917481377617449822294969307609189375131362321353489028n,
+    index: 0n
+  },
+  payload: <Buffer 68 65 6c 6c 6f>
+}
 ```
 ```ts [src/index.ts]
 // log incoming advance request
@@ -169,35 +159,33 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
 :::
 
 If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
-Notice that the `payload` is the hex encoding of the `tuler` string. More on that on the [Data Encoding](/data-encoding) section.
+Notice that the `payload` is the hex encoding of the `hello` string. More on that on the [Data Encoding](/data-encoding) section.
 
 ### Send input using `cast`
 
 First you need to [install cast](https://book.getfoundry.sh/getting-started/installation#using-foundryup), a swiss-army knife to play with anvil.
 
 Then you can use the `cast send` command to send inputs to your application through the Cartesi smart contracts.
-As an example, to send the `tuler` string as input, you can use the command below:
+As an example, to send the `hello` string as input, you can use the command below:
 
 ```bash
 cast send \
+    --rpc-url http://127.0.0.1:6751/anvil \
     --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-    0x59b22D57D4f067708AB0c00552767405926dc768 \
+    $(cartesi address-book --json | jq -r '.InputBox') \
     "addInput(address,bytes)" \
-    0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e \
-    $(cast from-utf8 tuler)
+    $(cartesi address-book --json | jq -r '.Application') \
+    $(cast from-utf8 hello)
 ```
 
 where:
 
+- http://127.0.0.1:6751/anvil is where anvil is running
 - `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` is the private key of the first default anvil test account;
-- `0x59b22D57D4f067708AB0c00552767405926dc768` is the address of the [InputBox](https://docs.cartesi.io/cartesi-rollups/1.5/rollups-apis/json-rpc/input-box/) contract;
+- `cartesi address-book --json | jq -r '.InputBox'` gets the address of the `InputBox` contract;
 - `addInput(address,bytes)` is the method to send inputs to the application;
-- `0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e` is your application smart contract address;
-- `$(cast from-utf8 tuler)` is the hex encoding of the `tuler` string.
-
-:::info
-The address of the InputBox can also be obtained by executing the command `cartesi address-book --json | jq -r '.InputBox'` and the address of the application with the command `cartesi address-book --json | jq -r '.Application'`.
-:::
+- `$(cartesi address-book --json | jq -r '.Application')` gets the address of the deployed `Application` contract;
+- `$(cast from-utf8 hello)` is the hex encoding of the `hello` string.
 
 ## Querying JSON-RPC
 
@@ -216,17 +204,15 @@ Inspect state is useful to execute some kind of application logic that does not 
 This can include an input simulation, or a read-only computation to query internal state of the application.
 
 You can make an inspect call using a tool like `curl`, like in the example below.
-The path is converted to hex encoding and passed as `payload` to the application.
+The body of a POST request, specified with `-d`, is received by the application inspect handler.
 
 :::code-group
 ```bash [command]
-$ curl -s http://localhost:6751/inspect/tuler
-{"status":"Accepted","exception_payload":null,"reports":[],"processed_input_count":1}
+$ curl -X POST -d "hello" http://127.0.0.1:6751/inspect/<application>
+{"status":"Accepted","reports":null,"processed_input_count":1}
 ```
 ```bash [log]
-validator-1  | [INFO  rollup_http_server::http_service] Received new request of type INSPECT
-validator-1  | [INFO  actix_web::middleware::logger] 127.0.0.1 "POST /finish HTTP/1.1" 200 66 "-" "undici" 0.001024
-validator-1  | { payload: '0x74756c6572' }
+{ payload: <Buffer 68 65 6c 6c 6f> }
 ```
 ```ts [src/index.ts]
 // log incoming inspect request
