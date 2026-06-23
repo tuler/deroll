@@ -17,16 +17,16 @@ const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async (data) => {
-    const id = await app.createReport({ payload: stringToHex("hello") }); // [!code focus]
+    await app.createReport({ payload: stringToHex("hello") }); // [!code focus]
     return "accept";
 });
 ```
 
 ## Returns
 
-Type: `number`
+Type: `void`
 
-The id of the report output.
+Unlike notices and vouchers, reports are not indexed, so `createReport` does not return an id.
 
 ## Parameters
 
