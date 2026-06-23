@@ -45,8 +45,14 @@ Type: `Address`
 
 The address of the target smart contract of the voucher.
 
+### value
+
+Type: `bigint | undefined`
+
+Optional amount of native token (in wei) to send to the `destination` when the voucher is executed. Defaults to `0`.
+
 ### payload
 
-Type: `Hex`
+Type: `Hex | undefined`
 
-The ABI-encoded solidity call.
+The ABI-encoded solidity call. Optional, so a voucher can transfer `value` to `destination` without calling any function.

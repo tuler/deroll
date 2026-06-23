@@ -1,5 +1,46 @@
 # App
 
-:::warning
-Work in progress
-:::
+The `@deroll/app` module provides the entry point of every deroll application: the `App`.
+
+An `App` owns the main loop of a Cartesi application. It fetches [advance](../advance-handlers) and [inspect](../inspect-handlers) requests from the Cartesi Machine, dispatches them to the handlers you register, and exposes methods to produce the outputs a backend can emit.
+
+You create one with [`createApp`](./create-app) and start its loop with `app.start()`.
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp();
+
+// handle advance requests (inputs)
+app.addAdvanceHandler(async ({ metadata, payload }) => {
+    console.log({ metadata, payload });
+    return "accept";
+});
+
+// handle inspect requests (read-only queries)
+app.addInspectHandler(async ({ payload }) => {
+    console.log(payload);
+});
+
+// start the main loop
+app.start().catch(() => process.exit(1));
+```
+
+## Registering handlers
+
+- [addAdvanceHandler](./add-advance-handler) — process state-changing inputs; handlers return `"accept"` or `"reject"`.
+- [addInspectHandler](./add-inspect-handler) — answer read-only queries; handlers can only produce reports.
+
+## Producing outputs
+
+While handling a request, an `App` can emit four kinds of output:
+
+- [createNotice](./create-notice) — a provable event log.
+- [createReport](./create-report) — a stateless, non-provable log (the only output available to inspect handlers).
+- [createVoucher](./create-voucher) — an executable on-chain call (`CALL`), for example an asset withdrawal.
+- [createDelegateCallVoucher](./create-delegate-call-voucher) — an executable on-chain call run with `DELEGATECALL`, in the application contract's own context.
+
+Notices and vouchers are only available while processing an advance request, because they can change the application state. Reports can be produced from both advance and inspect handlers.
