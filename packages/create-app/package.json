@@ -36,6 +36,7 @@
     "dependencies": {
         "@clack/prompts": "^1.6.0",
         "@commander-js/extra-typings": "^15.0.0",
+        "@iarna/toml": "^2.2.5",
         "commander": "^15.0.0",
         "figlet": "^1.11.0",
         "fs-extra": "^11.3.5",
