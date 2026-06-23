@@ -10,14 +10,15 @@ import { createApp } from "@deroll/app";
 import { InspectRequestHandler } from "@deroll/core";
 import { stringToHex, hexToString } from "viem";
 
+// create application
+const app = createApp();
+
 const handler: InspectRequestHandler = async ({ payload }) => {
     console.log(payload);
     const str = payload.toString();
     await app.createReport({ payload: stringToHex(str.toUpperCase()) });
 }
 
-// create application
-const app = createApp();
 app.addInspectHandler(handler);
 ```
 

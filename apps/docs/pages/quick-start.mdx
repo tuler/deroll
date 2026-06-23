@@ -124,7 +124,7 @@ Some of these services will be used below.
 
 ## Send Input
 
-The first step to interact with your application backend is to send an input to it. Tipically inputs will be sent by your application frontend.
+The first step to interact with your application backend is to send an input to it. Typically inputs will be sent by your application frontend.
 For testing you can send inputs directly to the local `anvil` instance using the Cartesi smart contracts, or you can use the `cartesi send` command.
 
 ### Send input using `cartesi send`
@@ -196,7 +196,7 @@ where:
 - `$(cast from-utf8 tuler)` is the hex encoding of the `tuler` string.
 
 :::info
-The address of the InputBox can also be obtained by executing the command `cartesi address-book --json | jq -r '.InputBox'` and the address of the application with the command `cartesi address-book --json | jq -r '.CartesiDApp'`.
+The address of the InputBox can also be obtained by executing the command `cartesi address-book --json | jq -r '.InputBox'` and the address of the application with the command `cartesi address-book --json | jq -r '.Application'`.
 :::
 
 ## Querying JSON-RPC
