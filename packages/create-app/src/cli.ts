@@ -188,9 +188,13 @@ program
         }
         spin.stop("Application created");
 
+        // install command
+        const installCommand =
+            packageManager === "yarn" ? packageManager : `${packageManager} i`;
+
         const instructions = [
             `cd ${directory}`,
-            `${packageManager} i`,
+            installCommand,
             "cartesi build",
             "cartesi run",
         ];
