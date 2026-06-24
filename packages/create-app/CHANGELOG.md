@@ -1,5 +1,12 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.7
+
+### Patch Changes
+
+- c640b5e: fix pnpm-workspace.yaml
+- 0218ce4: yarn support
+
 ## 2.0.0-alpha.6
 
 ### Patch Changes
