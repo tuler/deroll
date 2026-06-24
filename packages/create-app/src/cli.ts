@@ -61,7 +61,6 @@ const getPackageManager = async (
         options: [
             { value: "npm", label: "npm" },
             { value: "pnpm", label: "pnpm" },
-            { value: "yarn", label: "yarn" },
             { value: "bun", label: "bun" },
         ],
     });
@@ -164,7 +163,7 @@ program
         new Option(
             "--package-manager <package-manager>",
             "package manager to use",
-        ).choices<PackageManager[]>(["npm", "yarn", "pnpm", "bun"]),
+        ).choices<PackageManager[]>(["npm", "pnpm", "bun"]),
     )
     .action(async (pathArg, options) => {
         console.log(figlet.textSync("deroll", { font: "Big" }));
@@ -189,13 +188,9 @@ program
         }
         spin.stop("Application created");
 
-        // install command
-        const installCommand =
-            packageManager === "yarn" ? packageManager : `${packageManager} i`;
-
         const instructions = [
             `cd ${directory}`,
-            installCommand,
+            `${packageManager} i`,
             "cartesi build",
             "cartesi run",
         ];

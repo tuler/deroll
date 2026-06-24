@@ -31,22 +31,6 @@ RUN mkdir -p rootfs \\
  && cp -RL node_modules/.pnpm/@tuler+node-libcmt@*/node_modules rootfs/node_modules
 `,
 
-    yarn: `RUN corepack enable
-COPY package.json yarn.lock .yarnrc.yml ./
-RUN yarn install --immutable
-COPY . .
-RUN yarn build
-
-# Stage the runtime files for Yarn PnP: the JS bundle, the .pnp.cjs resolver, and
-# the only two packages required at runtime (@tuler/node-libcmt's native addon and
-# its node-gyp-build loader). Both are "unplugged" — real dirs under .yarn/unplugged
-# that .pnp.cjs resolves by relative path — so no node_modules or zip cache ships.
-RUN mkdir -p rootfs/.yarn/unplugged \\
- && cp dist/index.js rootfs/index.js \\
- && cp .pnp.cjs rootfs/.pnp.cjs \\
- && cp -R .yarn/unplugged/@tuler-node-libcmt-* .yarn/unplugged/node-gyp-build-* rootfs/.yarn/unplugged/
-`,
-
     bun: `COPY package.json bun.lock ./
 RUN bun ci
 COPY . .

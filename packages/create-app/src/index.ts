@@ -10,7 +10,6 @@ import { pnpmWorkspace } from "./pnpm.js";
 import { readme } from "./doc.js";
 import { tsConfig } from "./typescript.js";
 import { esbuildScript } from "./bundle.js";
-import { yarnRc } from "./yarn.js";
 import { dockerIgnore, gitIgnore } from "./ignore.js";
 import { bunfig } from "./bun.js";
 
@@ -18,7 +17,7 @@ import { bunfig } from "./bun.js";
 const streamPipeline = promisify(pipeline);
 
 export type Library = "wallet" | "router";
-export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
+export type PackageManager = "npm" | "pnpm" | "bun";
 export type CreateAppOptions = {
     directory: string;
     libraries: Library[];
@@ -110,10 +109,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
         fileCreator(
             "esbuild",
             fs.promises.writeFile(
-                path.join(
-                    directory,
-                    packageManager === "yarn" ? "esbuild.cjs" : "esbuild.mts",
-                ),
+                path.join(directory, "esbuild.mts"),
                 esbuildScript({
                     bindingPackage,
                     entryPoint: "src/index.ts",
@@ -127,14 +123,14 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             ".dockerignore",
             fs.promises.writeFile(
                 path.join(directory, ".dockerignore"),
-                dockerIgnore(packageManager),
+                dockerIgnore(),
             ),
         ),
         fileCreator(
             ".gitignore",
             fs.promises.writeFile(
                 path.join(directory, ".gitignore"),
-                gitIgnore(packageManager),
+                gitIgnore(),
             ),
         ),
         fileCreator(
@@ -166,17 +162,6 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 fs.promises.writeFile(
                     path.join(directory, "pnpm-workspace.yaml"),
                     pnpmWorkspace({ bindingPackage }),
-                ),
-            ),
-        );
-    } else if (packageManager === "yarn") {
-        // .yarnrc.yml, to override age exclusion for deroll itself
-        tasks.push(
-            fileCreator(
-                ".yarnrc.yml",
-                fs.promises.writeFile(
-                    path.join(directory, ".yarnrc.yml"),
-                    yarnRc({ bindingPackage }),
                 ),
             ),
         );

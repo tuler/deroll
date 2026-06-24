@@ -36,13 +36,7 @@ export const packageJson = async (
     };
 
     // fetch latest version of selected package manager
-    const packageManagerPackage =
-        packageManager === "yarn" ? "@yarnpkg/cli" : packageManager;
-    const packageManagerVersion = await latestVersion(packageManagerPackage);
-
-    // yarn uses esbuild.cjs instead of esbuild.mts
-    const esbuildScript =
-        packageManager === "yarn" ? "esbuild.cjs" : "esbuild.mts";
+    const packageManagerVersion = await latestVersion(packageManager);
 
     return {
         name: packageName,
@@ -52,8 +46,8 @@ export const packageJson = async (
         dependencies,
         devDependencies,
         scripts: {
-            build: `node ${esbuildScript}`,
-            clean: "rm -rf node_modules && rm -rf dist && rm -rf .yarn",
+            build: `node esbuild.mts`,
+            clean: "rm -rf node_modules && rm -rf dist",
             test: "vitest",
         },
         keywords: ["cartesi", "deroll"],
