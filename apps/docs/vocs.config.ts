@@ -1,7 +1,7 @@
 import { defineConfig } from "vocs/config";
 
 export default defineConfig({
-    baseUrl: "https://v2.deroll.dev",
+    baseUrl: "https://deroll.dev",
     srcDir: ".",
     editLink: {
         link: "https://github.com/tuler/deroll/edit/main/apps/docs/pages/:path",
