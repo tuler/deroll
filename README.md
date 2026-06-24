@@ -11,19 +11,19 @@ Ensure you have Node.js and pnpm installed; you can download them from [nodejs.o
 ### Creating a project
 
 ```shell
-npm init @deroll/app
+npm init @deroll/app@alpha
 ```
 
 or
 
 ```shell
-pnpm create @deroll/app
+pnpm create @deroll/app@alpha
 ```
 
 or
 
 ```shell
-yarn create @deroll/app
+bun create @deroll/app@alpha
 ```
 
 ### Simple example
