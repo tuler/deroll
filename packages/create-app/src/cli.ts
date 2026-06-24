@@ -59,8 +59,8 @@ const getPackageManager = async (
     const packageManager = await select({
         message: "Select the package manager to use",
         options: [
-            { value: "pnpm", label: "pnpm", hint: "recommended" },
             { value: "npm", label: "npm" },
+            { value: "pnpm", label: "pnpm" },
             { value: "yarn", label: "yarn" },
         ],
     });
