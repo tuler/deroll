@@ -75,7 +75,7 @@ export const dockerfile = (options: DockerfileOptions): string => {
     const buildBlock = buildBlocks[packageManager];
 
     const buildImage =
-        packageManager === "bun" ? `oven:bun:1` : `node:${nodeVersion}-trixie`;
+        packageManager === "bun" ? `oven/bun:1` : `node:${nodeVersion}-trixie`;
 
     const dockerfile = `# syntax=docker.io/docker/dockerfile:1
 
@@ -123,15 +123,15 @@ FROM base
 
 ARG MACHINE_GUEST_TOOLS_VERSION
 ARG MACHINE_GUEST_TOOLS_SHA256SUM
-ADD --checksum=sha256:\${MACHINE_GUEST_TOOLS_SHA256SUM} \
-  https://github.com/cartesi/machine-guest-tools/releases/download/v\${MACHINE_GUEST_TOOLS_VERSION}/machine-guest-tools_riscv64.deb \
+ADD --checksum=sha256:\${MACHINE_GUEST_TOOLS_SHA256SUM} \\
+  https://github.com/cartesi/machine-guest-tools/releases/download/v\${MACHINE_GUEST_TOOLS_VERSION}/machine-guest-tools_riscv64.deb \\
   /tmp/machine-guest-tools_riscv64.deb
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN <<EOF
 set -e
-apt-get install -y --no-install-recommends \
-  busybox-static \
+apt-get install -y --no-install-recommends \\
+  busybox-static \\
   /tmp/machine-guest-tools_riscv64.deb
 
 rm /tmp/machine-guest-tools_riscv64.deb
