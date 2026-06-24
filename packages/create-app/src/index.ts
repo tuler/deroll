@@ -10,6 +10,8 @@ import { pnpmWorkspace } from "./pnpm.js";
 import { readme } from "./doc.js";
 import { tsConfig } from "./typescript.js";
 import { esbuildScript } from "./bundle.js";
+import { yarnRc } from "./yarn.js";
+import { dockerIgnore, gitIgnore } from "./ignore.js";
 
 // Promisify the pipeline function for easier async/await usage
 const streamPipeline = promisify(pipeline);
@@ -23,11 +25,6 @@ export type CreateAppOptions = {
     packageName: string;
     templateBranch?: string;
 };
-
-const ignore = `.cartesi
-/dist
-/node_modules
-`;
 
 export const download = async (url: string, outputPath: string) => {
     const stream = got.stream.get(url, { responseType: "text" });
@@ -110,22 +107,34 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             })(),
         ),
         fileCreator(
-            "esbuild.mts",
+            "esbuild",
             fs.promises.writeFile(
-                path.join(directory, "esbuild.mts"),
-                esbuildScript({ bindingPackage }),
+                path.join(
+                    directory,
+                    packageManager === "yarn" ? "esbuild.cjs" : "esbuild.mts",
+                ),
+                esbuildScript({
+                    bindingPackage,
+                    entryPoint: "src/index.ts",
+                    outfile: "dist/index.js",
+                    packageManager,
+                    target: "node22",
+                }),
             ),
         ),
         fileCreator(
             ".dockerignore",
             fs.promises.writeFile(
                 path.join(directory, ".dockerignore"),
-                ignore,
+                dockerIgnore(packageManager),
             ),
         ),
         fileCreator(
             ".gitignore",
-            fs.promises.writeFile(path.join(directory, ".gitignore"), ignore),
+            fs.promises.writeFile(
+                path.join(directory, ".gitignore"),
+                gitIgnore(packageManager),
+            ),
         ),
         fileCreator(
             "README.md",
@@ -155,7 +164,18 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 "pnpm-workspace.yaml",
                 fs.promises.writeFile(
                     path.join(directory, "pnpm-workspace.yaml"),
-                    pnpmWorkspace,
+                    pnpmWorkspace({ bindingPackage }),
+                ),
+            ),
+        );
+    } else if (packageManager === "yarn") {
+        // .yarnrc.yml, to override age exclusion for deroll itself
+        tasks.push(
+            fileCreator(
+                ".yarnrc.yml",
+                fs.promises.writeFile(
+                    path.join(directory, ".yarnrc.yml"),
+                    yarnRc({ bindingPackage }),
                 ),
             ),
         );

@@ -1,19 +1,51 @@
 import type { PackageManager } from "./index.js";
 
 const buildBlocks = {
-    yarn: `COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
-COPY . .
-RUN yarn build`,
     npm: `COPY package.json package-lock.json ./
-RUN npm install --frozen-lockfile
+RUN npm ci
 COPY . .
-RUN npm run build`,
+RUN npm run build
+
+# Stage the runtime files: the JS bundle plus @tuler/node-libcmt's native addon,
+# which esbuild cannot inline and must be required at runtime. npm's flat layout
+# keeps the addon and its node-gyp-build loader as real dirs at the top level, so
+# copy both next to the bundle.
+
+RUN mkdir -p rootfs/node_modules/@tuler \\
+ && cp dist/index.js rootfs/index.js \\
+ && cp -R node_modules/@tuler/node-libcmt rootfs/node_modules/@tuler/ \\
+ && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
+
     pnpm: `RUN corepack enable pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm run build`,
+RUN pnpm run build
+
+# Stage the runtime files: the JS bundle plus @tuler/node-libcmt's native addon,
+# which esbuild cannot inline and must be required at runtime. \`cp -RL\` flattens
+# pnpm's self-contained store dir for the addon into a real node_modules (the
+# addon, its node-gyp-build loader, and node-addon-api).
+RUN mkdir -p rootfs \\
+ && cp dist/index.js rootfs/index.js \\
+ && cp -RL node_modules/.pnpm/@tuler+node-libcmt@*/node_modules rootfs/node_modules
+`,
+
+    yarn: `RUN corepack enable
+COPY package.json yarn.lock .yarnrc.yml ./
+RUN yarn install --immutable
+COPY . .
+RUN yarn build
+
+# Stage the runtime files for Yarn PnP: the JS bundle, the .pnp.cjs resolver, and
+# the only two packages required at runtime (@tuler/node-libcmt's native addon and
+# its node-gyp-build loader). Both are "unplugged" — real dirs under .yarn/unplugged
+# that .pnp.cjs resolves by relative path — so no node_modules or zip cache ships.
+RUN mkdir -p rootfs/.yarn/unplugged \
+ && cp dist/index.js rootfs/index.js \
+ && cp .pnp.cjs rootfs/.pnp.cjs \
+ && cp -R .yarn/unplugged/@tuler-node-libcmt-* .yarn/unplugged/node-gyp-build-* rootfs/.yarn/unplugged/
+`,
 };
 
 type DockerfileOptions = {
@@ -62,21 +94,6 @@ FROM --platform=$BUILDPLATFORM node:${nodeVersion}-trixie AS build-stage
 WORKDIR /opt/cartesi/dapp
 
 ${buildBlock}
-
-# Assemble the runtime root: the JS bundle plus the native addon, which cannot
-# be inlined by esbuild and must ship as files next to the bundle. We also copy
-# its loader (node-gyp-build); node-addon-api is build-only and not needed here.
-# \`cp -RL\` dereferences pnpm's store symlinks into real files. The package ships
-# prebuilds for every platform, so we keep only linux-riscv64 to shrink the image.
-RUN <<EOF
-set -eu
-mkdir -p rootfs/node_modules/@tuler
-cp dist/index.js rootfs/index.js
-cp -RL node_modules/@tuler/node-libcmt rootfs/node_modules/@tuler/node-libcmt
-cp -RL node_modules/.pnpm/node-gyp-build@*/node_modules/node-gyp-build rootfs/node_modules/node-gyp-build
-find rootfs/node_modules/@tuler/node-libcmt/prebuilds -mindepth 1 -maxdepth 1 \
-  -type d ! -name linux-riscv64 -exec rm -rf {} +
-EOF
 
 ################################################################################
 # runtime stage: produces final image that will be executed
