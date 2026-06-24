@@ -17,7 +17,7 @@ import { dockerIgnore, gitIgnore } from "./ignore.js";
 const streamPipeline = promisify(pipeline);
 
 export type Library = "wallet" | "router";
-export type PackageManager = "npm" | "yarn" | "pnpm";
+export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
 export type CreateAppOptions = {
     directory: string;
     libraries: Library[];

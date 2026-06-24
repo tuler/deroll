@@ -41,11 +41,26 @@ RUN yarn build
 # the only two packages required at runtime (@tuler/node-libcmt's native addon and
 # its node-gyp-build loader). Both are "unplugged" — real dirs under .yarn/unplugged
 # that .pnp.cjs resolves by relative path — so no node_modules or zip cache ships.
-RUN mkdir -p rootfs/.yarn/unplugged \
- && cp dist/index.js rootfs/index.js \
- && cp .pnp.cjs rootfs/.pnp.cjs \
+RUN mkdir -p rootfs/.yarn/unplugged \\
+ && cp dist/index.js rootfs/index.js \\
+ && cp .pnp.cjs rootfs/.pnp.cjs \\
  && cp -R .yarn/unplugged/@tuler-node-libcmt-* .yarn/unplugged/node-gyp-build-* rootfs/.yarn/unplugged/
 `,
+
+    bun: `COPY package.json bun.lock ./
+RUN bun i
+COPY . .
+RUN bun run build
+
+# Stage the runtime files: the JS bundle plus @tuler/node-libcmt's native addon,
+# which esbuild cannot inline and must be required at runtime. npm's flat layout
+# keeps the addon and its node-gyp-build loader as real dirs at the top level, so
+# copy both next to the bundle.
+
+RUN mkdir -p rootfs/node_modules/@tuler \\
+ && cp dist/index.js rootfs/index.js \\
+ && cp -R node_modules/@tuler/node-libcmt rootfs/node_modules/@tuler/ \\
+ && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
 };
 
 type DockerfileOptions = {
@@ -58,6 +73,9 @@ export const dockerfile = (options: DockerfileOptions): string => {
     const { nodeVersion, packageManager } = options;
     const aptSnapshot = options.aptSnapshot ?? "20260415T030400Z";
     const buildBlock = buildBlocks[packageManager];
+
+    const buildImage =
+        packageManager === "bun" ? `oven:bun:1` : `node:${nodeVersion}-trixie`;
 
     const dockerfile = `# syntax=docker.io/docker/dockerfile:1
 
@@ -89,7 +107,7 @@ EOF
 # If any needed dependencies rely on native binaries, you must use
 # a riscv64 image such as cartesi/node:20-jammy for the build stage,
 # to ensure that the appropriate binaries will be generated.
-FROM --platform=$BUILDPLATFORM node:${nodeVersion}-trixie AS build-stage
+FROM --platform=$BUILDPLATFORM ${buildImage} AS build-stage
 
 WORKDIR /opt/cartesi/dapp
 

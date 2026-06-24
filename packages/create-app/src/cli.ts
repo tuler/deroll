@@ -62,6 +62,7 @@ const getPackageManager = async (
             { value: "npm", label: "npm" },
             { value: "pnpm", label: "pnpm" },
             { value: "yarn", label: "yarn" },
+            { value: "bun", label: "bun" },
         ],
     });
 
@@ -163,7 +164,7 @@ program
         new Option(
             "--package-manager <package-manager>",
             "package manager to use",
-        ).choices<PackageManager[]>(["npm", "yarn", "pnpm"]),
+        ).choices<PackageManager[]>(["npm", "yarn", "pnpm", "bun"]),
     )
     .action(async (pathArg, options) => {
         console.log(figlet.textSync("deroll", { font: "Big" }));
