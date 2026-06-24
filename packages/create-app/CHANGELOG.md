@@ -1,5 +1,14 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- ac9ce80: bun package manager support
+- fd0e715: bunfig.toml
+- 31d6270: do not favor pnpm
+- 06757d3: fix yarn install command
+
 ## 2.0.0-alpha.7
 
 ### Patch Changes
