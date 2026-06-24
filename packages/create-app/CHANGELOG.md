@@ -1,5 +1,12 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.9
+
+### Patch Changes
+
+- 4e3d33a: add esbuild to bun trusted dependency
+- 4389271: fix bun dockerfile
+
 ## 2.0.0-alpha.8
 
 ### Patch Changes
