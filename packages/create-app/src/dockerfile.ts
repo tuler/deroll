@@ -48,7 +48,7 @@ RUN mkdir -p rootfs/.yarn/unplugged \\
 `,
 
     bun: `COPY package.json bun.lock ./
-RUN bun i
+RUN bun ci
 COPY . .
 RUN bun run build
 

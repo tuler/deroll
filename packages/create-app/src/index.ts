@@ -12,6 +12,7 @@ import { tsConfig } from "./typescript.js";
 import { esbuildScript } from "./bundle.js";
 import { yarnRc } from "./yarn.js";
 import { dockerIgnore, gitIgnore } from "./ignore.js";
+import { bunfig } from "./bun.js";
 
 // Promisify the pipeline function for easier async/await usage
 const streamPipeline = promisify(pipeline);
@@ -176,6 +177,17 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 fs.promises.writeFile(
                     path.join(directory, ".yarnrc.yml"),
                     yarnRc({ bindingPackage }),
+                ),
+            ),
+        );
+    } else if (packageManager === "bun") {
+        // bunfig.toml, to override age exclusion for deroll itself
+        tasks.push(
+            fileCreator(
+                "bunfig.toml",
+                fs.promises.writeFile(
+                    path.join(directory, "bunfig.toml"),
+                    bunfig({ bindingPackage }),
                 ),
             ),
         );
