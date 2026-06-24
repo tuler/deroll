@@ -18,7 +18,7 @@
         "react": "^19",
         "react-dom": "^19",
         "viem": "^2.53.1",
-        "vocs": "latest",
+        "vocs": "^2.1.9",
         "waku": "^1.0.0-beta.3"
     },
     "devDependencies": {
@@ -30,6 +30,6 @@
         "vite": "^8"
     },
     "engines": {
-        "node": ">=22"
+        "node": "24.x"
     }
 }
