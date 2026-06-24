@@ -58,6 +58,6 @@ export const packageJson = async (
         },
         keywords: ["cartesi", "deroll"],
         packageManager: `${packageManager}@${packageManagerVersion}`,
-        trustedDependencies: [bindingPackage],
+        trustedDependencies: [bindingPackage, "esbuild"],
     };
 };
