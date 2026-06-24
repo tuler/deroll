@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- fc3e447: drop yarn support
+
 ## 2.0.0-alpha.9
 
 ### Patch Changes
