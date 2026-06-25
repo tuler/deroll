@@ -12,9 +12,10 @@ that split:
   `waitForInput({ accept })`, which returns `{ type, payload }` with the **raw, undecoded**
   input bytes. Outputs are emitted with `emitOutput(bytes)` (returns the output index);
   `emitReport`/`emitException`/`progress`/`close`/`run` are unchanged in spirit.
-- **ABI encoding/decoding moved to JS helpers.** New pure-JS functions
+- **ABI encoding/decoding moved to JS helpers.** New functions
   `decodeAdvance(input)`, `encodeNotice(payload)`, `encodeVoucher({ destination, value, payload })`
-  and `encodeDelegateCallVoucher({ destination, payload })` mirror libcmt's codec module.
+  and `encodeDelegateCallVoucher({ destination, payload })` mirror libcmt's codec module,
+  implemented with [`ox`](https://oxlib.sh) (a new runtime dependency) for the EVM-ABI work.
   Compose them with the raw API, e.g. `rollup.emitOutput(encodeNotice(payload))` and
   `decodeAdvance(request.payload)`.
 - **The on-chain output format changed.** Notices and vouchers are now encoded as the

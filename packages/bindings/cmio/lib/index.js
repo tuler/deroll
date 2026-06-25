@@ -17,21 +17,30 @@
 'use strict';
 
 const path = require('node:path');
+const { AbiFunction, AbiParameters } = require('ox');
 const binding = require('node-gyp-build')(path.join(__dirname, '..'));
 
 const ADDRESS_LENGTH = 20;
 const U256_LENGTH = 32;
 const EMPTY = Buffer.alloc(0);
 
-// EVM-ABI function selectors and output type tags, mirroring libcmt's codec.c.
-// Output1(bytes32[1],bytes), Output2(bytes32[2],bytes)
-const FUNSEL_OUTPUT1 = Buffer.from('aed682a1', 'hex');
-const FUNSEL_OUTPUT2 = Buffer.from('50b41f12', 'hex');
-const EVM_ADVANCE = Buffer.from('415bf363', 'hex');
-// keccak-derived type tags (cartesi.output.v1.*)
-const TAG_NOTICE = Buffer.from('e4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed', 'hex');
-const TAG_CALL_VOUCHER = Buffer.from('d515b20044ba3bb84cfce3004f8b64ee11fb8ca22f936e4bc25a65e4b2133120', 'hex');
-const TAG_DELEGATECALL_VOUCHER = Buffer.from('e166d466bf2d7d71d7f3f69e4c68f516330d8073b6ddb408c507548b64a1f3bb', 'hex');
+// EVM-ABI encoders/decoders for libcmt's output envelopes, expressed with ox so
+// the low-level word packing/padding stays battle-tested. The Output1/Output2
+// selectors ox derives from these signatures match libcmt's hardcoded funsels
+// (0xaed682a1 / 0x50b41f12), and the 32-byte type tags below are the
+// cartesi.output.v1.* keccak constants from codec.c.
+const OUTPUT1 = AbiFunction.from('function Output1(bytes32[1], bytes)');
+const OUTPUT2 = AbiFunction.from('function Output2(bytes32[2], bytes)');
+const EVM_ADVANCE = AbiFunction.from(
+    'function EvmAdvance(uint256 chainId, address appContract, address msgSender, ' +
+        'uint256 blockNumber, uint256 blockTimestamp, uint256 prevRandao, uint256 index, bytes payload)',
+);
+const EVM_ADVANCE_SELECTOR = EVM_ADVANCE.hash.slice(0, 10); // 0x + 4 bytes
+// CALL voucher dynamic content: abi.encode(uint256 value, bytes payload)
+const CALL_VOUCHER_DATA = AbiParameters.from('uint256 value, bytes payload');
+const TAG_NOTICE = '0xe4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed';
+const TAG_CALL_VOUCHER = '0xd515b20044ba3bb84cfce3004f8b64ee11fb8ca22f936e4bc25a65e4b2133120';
+const TAG_DELEGATECALL_VOUCHER = '0xe166d466bf2d7d71d7f3f69e4c68f516330d8073b6ddb408c507548b64a1f3bb';
 
 /**
  * Error thrown when a libcmt binding call fails. Carries the negative errno
@@ -98,55 +107,31 @@ function toAddress(value, name) {
     return bytes;
 }
 
+// Validate an unsigned 256-bit value and return it as a bigint for ox.
 function toU256(value, name) {
+    let v;
     if (typeof value === 'bigint' || typeof value === 'number') {
-        let v = BigInt(value);
-        if (v < 0n || v >= 1n << 256n) {
-            throw new RangeError(`${name} must fit in an unsigned 256-bit integer`);
+        v = BigInt(value);
+    } else {
+        const bytes = toBytes(value, name);
+        if (bytes.length !== U256_LENGTH) {
+            throw new TypeError(`${name} must be ${U256_LENGTH} bytes long`);
         }
-        const bytes = Buffer.alloc(U256_LENGTH);
-        for (let i = U256_LENGTH - 1; i >= 0 && v > 0n; i--) {
-            bytes[i] = Number(v & 0xffn);
-            v >>= 8n;
-        }
-        return bytes;
+        v = bytes.length === 0 ? 0n : BigInt(toHex(bytes));
     }
-    const bytes = toBytes(value, name);
-    if (bytes.length !== U256_LENGTH) {
-        throw new TypeError(`${name} must be ${U256_LENGTH} bytes long`);
+    if (v < 0n || v >= 1n << 256n) {
+        throw new RangeError(`${name} must fit in an unsigned 256-bit integer`);
     }
-    return bytes;
+    return v;
 }
 
 function toHex(bytes) {
     return `0x${bytes.toString('hex')}`;
 }
 
-// A 32-byte big-endian word from a non-negative integer (offsets and lengths).
-function word(value) {
-    const v = BigInt(value);
-    const bytes = Buffer.alloc(U256_LENGTH);
-    let n = v;
-    for (let i = U256_LENGTH - 1; i >= 0 && n > 0n; i--) {
-        bytes[i] = Number(n & 0xffn);
-        n >>= 8n;
-    }
-    return bytes;
-}
-
-// A bigint read from a 32-byte big-endian word.
-function wordToBigInt(bytes) {
-    return bytes.length === 0 ? 0n : BigInt(`0x${bytes.toString('hex')}`);
-}
-
-// Left-pad a 20-byte address into a 32-byte ABI word.
-function addressWord(bytes) {
-    return Buffer.concat([Buffer.alloc(U256_LENGTH - ADDRESS_LENGTH), bytes]);
-}
-
-// Pad a byte string to a multiple of 32 bytes (ABI tail padding).
-function pad32(bytes) {
-    return Buffer.concat([bytes, Buffer.alloc((U256_LENGTH - (bytes.length % U256_LENGTH)) % U256_LENGTH)]);
+// Left-pad a validated 20-byte address into a 32-byte ABI word (0x-hex).
+function addressToWord(bytes) {
+    return `0x${bytes.toString('hex').padStart(2 * U256_LENGTH, '0')}`;
 }
 
 /**
@@ -155,85 +140,52 @@ function pad32(bytes) {
  */
 function decodeAdvance(input) {
     const bytes = toBytes(input, 'input');
-    if (bytes.length < 4 + 8 * U256_LENGTH) {
+    if (bytes.length < 4) {
         throw new RangeError('input is too short to be an EvmAdvance');
     }
-    if (!bytes.subarray(0, 4).equals(EVM_ADVANCE)) {
+    if (toHex(bytes.subarray(0, 4)) !== EVM_ADVANCE_SELECTOR) {
         throw new TypeError('input is not an EvmAdvance (wrong selector)');
     }
-    const wordAt = (i) => bytes.subarray(4 + i * U256_LENGTH, 4 + (i + 1) * U256_LENGTH);
-    const offset = Number(wordToBigInt(wordAt(7)));
-    const lengthPos = 4 + offset;
-    const length = Number(wordToBigInt(bytes.subarray(lengthPos, lengthPos + U256_LENGTH)));
-    const payloadPos = lengthPos + U256_LENGTH;
+    const [chainId, appContract, msgSender, blockNumber, blockTimestamp, prevRandao, index, payload] =
+        AbiParameters.decode(EVM_ADVANCE.inputs, toHex(bytes.subarray(4)));
     return {
-        chainId: wordToBigInt(wordAt(0)),
-        appContract: toHex(wordAt(1).subarray(U256_LENGTH - ADDRESS_LENGTH)),
-        msgSender: toHex(wordAt(2).subarray(U256_LENGTH - ADDRESS_LENGTH)),
-        blockNumber: wordToBigInt(wordAt(3)),
-        blockTimestamp: wordToBigInt(wordAt(4)),
-        prevRandao: wordToBigInt(wordAt(5)),
-        index: wordToBigInt(wordAt(6)),
-        payload: Buffer.from(bytes.subarray(payloadPos, payloadPos + length)),
+        chainId,
+        appContract,
+        msgSender,
+        blockNumber,
+        blockTimestamp,
+        prevRandao,
+        index,
+        payload: Buffer.from(payload.slice(2), 'hex'),
     };
 }
 
-/**
- * Encode a notice into an `Output1(bytes32[1],bytes)` envelope.
- * Mirrors libcmt's `cmt_encode_notice`.
- */
+/** Encode a notice into an `Output1(bytes32[1],bytes)` envelope. */
 function encodeNotice(payload) {
-    const data = toBytes(payload, 'payload');
-    return Buffer.concat([
-        FUNSEL_OUTPUT1,
-        TAG_NOTICE,
-        word(2 * U256_LENGTH), // offset to the dynamic tail (frame-relative)
-        word(data.length),
-        pad32(data),
-    ]);
+    const data = toHex(toBytes(payload, 'payload'));
+    return Buffer.from(AbiFunction.encodeData(OUTPUT1, [[TAG_NOTICE], data]).slice(2), 'hex');
 }
 
 /**
  * Encode a CALL voucher into an `Output2(bytes32[2],bytes)` envelope, whose
  * dynamic content is `abi.encode(uint256 value, bytes payload)`.
- * Mirrors libcmt's `cmt_encode_call_voucher`.
  */
 function encodeVoucher({ destination, value = 0n, payload = EMPTY }) {
-    const dest = toAddress(destination, 'destination');
+    const dest = addressToWord(toAddress(destination, 'destination'));
     const val = toU256(value, 'value');
-    const data = toBytes(payload, 'payload');
-    const inner = Buffer.concat([
-        val,
-        word(2 * U256_LENGTH), // offset to the inner bytes
-        word(data.length),
-        pad32(data),
-    ]);
-    return Buffer.concat([
-        FUNSEL_OUTPUT2,
-        TAG_CALL_VOUCHER,
-        addressWord(dest),
-        word(3 * U256_LENGTH), // offset to the dynamic tail (frame-relative)
-        word(inner.length),
-        inner,
-    ]);
+    const data = toHex(toBytes(payload, 'payload'));
+    const inner = AbiParameters.encode(CALL_VOUCHER_DATA, [val, data]);
+    return Buffer.from(AbiFunction.encodeData(OUTPUT2, [[TAG_CALL_VOUCHER, dest], inner]).slice(2), 'hex');
 }
 
 /**
  * Encode a DELEGATECALL voucher into an `Output2(bytes32[2],bytes)` envelope.
- * Mirrors libcmt's `cmt_encode_delegatecall_voucher`. There is no `value` —
- * `DELEGATECALL` cannot transfer ether.
+ * There is no `value` — `DELEGATECALL` cannot transfer ether.
  */
 function encodeDelegateCallVoucher({ destination, payload = EMPTY }) {
-    const dest = toAddress(destination, 'destination');
-    const data = toBytes(payload, 'payload');
-    return Buffer.concat([
-        FUNSEL_OUTPUT2,
-        TAG_DELEGATECALL_VOUCHER,
-        addressWord(dest),
-        word(3 * U256_LENGTH), // offset to the dynamic tail (frame-relative)
-        word(data.length),
-        pad32(data),
-    ]);
+    const dest = addressToWord(toAddress(destination, 'destination'));
+    const data = toHex(toBytes(payload, 'payload'));
+    return Buffer.from(AbiFunction.encodeData(OUTPUT2, [[TAG_DELEGATECALL_VOUCHER, dest], data]).slice(2), 'hex');
 }
 
 class Rollup {

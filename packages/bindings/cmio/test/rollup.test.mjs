@@ -257,7 +257,7 @@ test('input validation', async () => {
     assert.throws(() => encodeVoucher({ destination: 'not-hex' }), TypeError);
     assert.throws(() => encodeVoucher({ destination: `0x${'aa'.repeat(20)}`, value: -1n }), RangeError);
     assert.throws(() => rollup.emitOutput(42), TypeError);
-    assert.throws(() => decodeAdvance(Buffer.from('too short')), RangeError);
+    assert.throws(() => decodeAdvance(Buffer.alloc(3)), RangeError); // shorter than a selector
     assert.throws(() => decodeAdvance(Buffer.alloc(300)), TypeError); // long enough, wrong selector
     rollup.close();
 });
