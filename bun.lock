@@ -13,7 +13,7 @@
     },
     "apps/docs": {
       "name": "@deroll/docs",
-      "version": "1.0.0-alpha.5",
+      "version": "1.0.0-alpha.6",
       "dependencies": {
         "@deroll/app": "workspace:*",
         "@deroll/cm": "workspace:*",
@@ -39,7 +39,7 @@
     },
     "apps/examples": {
       "name": "@deroll/examples",
-      "version": "2.0.0-alpha.9",
+      "version": "2.0.0-alpha.10",
       "bin": {
         "deroll-example-abi": "dist/abi.js",
         "deroll-example-echo": "dist/echo.js",
@@ -67,7 +67,7 @@
     },
     "apps/explorer": {
       "name": "@deroll/explorer",
-      "version": "0.1.1-alpha.0",
+      "version": "0.1.1-alpha.2",
       "dependencies": {
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.101.0",
@@ -88,7 +88,7 @@
     },
     "packages/app/app": {
       "name": "@deroll/app",
-      "version": "2.0.0-alpha.7",
+      "version": "2.0.0-alpha.8",
       "dependencies": {
         "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
@@ -194,7 +194,7 @@
     },
     "packages/bindings/cm": {
       "name": "@deroll/cm",
-      "version": "0.2.0-alpha.1",
+      "version": "0.2.0-alpha.2",
       "dependencies": {
         "koffi": "^3.1.0",
       },
@@ -212,10 +212,11 @@
     },
     "packages/bindings/cmio": {
       "name": "@deroll/cmio",
-      "version": "0.2.0-alpha.1",
+      "version": "0.2.0-alpha.2",
       "dependencies": {
         "node-addon-api": "^8.3.0",
         "node-gyp-build": "^4.8.4",
+        "ox": "^0.14.29",
       },
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.3",
@@ -227,7 +228,7 @@
     },
     "packages/explorer/decoder": {
       "name": "@deroll/decoder",
-      "version": "0.2.0-alpha.0",
+      "version": "0.2.0-alpha.2",
     },
     "packages/explorer/json-decoder": {
       "name": "@deroll/json-decoder",

@@ -17,7 +17,7 @@
 'use strict';
 
 const path = require('node:path');
-const { AbiFunction, AbiParameters } = require('ox');
+const { AbiFunction, AbiParameters, Bytes, Hash } = require('ox');
 const binding = require('node-gyp-build')(path.join(__dirname, '..'));
 
 const ADDRESS_LENGTH = 20;
@@ -27,8 +27,7 @@ const EMPTY = Buffer.alloc(0);
 // EVM-ABI encoders/decoders for libcmt's output envelopes, expressed with ox so
 // the low-level word packing/padding stays battle-tested. The Output1/Output2
 // selectors ox derives from these signatures match libcmt's hardcoded funsels
-// (0xaed682a1 / 0x50b41f12), and the 32-byte type tags below are the
-// cartesi.output.v1.* keccak constants from codec.c.
+// (0xaed682a1 / 0x50b41f12).
 const OUTPUT1 = AbiFunction.from('function Output1(bytes32[1], bytes)');
 const OUTPUT2 = AbiFunction.from('function Output2(bytes32[2], bytes)');
 const EVM_ADVANCE = AbiFunction.from(
@@ -38,9 +37,15 @@ const EVM_ADVANCE = AbiFunction.from(
 const EVM_ADVANCE_SELECTOR = EVM_ADVANCE.hash.slice(0, 10); // 0x + 4 bytes
 // CALL voucher dynamic content: abi.encode(uint256 value, bytes payload)
 const CALL_VOUCHER_DATA = AbiParameters.from('uint256 value, bytes payload');
-const TAG_NOTICE = '0xe4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed';
-const TAG_CALL_VOUCHER = '0xd515b20044ba3bb84cfce3004f8b64ee11fb8ca22f936e4bc25a65e4b2133120';
-const TAG_DELEGATECALL_VOUCHER = '0xe166d466bf2d7d71d7f3f69e4c68f516330d8073b6ddb408c507548b64a1f3bb';
+
+// Each output kind is tagged with a domain-separated identifier:
+// keccak256("cartesi.output.v1.<kind>"). These are the same 32-byte constants
+// libcmt hardcodes in codec.c as CARTESI_OUTPUT_V1_*; we derive them so the
+// source-of-truth string is visible rather than an opaque hash.
+const outputTag = (kind) => Hash.keccak256(Bytes.fromString(`cartesi.output.v1.${kind}`), { as: 'Hex' });
+const TAG_NOTICE = outputTag('notice');
+const TAG_CALL_VOUCHER = outputTag('call-voucher');
+const TAG_DELEGATECALL_VOUCHER = outputTag('delegatecall-voucher');
 
 /**
  * Error thrown when a libcmt binding call fails. Carries the negative errno
