@@ -1,0 +1,64 @@
+# decodeAdvance
+
+Decodes the raw payload of an [advance request](/cmio/reference/wait-for-input) — an EVM-ABI encoded `EvmAdvance` input — into its structured fields. This is a pure-JS helper that mirrors libcmt's `cmt_decode_advance_state`; it touches no device state.
+
+## Usage
+
+```ts twoslash
+import { Rollup, decodeAdvance } from '@deroll/cmio';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        const advance = decodeAdvance(request.payload);
+        advance;
+        // ^?
+
+
+
+
+        rollup.emitReport(
+            Buffer.from(
+                `input ${advance.index} from ${advance.msgSender} ` +
+                    `at block ${advance.blockNumber} (chain ${advance.chainId})`,
+            ),
+        );
+        return true;
+    },
+});
+```
+
+## Returns
+
+`Advance`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `chainId` | `bigint` | Network chain id |
+| `appContract` | `` `0x${string}` `` | Application contract address (20 bytes) |
+| `msgSender` | `` `0x${string}` `` | Input sender address (20 bytes) |
+| `blockNumber` | `bigint` | Block number of this input |
+| `blockTimestamp` | `bigint` | Block timestamp (UNIX epoch seconds) |
+| `prevRandao` | `bigint` | RANDAO mix of the previous block's post beacon state |
+| `index` | `bigint` | Input index among all inputs ever sent to the application |
+| `payload` | `Buffer` | The application input payload |
+
+Addresses come back as 0x-prefixed hex strings, numeric fields as `bigint`, and the inner payload as a `Buffer`.
+
+## Parameters
+
+### input
+
+- Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
+- Required
+
+The raw advance payload, normally `request.payload` from [`waitForInput`](/cmio/reference/wait-for-input) or a `run` advance handler.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Input shorter than an `EvmAdvance` header | `RangeError` |
+| Wrong selector (not an `EvmAdvance`) | `TypeError` |
+| Malformed hex string / wrong argument type | `TypeError` |

@@ -1,14 +1,14 @@
 # Types & Constants
 
-Everything the package exports besides the [`Rollup`](/cmio/reference/rollup) class (the `RollupError` class is documented under [Errors](#errors)). All types are importable with `import type`:
+Everything the package exports besides the [`Rollup`](/cmio/reference/rollup) class and the standalone codec functions (the `RollupError` class is documented under [Errors](#errors)). All types are importable with `import type`:
 
 ```ts twoslash
 import type {
+    Advance,
     AddressLike,
     AdvanceRequest,
     BytesLike,
     DelegateCallVoucher,
-    GioResponse,
     Hex,
     InspectRequest,
     RollupRequest,
@@ -24,16 +24,16 @@ Three "like" types describe what the binding accepts and converts automatically 
 
 | Type | Accepts | Used for |
 | --- | --- | --- |
-| `BytesLike` | `Hex`, `Buffer`, `Uint8Array` | payloads, gio ids |
+| `BytesLike` | `Hex`, `Buffer`, `Uint8Array` | output and report payloads |
 | `AddressLike` | `Hex`, `Buffer`, `Uint8Array` (20 bytes) | voucher destinations |
 | `U256Like` | `bigint`, `number`, `Hex`, `Uint8Array` (32 bytes) | voucher values |
 
-## Output argument types
+## Encoder argument types
 
-The two voucher emitters take a named options object, importable for typing helpers that build outputs:
+The two voucher encoders take a named options object, importable for typing helpers that build outputs:
 
-- `Voucher` — argument of [`emitVoucher`](/cmio/reference/emit-voucher): `destination` (`AddressLike`), optional `value` (`U256Like`, default `0n`) and `payload` (`BytesLike`, default empty).
-- `DelegateCallVoucher` — argument of [`emitDelegateCallVoucher`](/cmio/reference/emit-delegate-call-voucher): `destination` (`AddressLike`) and optional `payload` (`BytesLike`). No `value` — `DELEGATECALL` cannot transfer ether.
+- `Voucher` — argument of [`encodeVoucher`](/cmio/reference/encode-voucher): `destination` (`AddressLike`), optional `value` (`U256Like`, default `0n`) and `payload` (`BytesLike`, default empty).
+- `DelegateCallVoucher` — argument of [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher): `destination` (`AddressLike`) and optional `payload` (`BytesLike`). No `value` — `DELEGATECALL` cannot transfer ether.
 
 ```ts twoslash
 import type { Voucher, DelegateCallVoucher } from '@deroll/cmio';
@@ -50,29 +50,39 @@ const delegateCall: DelegateCallVoucher = {
 
 ## Request types
 
-[`finish`](/cmio/reference/finish) returns `RollupRequest`, the discriminated union of:
+[`waitForInput`](/cmio/reference/wait-for-input) returns `RollupRequest`, the discriminated union of:
 
-- `AdvanceRequest` — `type: 'advance'` plus the input metadata (`chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index`) and `payload`.
-- `InspectRequest` — `type: 'inspect'` and `payload`.
+- `AdvanceRequest` — `type: 'advance'` and the **raw, undecoded** `payload` (`Buffer`). Parse it with [`decodeAdvance`](/cmio/reference/decode-advance) to get the input fields.
+- `InspectRequest` — `type: 'inspect'` and the raw query `payload` (`Buffer`).
 
 ```ts twoslash
 import { Rollup } from '@deroll/cmio';
 const rollup = new Rollup();
 // ---cut---
-const request = rollup.finish();
+const request = rollup.waitForInput();
 if (request.type === 'advance') {
-    request.index;
-    //       ^?
+    request.payload;
+    //      ^?
 }
 ```
+
+## Decoded advance type
+
+`Advance` is the return type of [`decodeAdvance`](/cmio/reference/decode-advance) — the structured fields of an `EvmAdvance` input:
+
+```ts twoslash
+import type { Advance } from '@deroll/cmio';
+// ---cut---
+declare const advance: Advance;
+advance.msgSender;
+//      ^?
+```
+
+It carries `chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index` and `payload`.
 
 ## Handler types
 
 `RunHandlers` is the parameter of [`run`](/cmio/reference/run) — an optional `advance` and `inspect` handler, each receiving `(request, rollup)` and returning `boolean | void`, possibly wrapped in a `Promise`.
-
-## Response types
-
-`GioResponse` is returned by [`gio`](/cmio/reference/gio): `{ responseCode: number, responseData: Buffer }`.
 
 ## Constants
 

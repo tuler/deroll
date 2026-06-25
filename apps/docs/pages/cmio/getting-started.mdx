@@ -26,17 +26,18 @@ A Cartesi application is a loop: wait for a request, process it, emit outputs, a
 
 ```ts twoslash
 // @filename: app.ts
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance, encodeNotice } from '@deroll/cmio';
 
 const rollup = new Rollup();
 
 await rollup.run({
     advance(request, rollup) {
-        // `advance` requests are inputs submitted on-chain.
-        // This one echoes the input payload back as a notice (a provable
-        // output) and logs a report (debugging, not provable).
-        rollup.emitNotice(request.payload);
-        rollup.emitReport(Buffer.from(`processed input ${request.index}`));
+        // `advance` requests are inputs submitted on-chain. The payload is
+        // raw — decode it to read the input fields, then echo it back as a
+        // notice (a provable output) and log a report (debugging, not provable).
+        const advance = decodeAdvance(request.payload);
+        rollup.emitOutput(encodeNotice(advance.payload));
+        rollup.emitReport(Buffer.from(`processed input ${advance.index}`));
         return true; // accept the input (returning nothing also accepts)
     },
     inspect(request, rollup) {

@@ -1,0 +1,54 @@
+# rollup.emitOutput
+
+Emits a **provable output** — a raw, already EVM-ABI encoded output that is added to the application's outputs merkle tree and can later be proven and executed/validated on-chain.
+
+`emitOutput` takes the encoded bytes directly. Build them with one of the standalone encoders:
+
+- [`encodeNotice`](/cmio/reference/encode-notice) — attest a fact about the application state.
+- [`encodeVoucher`](/cmio/reference/encode-voucher) — authorize an on-chain transaction (transfer assets, call a contract).
+- [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher) — a `DELEGATECALL` voucher.
+
+## Usage
+
+```ts twoslash
+import { Rollup, encodeNotice } from '@deroll/cmio';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeNotice(Buffer.from(JSON.stringify({ matchId: 42, winner: '0xf39F…2266' }))),
+);
+```
+
+A voucher is emitted the same way:
+
+```ts twoslash
+import { Rollup, encodeVoucher } from '@deroll/cmio';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeVoucher({
+        destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        value: 1_000_000_000_000_000_000n, // 1 ETH in wei
+    }),
+);
+```
+
+## Returns
+
+`number` — the output index: the output's position among all provable outputs ever emitted by the application. Off-chain components use it to fetch the output's proof for execution or validation.
+
+## Parameters
+
+### payload
+
+- Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
+- Required
+
+The already-encoded output bytes. Produce them with [`encodeNotice`](/cmio/reference/encode-notice), [`encodeVoucher`](/cmio/reference/encode-voucher) or [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher).
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Malformed hex string / wrong argument type | `TypeError` |
+| Output larger than the machine's output buffer | `RollupError` with negative `errno` (e.g. `ENOBUFS`) |

@@ -16,11 +16,10 @@ The *reason* selects the request type:
 | --- | --- | --- |
 | `0` | advance | EVM-ABI encoded `EvmAdvance` input (see below) |
 | `1` | inspect | raw query payload |
-| anything else | [gio](/cmio/reference/gio) reply | raw response data (the reason is the response code) |
 
 Set `CMT_DEBUG=yes` to make the mock log every operation.
 
-When the input list is exhausted, the next [`finish`](/cmio/reference/finish) call fails and [`run`](/cmio/reference/run) rejects — that is your test's natural end-of-session signal.
+When the input list is exhausted, the next [`waitForInput`](/cmio/reference/wait-for-input) call fails and [`run`](/cmio/reference/run) rejects — that is your test's natural end-of-session signal.
 
 ## Collecting outputs
 
@@ -29,10 +28,10 @@ Each output is written to a file named after the input that produced it:
 ```
 advance.output-0.bin    # first voucher/notice while handling advance.bin
 advance.report-0.bin    # first report
-advance.finish.bin      # accept/reject result
+advance.exception-0.bin # first exception
 ```
 
-Vouchers and notices are EVM-ABI encoded (`Voucher(address,uint256,bytes)` / `Notice(bytes)`); reports are raw bytes.
+Provable outputs are EVM-ABI encoded in the `Output1..Output4(bytes32[N],bytes)` envelope: a 4-byte function selector, a 32-byte type tag identifying the output kind (notice, call voucher, …), then the ABI-encoded fields. Reports and exceptions are raw bytes.
 
 ## Generating an advance input
 
@@ -103,6 +102,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { decodeAdvance, encodeNotice } from '@deroll/cmio';
 import { encodeEvmAdvance } from './encode.js';
 
 test('echoes the payload as a notice', async () => {
@@ -133,16 +133,22 @@ test('echoes the payload as a notice', async () => {
     await rollup
         .run({
             advance(request, rollup) {
-                rollup.emitNotice(request.payload);
+                const advance = decodeAdvance(request.payload);
+                rollup.emitOutput(encodeNotice(advance.payload));
                 return true;
             },
         })
         .catch(() => {}); // inputs exhausted — session over
 
-    // Notice(bytes) ABI: selector + offset + length + padded payload
+    // Output1 envelope: funsel (4) + notice type tag (32) + offset (32) +
+    // length (32) + padded payload — so the payload starts at byte 100.
     const notice = fs.readFileSync(path.join(dir, 'input.output-0.bin'));
-    assert.equal(notice.subarray(0, 4).toString('hex'), 'c258d6e5');
-    assert.equal(notice.subarray(68, 68 + 5).toString(), 'hello');
+    assert.equal(notice.subarray(0, 4).toString('hex'), 'aed682a1');
+    assert.equal(
+        notice.subarray(4, 36).toString('hex'),
+        'e4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed',
+    );
+    assert.equal(notice.subarray(100, 100 + 5).toString(), 'hello');
 });
 ```
 

@@ -1,0 +1,37 @@
+# encodeNotice
+
+Encodes a **notice** — a verifiable statement of fact about the application state, with no on-chain action attached. Off-chain consumers can validate a notice against the application's settled output root instead of re-executing the machine.
+
+`encodeNotice` is a pure-JS helper that returns the EVM-ABI encoded bytes (an `Output1(bytes32[1],bytes)` envelope). Emit them with [`emitOutput`](/cmio/reference/emit-output) to add the notice to the outputs merkle tree (provable).
+
+## Usage
+
+```ts twoslash
+import { Rollup, encodeNotice } from '@deroll/cmio';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeNotice(Buffer.from(JSON.stringify({ matchId: 42, winner: '0xf39F…2266' }))),
+);
+```
+
+The output index comes from [`emitOutput`](/cmio/reference/emit-output); `encodeNotice` itself just returns a `Buffer`.
+
+## Returns
+
+`Buffer` — the encoded notice, ready to pass to [`emitOutput`](/cmio/reference/emit-output).
+
+## Parameters
+
+### payload
+
+- Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
+- Required
+
+The attested data. Application-defined format — JSON, ABI-encoded structs, hashes, anything your consumers can decode.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Malformed hex string / wrong argument type | `TypeError` |

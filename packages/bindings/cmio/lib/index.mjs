@@ -16,4 +16,13 @@
 
 // ESM wrapper over the CommonJS implementation, so both module systems share
 // the single native addon instance (no dual-package hazard).
-export { Rollup, RollupError, ADDRESS_LENGTH, U256_LENGTH } from './index.js';
+export {
+    Rollup,
+    RollupError,
+    decodeAdvance,
+    encodeNotice,
+    encodeVoucher,
+    encodeDelegateCallVoucher,
+    ADDRESS_LENGTH,
+    U256_LENGTH,
+} from './index.js';

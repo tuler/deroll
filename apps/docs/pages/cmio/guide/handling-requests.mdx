@@ -2,7 +2,7 @@
 
 A Cartesi application processes two kinds of requests:
 
-- **Advance** — an input submitted on-chain. It can change application state and produce provable outputs ([vouchers](/cmio/reference/emit-voucher) and [notices](/cmio/reference/emit-notice)).
+- **Advance** — an input submitted on-chain. It can change application state and produce provable outputs ([vouchers](/cmio/reference/encode-voucher) and [notices](/cmio/reference/encode-notice)).
 - **Inspect** — an off-chain, read-only query. It can only answer with [reports](/cmio/reference/emit-report).
 
 This page shows the request lifecycle; [Emitting Outputs](/cmio/guide/emitting-outputs) covers what you can produce while handling them.
@@ -11,7 +11,7 @@ This page shows the request lifecycle; [Emitting Outputs](/cmio/guide/emitting-o
 
 Processing follows a strict cycle, inherited from how the machine and the blockchain interact:
 
-1. The application calls [`finish`](/cmio/reference/finish), telling the machine whether it **accepts or rejects** the previous request.
+1. The application calls [`waitForInput`](/cmio/reference/wait-for-input), telling the machine whether it **accepts or rejects** the previous request.
 2. The call blocks (the whole machine yields) until the next request arrives.
 3. The application handles the request, emitting outputs along the way.
 4. Back to step 1.
@@ -20,17 +20,18 @@ Processing follows a strict cycle, inherited from how the machine and the blockc
 
 ## Advance requests
 
-Advance handlers receive the decoded input metadata along with the payload:
+Advance handlers receive the request with its **raw, undecoded payload**. Parse it with [`decodeAdvance`](/cmio/reference/decode-advance) to get the input metadata and inner payload:
 
 ```ts twoslash
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance } from '@deroll/cmio';
 
 const rollup = new Rollup();
 
 await rollup.run({
     advance(request, rollup) {
-        request.msgSender;
-        //       ^?
+        const advance = decodeAdvance(request.payload);
+        advance.msgSender;
+        //      ^?
 
 
 
@@ -39,8 +40,8 @@ await rollup.run({
         // it was included in: block number, timestamp and prevRandao
         rollup.emitReport(
             Buffer.from(
-                `input ${request.index} from ${request.msgSender} ` +
-                    `at block ${request.blockNumber} (chain ${request.chainId})`,
+                `input ${advance.index} from ${advance.msgSender} ` +
+                    `at block ${advance.blockNumber} (chain ${advance.chainId})`,
             ),
         );
         return true;
@@ -48,7 +49,7 @@ await rollup.run({
 });
 ```
 
-Addresses arrive as 0x-prefixed hex strings, numeric fields as `bigint`, and the payload as a `Buffer`.
+Addresses come back as 0x-prefixed hex strings, numeric fields as `bigint`, and the inner payload as a `Buffer`.
 
 ## Inspect requests
 
@@ -77,23 +78,24 @@ A handler's return value decides the input's fate:
 
 - `true` or `undefined` (no return) — **accept**: outputs become part of the application's verifiable history.
 - `false` — **reject**: the machine reverts to the state before the input; its outputs are discarded.
-- **throwing** — the exception is caught, emitted as a report (so you can see it from the outside), and the input is **rejected**.
+- **throwing** — the error is caught, emitted as a report (so you can see it from the outside), and the input is **rejected**.
 
 ```ts twoslash
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance, encodeNotice } from '@deroll/cmio';
 
 const rollup = new Rollup();
 
 await rollup.run({
     advance(request, rollup) {
-        if (request.payload.length === 0) {
+        const advance = decodeAdvance(request.payload);
+        if (advance.payload.length === 0) {
             return false; // reject empty inputs — state is rolled back
         }
-        if (request.payload.length > 1024) {
+        if (advance.payload.length > 1024) {
             // also rejects, and the message lands in a report
             throw new Error('payload too large');
         }
-        rollup.emitNotice(request.payload);
+        rollup.emitOutput(encodeNotice(advance.payload));
         return true;
     },
 });
@@ -101,7 +103,7 @@ await rollup.run({
 
 ## Async handlers
 
-Handlers may be `async` — `run` awaits them before finishing the request:
+Handlers may be `async` — `run` awaits them before waiting for the next request:
 
 ```ts twoslash
 import { readFile } from 'node:fs/promises';
@@ -122,16 +124,16 @@ Remember that the machine is paused *between* requests, not within them: timers 
 
 ## Driving the loop yourself
 
-`run` is a thin convenience. If you prefer explicit control — custom dispatch, graceful shutdown, request batching — call [`finish`](/cmio/reference/finish) directly:
+`run` is a thin convenience. If you prefer explicit control — custom dispatch, graceful shutdown, request batching — call [`waitForInput`](/cmio/reference/wait-for-input) directly:
 
 ```ts twoslash
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance, encodeNotice } from '@deroll/cmio';
 
 const rollup = new Rollup();
 
 let accept = true;
 for (;;) {
-    const request = rollup.finish({ accept });
+    const request = rollup.waitForInput({ accept });
     //     ^?
 
 
@@ -139,7 +141,7 @@ for (;;) {
 
     switch (request.type) {
         case 'advance':
-            rollup.emitNotice(request.payload);
+            rollup.emitOutput(encodeNotice(decodeAdvance(request.payload).payload));
             accept = true;
             break;
         case 'inspect':
@@ -150,8 +152,8 @@ for (;;) {
 }
 ```
 
-The request is a discriminated union — narrowing on `type` gives you the right fields in each branch.
+The request is a discriminated union — narrowing on `type` gives you the right shape in each branch.
 
 ## When the loop ends
 
-`run` returns a `Promise<never>`: under normal operation inside the machine, the loop never ends. It rejects when `finish` fails — for example when the mock runs out of inputs during [host testing](/cmio/guide/testing), or after [`close`](/cmio/reference/close) is called. Let the rejection propagate (the process exits), or catch it if you have cleanup to do.
+`run` returns a `Promise<never>`: under normal operation inside the machine, the loop never ends. It rejects when `waitForInput` fails — for example when the mock runs out of inputs during [host testing](/cmio/guide/testing), or after [`close`](/cmio/reference/close) is called. Let the rejection propagate (the process exits), or catch it if you have cleanup to do.

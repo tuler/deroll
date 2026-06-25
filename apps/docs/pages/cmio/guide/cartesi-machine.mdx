@@ -24,7 +24,7 @@ ENTRYPOINT ["node", "/opt/app/index.mjs"]
 
 ## Why the API is synchronous
 
-When the application calls [`finish`](/cmio/reference/finish) and no input is available, the machine **yields**: the emulator stops executing it entirely until the next input arrives. From the guest's perspective time freezes — the Node event loop, timers, everything. An async API would suggest concurrency that cannot exist; the synchronous one tells the truth.
+When the application calls [`waitForInput`](/cmio/reference/wait-for-input) and no input is available, the machine **yields**: the emulator stops executing it entirely until the next input arrives. From the guest's perspective time freezes — the Node event loop, timers, everything. An async API would suggest concurrency that cannot exist; the synchronous one tells the truth.
 
 This has a practical consequence: don't schedule background work (intervals, keep-alives, watchers) and expect it to run "while waiting" — it will only run while a request is being handled.
 
@@ -33,16 +33,17 @@ This has a practical consequence: don't schedule background work (intervals, kee
 Every node validating your application re-executes the same machine and must reach bit-identical results. The machine guarantees this for you — there is no wall-clock, no real randomness, no network inside. Use the request's own context when you need these:
 
 ```ts twoslash
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance } from '@deroll/cmio';
 
 const rollup = new Rollup();
 
 await rollup.run({
     advance(request, rollup) {
+        const advance = decodeAdvance(request.payload);
         // ✓ deterministic time: the L1 block timestamp of the input
-        const now = request.blockTimestamp;
+        const now = advance.blockTimestamp;
         // ✓ deterministic randomness beacon: prevRandao
-        const seed = request.prevRandao;
+        const seed = advance.prevRandao;
         rollup.emitReport(Buffer.from(`t=${now} seed=${seed}`));
         return true;
     },

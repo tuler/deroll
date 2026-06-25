@@ -33,6 +33,20 @@ export const U256_LENGTH: 32;
 
 export interface AdvanceRequest {
     type: 'advance';
+    /** Raw, undecoded EvmAdvance input. Parse it with {@link decodeAdvance}. */
+    payload: Buffer;
+}
+
+export interface InspectRequest {
+    type: 'inspect';
+    /** Raw inspect query payload. */
+    payload: Buffer;
+}
+
+export type RollupRequest = AdvanceRequest | InspectRequest;
+
+/** Decoded `EvmAdvance` input, as produced by {@link decodeAdvance}. */
+export interface Advance {
     /** Network chain id. */
     chainId: bigint;
     /** Application contract address (0x-prefixed hex). */
@@ -51,20 +65,7 @@ export interface AdvanceRequest {
     payload: Buffer;
 }
 
-export interface InspectRequest {
-    type: 'inspect';
-    /** Inspect query payload. */
-    payload: Buffer;
-}
-
-export type RollupRequest = AdvanceRequest | InspectRequest;
-
-export interface GioResponse {
-    responseCode: number;
-    responseData: Buffer;
-}
-
-/** Arguments for {@link Rollup.emitVoucher}. Encoded on-chain as `Voucher(address,uint256,bytes)`. */
+/** Arguments for {@link encodeVoucher}. Encoded on-chain as a CALL voucher. */
 export interface Voucher {
     /** Address the voucher executes against (20 bytes): an EOA for transfers, a contract for calls. */
     destination: AddressLike;
@@ -74,13 +75,28 @@ export interface Voucher {
     payload?: BytesLike;
 }
 
-/** Arguments for {@link Rollup.emitDelegateCallVoucher}. Encoded on-chain as `DelegateCallVoucher(address,bytes)`. */
+/** Arguments for {@link encodeDelegateCallVoucher}. Encoded on-chain as a DELEGATECALL voucher. */
 export interface DelegateCallVoucher {
     /** Contract whose code runs in the application contract's storage context (20 bytes). */
     destination: AddressLike;
     /** Calldata for the delegate call. Default: empty. There is no `value` — `DELEGATECALL` cannot transfer ether. */
     payload?: BytesLike;
 }
+
+/**
+ * Decode an `EvmAdvance` input (the raw payload of an advance request) into its
+ * structured fields. Mirrors libcmt's `cmt_decode_advance_state`.
+ */
+export function decodeAdvance(input: BytesLike): Advance;
+
+/** Encode a notice into an `Output1(bytes32[1],bytes)` envelope. */
+export function encodeNotice(payload: BytesLike): Buffer;
+
+/** Encode a CALL voucher into an `Output2(bytes32[2],bytes)` envelope. */
+export function encodeVoucher(voucher: Voucher): Buffer;
+
+/** Encode a DELEGATECALL voucher into an `Output2(bytes32[2],bytes)` envelope. */
+export function encodeDelegateCallVoucher(voucher: DelegateCallVoucher): Buffer;
 
 /**
  * Error thrown when a libcmt binding call fails (e.g. a too-large output, or
@@ -113,20 +129,15 @@ export class Rollup {
     constructor();
 
     /**
-     * Accept or reject the previous request and wait for the next one.
-     * Synchronous on purpose: the call yields the machine, pausing the whole
-     * guest, so nothing else could run concurrently anyway.
+     * Accept or reject the previous request and wait for the next one. Returns
+     * the next request with its raw, undecoded payload; use {@link decodeAdvance}
+     * to parse an advance input. Synchronous on purpose: the call yields the
+     * machine, pausing the whole guest, so nothing else could run concurrently.
      */
-    finish(options?: { accept?: boolean }): RollupRequest;
+    waitForInput(options?: { accept?: boolean }): RollupRequest;
 
-    /** Emit a voucher (Voucher(address,uint256,bytes)). Returns the output index. */
-    emitVoucher(voucher: Voucher): number;
-
-    /** Emit a delegate call voucher (DelegateCallVoucher(address,bytes)). Returns the output index. */
-    emitDelegateCallVoucher(voucher: DelegateCallVoucher): number;
-
-    /** Emit a notice (Notice(bytes)). Returns the output index. */
-    emitNotice(payload: BytesLike): number;
+    /** Emit a raw output (already EVM-ABI encoded). Returns the output index. */
+    emitOutput(payload: BytesLike): number;
 
     /** Emit a report (raw bytes, not part of the outputs merkle tree). */
     emitReport(payload: BytesLike): void;
@@ -137,26 +148,14 @@ export class Rollup {
     /** Report progress of the current request (raw uint32 value). */
     progress(value: number): void;
 
-    /** Perform a generic IO request to the given domain. */
-    gio(request: { domain: number; id: BytesLike }): GioResponse;
-
-    /** Load the outputs merkle tree state from a file. */
-    loadMerkle(file: string): void;
-
-    /** Store the outputs merkle tree state to a file. */
-    saveMerkle(file: string): void;
-
-    /** Reset the outputs merkle tree to pristine state. */
-    resetMerkle(): void;
-
     /** Release the underlying device. Further calls throw. */
     close(): void;
 
     /**
-     * Convenience request loop. Handlers receive (request, rollup), may be
-     * async, and accept the request unless they return false (exceptions
-     * reject and are reported). Runs until finish fails, rejecting with that
-     * error.
+     * Convenience request loop. Handlers receive (request, rollup) with the raw
+     * request payload, may be async, and accept the request unless they return
+     * false (exceptions reject and are reported). Runs until waitForInput fails,
+     * rejecting with that error.
      */
     run(handlers?: RunHandlers): Promise<never>;
 }
