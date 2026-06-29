@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that polls the Cartesi **Rollup HTTP Server** for requests, processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries.
+Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@tuler/node-libcmt`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
 
 The two request types from the rollup are:
 - **advance_state** — a state-changing input (on-chain). Handlers return `"accept"` or `"reject"`; on reject the machine state is reverted and vouchers/notices are discarded (reports survive).
@@ -17,8 +17,8 @@ The four outputs a backend can emit: **notices** (verifiable event logs), **repo
 bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glob) and `apps/*`. The three pillars are **App** (`packages/app/*`), **Bindings** (`packages/bindings/*`), and **Explorer** (`packages/explorer/*`). `apps/*` are private (docs + examples + the explorer site).
 
 App pillar — `packages/app/*`:
-- **`packages/app/core`** (`@deroll/core`) — shared types and the OpenAPI-generated `schema.ts`. Defines the `App` interface and request/output types. No runtime logic; everything else depends on this.
-- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `HttpApp` that runs the poll loop against the Rollup HTTP Server via an `openapi-fetch` client, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
+- **`packages/app/core`** (`@deroll/core`) — shared, **hand-authored** types (`src/types.ts`, `src/index.ts`; depends only on `viem`). Defines the `App` interface, `AppOptions`, and the request/output types (camelCase, `bigint` metadata, `Buffer` request payloads; outputs use viem `Hex`/`Uint8Array`). No runtime logic, no codegen; everything else depends on this.
+- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@tuler/node-libcmt`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
 - **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
 - **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
 - **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
@@ -30,10 +30,10 @@ Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend e
 
 ### How the pieces compose
 
-`createApp` owns the loop and the HTTP outputs. Wallet and Router are plugged in as handlers, not subclasses:
+`createApp` owns the loop and the rollup outputs. Wallet and Router are plugged in as handlers, not subclasses:
 
 ```ts
-const app = createApp({ url });
+const app = createApp();   // AppOptions: { broadcastAdvanceRequests?: boolean }
 const wallet = createWallet();
 const router = createRouter({ app });
 
@@ -70,10 +70,9 @@ cd packages/app/wallet && bunx vitest run -t "withdraw"                # tests m
 
 Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` currently have them). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
 
-## Build & codegen specifics
+## Build specifics
 
-- Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`.
-- **`@deroll/core` build is two-step**: `codegen` then `compile`. `codegen` runs `tsx schema.ts`, which fetches the Cartesi rollup OpenAPI spec (pinned to a `cartesi/openapi-interfaces` version) and generates `src/schema.ts` via `openapi-typescript`. A custom transform rewrites OpenAPI `format: hex`/`format: address` fields to viem's `Hex`/`Address` types instead of plain strings. **Do not hand-edit `packages/app/core/src/schema.ts`** — change `packages/app/core/schema.ts` (the generator) and re-run codegen.
+- Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`. `@deroll/core`'s build is a plain `tsup` — its types are hand-authored in `src/`, **not** generated (the previous OpenAPI/`openapi-typescript` codegen against `cartesi/openapi-interfaces` has been removed along with the HTTP transport).
 - `viem` is the shared toolkit for hex/ABI encoding throughout. Deposit parsing and voucher creation in `@deroll/wallet` rely on `@cartesi/viem` for portal/contract addresses and ABIs.
 
 ## Conventions
