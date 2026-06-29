@@ -25,7 +25,7 @@ const executionParameters = {
   updated_at: now(5),
 }
 
-// ---- perp-dex packed payloads (decoded by @tuler/luke-perp-dex-decoder) ----
+// ---- perp-dex packed payloads (decoded by @deroll/perp-dex-decoder) ----
 
 // Big-endian hex of `value` in `size` bytes.
 const be = (value: bigint | number, size: number) =>

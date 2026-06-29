@@ -1,8 +1,8 @@
-// @tuler/luke-decoder — the typed toolkit for writing Cartesi Node Explorer
+// @deroll/decoder — the typed toolkit for writing Cartesi Node Explorer
 // payload decoders in TypeScript.
 //
-//   import type { Decoder } from '@tuler/luke-decoder'
-//   import { decodePortalInput, ByteReader, formatUnits } from '@tuler/luke-decoder'
+//   import type { Decoder } from '@deroll/decoder'
+//   import { decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
 //
 //   export const version = 1
 //   export const name = 'My decoder'

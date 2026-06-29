@@ -1,7 +1,11 @@
 {
-  "name": "@tuler/luke-decoder",
+  "name": "@deroll/decoder",
   "version": "0.1.0",
   "description": "Typed toolkit for writing Cartesi Node Explorer payload decoders",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuler/deroll"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {

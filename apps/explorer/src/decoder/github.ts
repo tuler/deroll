@@ -1,6 +1,6 @@
 // Turn a GitHub reference to a decoder's source into a URL the browser can
 // import(). esm.sh's /gh/ route fetches a .ts/.tsx file straight from a GitHub
-// repo, transpiles it, and resolves its bare imports (e.g. @tuler/luke-decoder)
+// repo, transpiles it, and resolves its bare imports (e.g. @deroll/decoder)
 // from its configured npm registry — so a decoder can be loaded from source,
 // with no build or publish step. Defaults to the public esm.sh; override with
 // VITE_ESM_BASE.
@@ -28,11 +28,11 @@ function splitRefAndPath(rest: string): { ref: string; path: string } | null {
 }
 
 // The kit is provided by the explorer through an import map (see vite.config.ts),
-// so esm.sh is told to leave the bare `@tuler/luke-decoder` import alone rather
+// so esm.sh is told to leave the bare `@deroll/decoder` import alone rather
 // than resolve it from npm. That import map points it at the kit's own GitHub
 // source — which is what lets a kit-using decoder load from a repo with nothing
 // published to a registry.
-const KIT_SPECIFIER = '@tuler/luke-decoder'
+const KIT_SPECIFIER = '@deroll/decoder'
 
 function withKitExternal(url: string): string {
   return `${url}${url.includes('?') ? '&' : '?'}external=${KIT_SPECIFIER}`

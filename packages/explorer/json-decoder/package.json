@@ -1,5 +1,5 @@
 {
-  "name": "@tuler/luke-json-decoder",
+  "name": "@deroll/json-decoder",
   "version": "0.1.0",
   "description": "Example Cartesi Node Explorer decoder for plain-JSON payloads",
   "private": true,

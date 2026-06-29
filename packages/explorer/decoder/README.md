@@ -1,4 +1,4 @@
-# @tuler/luke-decoder
+# @deroll/decoder
 
 A small, dependency-free TypeScript toolkit for writing [Cartesi Node Explorer](../../README.md#payload-decoders) payload decoders. It gives you:
 
@@ -9,7 +9,7 @@ A small, dependency-free TypeScript toolkit for writing [Cartesi Node Explorer](
 ## Writing a decoder
 
 ```ts
-import { type Decoder, decodePortalInput, ByteReader, formatUnits } from '@tuler/luke-decoder'
+import { type Decoder, decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
 
 export const version = 1
 export const name = 'My decoder'
@@ -33,13 +33,13 @@ Return `null`/`undefined` (or throw) when a payload isn't recognized — the exp
 
 ## Loading from GitHub source (no publish)
 
-The simplest way to share a decoder is to skip packaging and point the explorer at its TypeScript source on GitHub — register the file's `github.com` URL or a `gh:owner/repo@ref/path.ts` shorthand on the application's **Overview** page. The explorer routes it through [esm.sh](https://esm.sh), which transpiles the source on the fly. The decoder's `import … from '@tuler/luke-decoder'` needs **nothing published**: the explorer supplies this kit via an import map pointing at its own GitHub source (see the [explorer README](../../README.md#from-a-github-source-no-publish)), so kit-using decoders work even in production over public esm.sh. The repo must be public.
+The simplest way to share a decoder is to skip packaging and point the explorer at its TypeScript source on GitHub — register the file's `github.com` URL or a `gh:owner/repo@ref/path.ts` shorthand on the application's **Overview** page. The explorer routes it through [esm.sh](https://esm.sh), which transpiles the source on the fly. The decoder's `import … from '@deroll/decoder'` needs **nothing published**: the explorer supplies this kit via an import map pointing at its own GitHub source (see the [explorer README](../../README.md#from-a-github-source-no-publish)), so kit-using decoders work even in production over public esm.sh. The repo must be public.
 
 ## Distributing as a package
 
-To ship a decoder as a versioned package instead of from source, publish it to npm (or any registry) and serve it through a public [esm.sh](https://esm.sh)-style CDN — esm.sh resolves and bundles its dependencies (including `@tuler/luke-decoder`) on the fly. Register the resulting URL on the application's **Overview** page; esm.sh serves it with CORS enabled. Alternatively, bundle the decoder to a single self-contained `.js` (`bun build my-decoder.ts --target=browser --format=esm --outfile=my-decoder.js`) and host that file directly.
+To ship a decoder as a versioned package instead of from source, publish it to npm (or any registry) and serve it through a public [esm.sh](https://esm.sh)-style CDN — esm.sh resolves and bundles its dependencies (including `@deroll/decoder`) on the fly. Register the resulting URL on the application's **Overview** page; esm.sh serves it with CORS enabled. Alternatively, bundle the decoder to a single self-contained `.js` (`bun build my-decoder.ts --target=browser --format=esm --outfile=my-decoder.js`) and host that file directly.
 
-This kit itself is published to npm as [`@tuler/luke-decoder`](https://www.npmjs.com/package/@tuler/luke-decoder); see the [explorer README](../../README.md#publishing-the-kit-to-npm) for the changesets release flow.
+This kit itself is published to npm as [`@deroll/decoder`](https://www.npmjs.com/package/@deroll/decoder); see the [explorer README](../../README.md#publishing-the-kit-to-npm) for the changesets release flow.
 
 ## Portal addresses
 

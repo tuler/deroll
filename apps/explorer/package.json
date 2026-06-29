@@ -1,5 +1,5 @@
 {
-  "name": "@tuler/luke-webapp",
+  "name": "@deroll/explorer",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.0",
-    "@tuler/luke-decoder": "workspace:*",
+    "@deroll/decoder": "workspace:*",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.17.0"
@@ -22,6 +22,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "tailwindcss": "^4.3.1",
+    "typescript": "^6.0.3",
     "vite": "^8.0.12"
   }
 }
