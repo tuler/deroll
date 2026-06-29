@@ -141,6 +141,12 @@ jobs:
               uses: actions/setup-node@v6
               with:
                   node-version: 24
+                  registry-url: https://registry.npmjs.org
+
+            # Trusted publishing (OIDC) requires npm >= 11.5.1; node 24 bundles
+            # npm 10. `changeset publish` shells out to this npm.
+            - name: Update npm for trusted publishing
+              run: npm install -g npm@latest
 
             - name: Install Dependencies
               run: bun install --frozen-lockfile
