@@ -34,6 +34,25 @@ jobs:
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
+            # Fetch the multi-platform native prebuilds (built by
+            # cmio-prebuild.yml) into the cmio package so `changeset publish`
+            # packs @deroll/cmio WITH them, instead of forcing consumers to
+            # compile from source. Best-effort: if no successful prebuild run
+            # exists yet, the release proceeds and cmio publishes without
+            # prebuilds. Run cmio-prebuild on the release commit so the
+            # prebuilds match the version being published.
+            - name: Fetch cmio prebuilds
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  RUN_ID=$(gh run list --workflow=cmio-prebuild.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId // empty')
+                  if [ -n "$RUN_ID" ] && gh run download "$RUN_ID" -n prebuilds -D packages/bindings/cmio/prebuilds; then
+                      echo "fetched prebuilds from cmio-prebuild run $RUN_ID:"
+                      ls -lR packages/bindings/cmio/prebuilds
+                  else
+                      echo "no cmio prebuilds available (no successful run, or artifact expired); @deroll/cmio will publish without prebuilds (consumers compile from source)"
+                  fi
+
             - name: Create Release Pull Request or Publish to npm
               id: changesets
               uses: changesets/action@v1
