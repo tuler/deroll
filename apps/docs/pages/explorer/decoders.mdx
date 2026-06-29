@@ -1,0 +1,66 @@
+# Writing Decoders
+
+[`@deroll/decoder`](https://www.npmjs.com/package/@deroll/decoder) is a small,
+dependency-free TypeScript toolkit for writing [Explorer](/explorer) payload decoders.
+A decoder turns an application's raw input/output payloads into a readable summary and
+structured data. It gives you:
+
+- **A fully typed contract** — `Decoder`, `DecodeContext`, `DecodeResult` and the API
+  record types. The explorer re-exports these same types internally, so the
+  `context.record` your decoder receives is exactly the API record you see in the types.
+  `DecodeContext` is discriminated by `kind`, so narrowing on `context.kind` narrows
+  `context.record` to `Input`, `Output` or `Report`.
+- **Standard portal decoding** — `decodePortalInput()` decodes the canonical Cartesi
+  portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). Asset deposits are
+  identical across every application, so you don't reimplement the layout.
+- **Byte helpers** — a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for
+  reading packed payloads.
+
+## A minimal decoder
+
+```ts
+import { type Decoder, decodePortalInput, ByteReader, formatUnits } from "@deroll/decoder";
+
+export const version = 1;
+export const name = "My decoder";
+
+export const decode: Decoder["decode"] = (payload, context) => {
+    if (context.kind !== "input") return null;
+
+    // Standard, shared across every app: a deposit from a known portal sender.
+    const deposit = decodePortalInput(payload, context);
+    if (deposit) return deposit;
+
+    // Your application's own messages.
+    const r = new ByteReader(payload);
+    // …read fields, return { summary, data }, or null when not recognized…
+};
+```
+
+Return `null`/`undefined` (or throw) when a payload isn't recognized — the explorer falls
+back to its hex/UTF-8 view.
+
+## Loading from a GitHub source (no publish)
+
+The simplest way to share a decoder is to skip packaging and point the explorer at its
+TypeScript source on GitHub — register the file's `github.com` URL or a
+`gh:owner/repo@ref/path.ts` shorthand on the application's **Overview** page. The explorer
+routes it through [esm.sh](https://esm.sh), which transpiles the source on the fly. The
+decoder's `import … from "@deroll/decoder"` needs **nothing published**: the explorer
+supplies the kit via an import map pointing at its own source, so kit-using decoders work
+even in production over public esm.sh. The repo must be public.
+
+## Distributing as a package
+
+To ship a decoder as a versioned package instead, publish it to npm (or any registry) and
+serve it through a public esm.sh-style CDN — esm.sh resolves and bundles its dependencies
+(including `@deroll/decoder`) on the fly. Register the resulting URL on the application's
+**Overview** page. Alternatively, bundle the decoder to a single self-contained `.js`
+(`bun build my-decoder.ts --target=browser --format=esm --outfile=my-decoder.js`) and host
+that file directly.
+
+## Portal addresses
+
+`PORTAL_ADDRESSES` are the deterministic Cartesi Rollups **v2** deployments (identical
+across chains for a given Rollups version), sourced from `@cartesi/viem` and the
+rollups-node address book. Apps on the older v1 deployment used different portal addresses.

@@ -25,9 +25,6 @@
     "scripts": {
         "build": "tsup",
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-        "docs:dev": "vocs dev",
-        "docs:build": "vocs build",
-        "docs:preview": "vocs preview",
         "lint": "biome check",
         "lint:ci": "biome ci",
         "test:integration": "vitest",
@@ -51,8 +48,7 @@
         "tsx": "^4.20.3",
         "typescript": "^5.8.3",
         "viem": "^2.33.0",
-        "vitest": "^3.2.4",
-        "vocs": "^1.0.13"
+        "vitest": "^3.2.4"
     },
     "files": [
         "dist"

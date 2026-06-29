@@ -11,6 +11,8 @@
     },
     "dependencies": {
         "@deroll/app": "workspace:*",
+        "@deroll/cm": "workspace:*",
+        "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",

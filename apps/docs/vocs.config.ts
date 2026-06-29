@@ -7,7 +7,19 @@ export default defineConfig({
         link: "https://github.com/tuler/deroll/edit/main/apps/docs/pages/:path",
         text: "Edit on GitHub",
     },
-    sidebar: [
+    topNav: [
+        { text: "App", link: "/quick-start" },
+        { text: "Explorer", link: "/explorer" },
+        {
+            text: "Bindings",
+            items: [
+                { text: "cmio (libcmt)", link: "/cmio/getting-started" },
+                { text: "cm (cartesi-machine)", link: "/cm" },
+            ],
+        },
+    ],
+    sidebar: {
+        "/": [
         {
             text: "Quick Start",
             link: "/quick-start",
@@ -229,7 +241,65 @@ export default defineConfig({
                 },
             ],
         },
-    ],
+        ],
+        "/explorer/": [
+            { text: "Overview", link: "/explorer" },
+            { text: "Writing Decoders", link: "/explorer/decoders" },
+        ],
+        "/cmio/": [
+            { text: "Introduction", link: "/cmio" },
+            { text: "Getting Started", link: "/cmio/getting-started" },
+            {
+                text: "User Guide",
+                items: [
+                    { text: "Handling Requests", link: "/cmio/guide/handling-requests" },
+                    { text: "Emitting Outputs", link: "/cmio/guide/emitting-outputs" },
+                    { text: "Testing on the Host", link: "/cmio/guide/testing" },
+                    { text: "Running in the Cartesi Machine", link: "/cmio/guide/cartesi-machine" },
+                ],
+            },
+            {
+                text: "Reference",
+                items: [
+                    { text: "new Rollup()", link: "/cmio/reference/rollup" },
+                    { text: "run", link: "/cmio/reference/run" },
+                    { text: "finish", link: "/cmio/reference/finish" },
+                    { text: "emitVoucher", link: "/cmio/reference/emit-voucher" },
+                    { text: "emitDelegateCallVoucher", link: "/cmio/reference/emit-delegate-call-voucher" },
+                    { text: "emitNotice", link: "/cmio/reference/emit-notice" },
+                    { text: "emitReport", link: "/cmio/reference/emit-report" },
+                    { text: "emitException", link: "/cmio/reference/emit-exception" },
+                    { text: "progress", link: "/cmio/reference/progress" },
+                    { text: "gio", link: "/cmio/reference/gio" },
+                    { text: "Merkle persistence", link: "/cmio/reference/merkle" },
+                    { text: "close", link: "/cmio/reference/close" },
+                    { text: "Types & Constants", link: "/cmio/reference/types" },
+                ],
+            },
+        ],
+        "/cm/": [
+            { text: "Introduction", link: "/cm" },
+            { text: "Local Machine", link: "/cm/local" },
+            { text: "Remote Machine", link: "/cm/remote" },
+            { text: "Rollups Machine", link: "/cm/rollups" },
+            { text: "Error Handling", link: "/cm/error-handling" },
+            {
+                text: "API",
+                items: [
+                    { text: "create", link: "/cm/api/create" },
+                    { text: "load", link: "/cm/api/load" },
+                    { text: "empty", link: "/cm/empty" },
+                    { text: "spawn", link: "/cm/api/spawn" },
+                    { text: "connect", link: "/cm/api/connect" },
+                    { text: "rollups", link: "/cm/api/rollups" },
+                    { text: "CartesiMachine", link: "/cm/api/cartesi-machine" },
+                    { text: "RemoteCartesiMachine", link: "/cm/api/remote-cartesi-machine" },
+                    { text: "RollupsMachine", link: "/cm/api/rollups-machine" },
+                ],
+            },
+            { text: "Troubleshooting", link: "/cm/troubleshooting" },
+        ],
+    },
     socials: [
         {
             icon: "github",

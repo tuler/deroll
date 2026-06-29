@@ -1,0 +1,32 @@
+# Explorer
+
+The **Cartesi Node Explorer** is a web UI for navigating the entities exposed by the
+[Cartesi Rollups Node JSON-RPC API](https://github.com/cartesi/rollups-node) (v2.0.0, the
+current alpha). It follows the natural hierarchy of the API:
+
+```
+Node
+└── Applications
+    ├── Epochs ──────────────► Inputs · Outputs · Reports · Tournaments (per epoch)
+    ├── Inputs ──────────────► Outputs · Reports (per input)
+    ├── Outputs (Notice / Voucher / DelegateCallVoucher, decoded)
+    ├── Reports
+    └── Tournaments (PRT) ───► Commitments · Matches ─► Match advances
+                               └── Child tournaments (recursive)
+```
+
+Every list is paginated, sortable, and filterable (epoch, input, sender, output type,
+voucher address, status, …), and filters are kept in the URL so any view is shareable.
+Detail pages cross-link related entities — an epoch links to its inputs, an input to the
+outputs and reports it produced, an epoch under dispute to its tournament.
+
+- **Live site:** [explorer.deroll.dev](https://explorer.deroll.dev)
+- **Writing decoders:** [`@deroll/decoder`](/explorer/decoders) turns raw payloads into readable summaries.
+
+## Packages
+
+| Package | Description |
+| --- | --- |
+| [`@deroll/decoder`](/explorer/decoders) | Typed toolkit for writing payload decoders. |
+| `@deroll/json-decoder` | Example decoder for plain-JSON payloads. |
+| `@deroll/mock-server` | Mock Rollups Node JSON-RPC server for developing the explorer locally. |

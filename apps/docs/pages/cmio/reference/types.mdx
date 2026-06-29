@@ -1,0 +1,113 @@
+# Types & Constants
+
+Everything the package exports besides the [`Rollup`](/cmio/reference/rollup) class (the `RollupError` class is documented under [Errors](#errors)). All types are importable with `import type`:
+
+```ts twoslash
+import type {
+    AddressLike,
+    AdvanceRequest,
+    BytesLike,
+    DelegateCallVoucher,
+    GioResponse,
+    Hex,
+    InspectRequest,
+    RollupRequest,
+    RunHandlers,
+    U256Like,
+    Voucher,
+} from '@deroll/cmio';
+```
+
+## Input types
+
+Three "like" types describe what the binding accepts and converts automatically — see [byte and number conventions](/cmio/guide/emitting-outputs#byte-and-number-conventions). Hex strings are `Hex` (`` `0x${string}` ``), structurally identical to viem's `Hex`/`Address`:
+
+| Type | Accepts | Used for |
+| --- | --- | --- |
+| `BytesLike` | `Hex`, `Buffer`, `Uint8Array` | payloads, gio ids |
+| `AddressLike` | `Hex`, `Buffer`, `Uint8Array` (20 bytes) | voucher destinations |
+| `U256Like` | `bigint`, `number`, `Hex`, `Uint8Array` (32 bytes) | voucher values |
+
+## Output argument types
+
+The two voucher emitters take a named options object, importable for typing helpers that build outputs:
+
+- `Voucher` — argument of [`emitVoucher`](/cmio/reference/emit-voucher): `destination` (`AddressLike`), optional `value` (`U256Like`, default `0n`) and `payload` (`BytesLike`, default empty).
+- `DelegateCallVoucher` — argument of [`emitDelegateCallVoucher`](/cmio/reference/emit-delegate-call-voucher): `destination` (`AddressLike`) and optional `payload` (`BytesLike`). No `value` — `DELEGATECALL` cannot transfer ether.
+
+```ts twoslash
+import type { Voucher, DelegateCallVoucher } from '@deroll/cmio';
+
+const voucher: Voucher = {
+    destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    value: 1_000_000_000_000_000_000n,
+};
+
+const delegateCall: DelegateCallVoucher = {
+    destination: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+};
+```
+
+## Request types
+
+[`finish`](/cmio/reference/finish) returns `RollupRequest`, the discriminated union of:
+
+- `AdvanceRequest` — `type: 'advance'` plus the input metadata (`chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index`) and `payload`.
+- `InspectRequest` — `type: 'inspect'` and `payload`.
+
+```ts twoslash
+import { Rollup } from '@deroll/cmio';
+const rollup = new Rollup();
+// ---cut---
+const request = rollup.finish();
+if (request.type === 'advance') {
+    request.index;
+    //       ^?
+}
+```
+
+## Handler types
+
+`RunHandlers` is the parameter of [`run`](/cmio/reference/run) — an optional `advance` and `inspect` handler, each receiving `(request, rollup)` and returning `boolean | void`, possibly wrapped in a `Promise`.
+
+## Response types
+
+`GioResponse` is returned by [`gio`](/cmio/reference/gio): `{ responseCode: number, responseData: Buffer }`.
+
+## Constants
+
+```ts twoslash
+import { ADDRESS_LENGTH, U256_LENGTH } from '@deroll/cmio';
+
+ADDRESS_LENGTH;
+// ^?
+
+U256_LENGTH;
+// ^?
+```
+
+## Errors
+
+Failed libcmt calls throw a `RollupError` (a subclass of `Error`) with two extra properties:
+
+| Property | Type | Meaning |
+| --- | --- | --- |
+| `errno` | `number` | The negative errno from libcmt (e.g. `-16` for `EBUSY`) |
+| `syscall` | `string` | The libcmt call that failed (e.g. `cmt_rollup_init`) |
+
+`RollupError` is exported as a value, so it can be caught with `instanceof`:
+
+```ts twoslash
+import { Rollup, RollupError } from '@deroll/cmio';
+
+try {
+    new Rollup();
+} catch (error) {
+    if (error instanceof RollupError) {
+        error.errno;
+        //    ^?
+    }
+}
+```
+
+Argument validation failures throw plain `TypeError` / `RangeError` before reaching the device.
