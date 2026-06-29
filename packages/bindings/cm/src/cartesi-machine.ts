@@ -1,4 +1,4 @@
-import { NodeCartesiMachine } from "./node/cartesi-machine";
+import { NodeCartesiMachine } from "./node/cartesi-machine.js";
 import type {
     AccessLog,
     AccessLogType,
@@ -6,7 +6,7 @@ import type {
     MachineRuntimeConfig,
     MemoryRangeDescription,
     Proof,
-} from "./types";
+} from "./types.js";
 
 // -----------------------------------------------------------------------------
 // Constants and enums

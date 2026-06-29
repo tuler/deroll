@@ -1,8 +1,8 @@
-import { ErrorCode, MachineError } from "../cartesi-machine";
-import type { CleanupCall } from "../remote-cartesi-machine";
-import type { MachineConfig, MachineRuntimeConfig } from "../types";
-import { NodeCartesiMachine } from "./cartesi-machine";
-import { loadLibrary } from "./lib-loader";
+import { ErrorCode, MachineError } from "../cartesi-machine.js";
+import type { CleanupCall } from "../remote-cartesi-machine.js";
+import type { MachineConfig, MachineRuntimeConfig } from "../types.js";
+import { NodeCartesiMachine } from "./cartesi-machine.js";
+import { loadLibrary } from "./lib-loader.js";
 
 // Load the Cartesi Machine JSON-RPC library
 const lib = loadLibrary("cartesi_jsonrpc");

@@ -1,16 +1,8 @@
 {
+    "extends": "@deroll/tsconfig/base.json",
     "compilerOptions": {
-        "baseUrl": ".",
-        "declaration": true,
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
-        "module": "commonjs",
-        "outDir": "dist",
-        "strict": true,
-        "skipLibCheck": true,
-        "target": "es2021",
-        "paths": {
-            "@deroll/cm": ["./src/index.ts"]
-        }
-    }
+        "types": ["node"]
+    },
+    "include": ["src"],
+    "exclude": ["dist", "build", "node_modules"]
 }

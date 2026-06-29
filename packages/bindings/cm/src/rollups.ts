@@ -2,10 +2,10 @@ import {
     BreakReason,
     CmioYieldReason,
     type CartesiMachine,
-} from "./cartesi-machine";
-import { NodeRemoteCartesiMachine } from "./node/remote-cartesi-machine";
-import { spawn, type RemoteCartesiMachine } from "./remote-cartesi-machine";
-import type { MachineRuntimeConfig } from "./types";
+} from "./cartesi-machine.js";
+import { NodeRemoteCartesiMachine } from "./node/remote-cartesi-machine.js";
+import { spawn, type RemoteCartesiMachine } from "./remote-cartesi-machine.js";
+import type { MachineRuntimeConfig } from "./types.js";
 
 /**
  * Custom error class to signal the rollup has entered an invalid state

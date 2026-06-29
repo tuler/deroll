@@ -6,13 +6,13 @@ import type {
     CmioYieldReason,
     Reg,
     UarchBreakReason,
-} from "../cartesi-machine";
+} from "../cartesi-machine.js";
 import {
     Constant,
     ErrorCode,
     MachineError,
     MAX_MCYCLE,
-} from "../cartesi-machine";
+} from "../cartesi-machine.js";
 import type {
     AccessLog,
     AccessLogType,
@@ -20,8 +20,8 @@ import type {
     MachineRuntimeConfig,
     MemoryRangeDescription,
     Proof,
-} from "../types";
-import { loadLibrary } from "./lib-loader";
+} from "../types.js";
+import { loadLibrary } from "./lib-loader.js";
 
 // Load the Cartesi Machine library
 const lib = loadLibrary("cartesi");
