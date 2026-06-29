@@ -1,5 +1,11 @@
 # @tuler/node-libcmt
 
+## 0.2.0-alpha.1
+
+### Patch Changes
+
+- b0739c1: remove old @tuler references
+
 ## 0.2.0-alpha.0
 
 ### Minor Changes

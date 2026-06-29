@@ -1,5 +1,11 @@
 # @deroll/examples
 
+## 2.0.0-alpha.9
+
+### Patch Changes
+
+- @deroll/app@2.0.0-alpha.7
+
 ## 2.0.0-alpha.8
 
 ### Patch Changes
