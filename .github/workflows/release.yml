@@ -18,6 +18,10 @@ jobs:
         steps:
             - name: Checkout Repo
               uses: actions/checkout@v6
+              with:
+                  # cmio's native addon compiles from the machine-guest-tools
+                  # submodule (deps/machine-guest-tools) during `bun install`.
+                  submodules: recursive
 
             - name: Setup Bun
               uses: oven-sh/setup-bun@v2
