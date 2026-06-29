@@ -66,13 +66,12 @@ jobs:
         name: cmio riscv64 machine test
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: packages/bindings/cmio
         steps:
             - uses: actions/checkout@v6
               with:
                   submodules: recursive
+
+            - uses: oven-sh/setup-bun@v2
 
             - uses: actions/setup-node@v6
               with:
@@ -81,6 +80,9 @@ jobs:
             - uses: docker/setup-qemu-action@v3
               with:
                   platforms: riscv64
+
+            # bun (not npm) — the workspace uses bun's `catalog:` protocol.
+            - run: bun install --frozen-lockfile
 
             - name: Install riscv64 cross toolchain and Cartesi Linux headers
               run: |
@@ -91,18 +93,19 @@ jobs:
                   sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
 
             - name: Cross-build libcmt (real IO driver)
+              working-directory: packages/bindings/cmio
               run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
 
-            - run: npm install --ignore-scripts
-
             - name: Prebuild riscv64 addon
+              working-directory: packages/bindings/cmio
               env:
                   CC: riscv64-linux-gnu-gcc
                   CXX: riscv64-linux-gnu-g++
                   LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
-              run: npx prebuildify --napi --strip --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+              run: bun run prebuild -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
 
             - name: Run end-to-end test inside cartesi-machine
+              working-directory: packages/bindings/cmio
               run: |
                   CARTESI_MACHINE="docker run --rm -u $(id -u):$(id -g) -v $PWD:/mnt -w /mnt cartesi/machine-emulator:0.19.0 cartesi-machine" \
                   SKIP_PREBUILD=1 test/machine/run.sh
