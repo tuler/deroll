@@ -11,12 +11,18 @@ permissions:
     id-token: write
     pull-requests: write
 concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+# Used by the riscv64 cross-build. Keep in sync with the machine-guest-tools
+# submodule (its Makefile LINUX_HEADERS_* variables).
+env:
+    LINUX_IMAGE_VERSION: v0.20.0
+    LINUX_VERSION: 6.5.13-ctsi-1
+
 jobs:
-    # Decide whether this push publishes. changesets/action publishes only when
-    # there are no pending changesets (i.e. the "Version Packages" PR was just
-    # merged); otherwise it creates/updates that PR. We mirror that here so the
-    # expensive prebuild matrix runs only on the publishing push, not on every
-    # changeset merge.
+    # changesets/action publishes only when there are no pending changesets (the
+    # "Version Packages" PR was just merged); otherwise it creates/updates that
+    # PR. Mirror that here so the cmio prebuild matrix runs only on the
+    # publishing push, not on every changeset merge.
     detect:
         name: Detect publish
         runs-on: ubuntu-latest
@@ -39,24 +45,86 @@ jobs:
                       echo "$pending pending changeset(s) -> this run creates/updates the Version PR."
                   fi
 
-    # Build @deroll/cmio's native prebuilds for every supported platform, in the
-    # SAME run as the publish, so they're built from the exact release commit and
-    # uploaded as the `prebuilds` artifact for the release job to consume.
-    prebuilds:
-        name: cmio prebuilds
+    # @deroll/cmio native prebuilds, built from the exact commit being published
+    # (linux-x64/arm64, darwin-x64/arm64). Each job uploads a prebuilds-<os>
+    # artifact the release job collects. riscv64 validation lives in ci.yml.
+    prebuild:
+        name: cmio prebuild ${{ matrix.os }}
         needs: detect
         if: needs.detect.outputs.publish == 'true'
-        uses: ./.github/workflows/cmio-prebuild.yml
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest # linux-x64
+                    - os: ubuntu-24.04-arm # linux-arm64
+                    - os: macos-15-intel # darwin-x64
+                    - os: macos-latest # darwin-arm64
+        runs-on: ${{ matrix.os }}
+        defaults:
+            run:
+                working-directory: packages/bindings/cmio
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+            - run: npm install --ignore-scripts
+            - run: npm run prebuild
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: prebuilds-${{ matrix.os }}
+                  if-no-files-found: error
+                  path: packages/bindings/cmio/prebuilds/
+
+    prebuild-riscv64:
+        name: cmio prebuild linux-riscv64 (cross)
+        needs: detect
+        if: needs.detect.outputs.publish == 'true'
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/bindings/cmio
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+            - name: Install riscv64 cross toolchain and Cartesi Linux headers
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
+                  wget -O /tmp/linux-libc-dev.deb \
+                    "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb"
+                  sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
+            - name: Cross-build libcmt (real IO driver)
+              run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
+            - run: npm install --ignore-scripts
+            - name: Prebuild riscv64 addon
+              env:
+                  CC: riscv64-linux-gnu-gcc
+                  CXX: riscv64-linux-gnu-g++
+                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+              run: npx prebuildify --napi --strip --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: prebuilds-riscv64
+                  if-no-files-found: error
+                  path: packages/bindings/cmio/prebuilds/
 
     release:
         name: Release
-        needs: [detect, prebuilds]
+        needs: [detect, prebuild, prebuild-riscv64]
         # Run when creating the Version PR (publish=false, prebuilds skipped), or
-        # when publishing AND the prebuilds succeeded. Never publish cmio without
+        # when publishing AND every prebuild succeeded. Never publish cmio without
         # its prebuilds: a prebuild failure blocks the release (re-runnable).
         if: >-
             always() && needs.detect.result == 'success' &&
-            (needs.detect.outputs.publish == 'false' || needs.prebuilds.result == 'success')
+            (needs.detect.outputs.publish == 'false' ||
+             (needs.prebuild.result == 'success' && needs.prebuild-riscv64.result == 'success'))
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repo
@@ -77,15 +145,15 @@ jobs:
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
-            # Same-run artifact from the prebuilds job; only present when
-            # publishing. Lands in the cmio package so `changeset publish` packs
-            # @deroll/cmio with multi-platform prebuilds instead of forcing
-            # consumers to compile from source.
-            - name: Download cmio prebuilds
+            # Collect all platform prebuilds into the cmio package so
+            # `changeset publish` packs @deroll/cmio with them instead of forcing
+            # consumers to compile from source. Only present when publishing.
+            - name: Collect cmio prebuilds
               if: needs.detect.outputs.publish == 'true'
               uses: actions/download-artifact@v8
               with:
-                  name: prebuilds
+                  pattern: prebuilds-*
+                  merge-multiple: true
                   path: packages/bindings/cmio/prebuilds
 
             - name: Create Release Pull Request or Publish to npm

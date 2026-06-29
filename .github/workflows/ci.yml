@@ -6,11 +6,22 @@ on:
             - main
             - release/*
             - prerelease/*
+    workflow_dispatch:
+    schedule:
+        # weekly riscv64 machine validation (Mondays 06:00 UTC)
+        - cron: "0 6 * * 1"
 permissions:
     contents: read
 concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
+
+# Used by the riscv64 cross-build. Keep in sync with the machine-guest-tools
+# submodule (its Makefile LINUX_HEADERS_* variables).
+env:
+    LINUX_IMAGE_VERSION: v0.20.0
+    LINUX_VERSION: 6.5.13-ctsi-1
+
 jobs:
     build:
         name: Lint, build, test
@@ -45,3 +56,53 @@ jobs:
 
             - name: Test
               run: bun run test
+
+    # Heavy riscv64 validation: cross-build the real-IO libcmt + addon and run it
+    # inside an emulated Cartesi Machine. The host build, darwin and the other
+    # linux prebuilds are already exercised by `bun run test` above; the riscv64
+    # addon can only be validated under emulation, so it's kept OFF the PR/push
+    # hot path and runs on demand and weekly.
+    cmio-machine:
+        name: cmio riscv64 machine test
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: packages/bindings/cmio
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - uses: docker/setup-qemu-action@v3
+              with:
+                  platforms: riscv64
+
+            - name: Install riscv64 cross toolchain and Cartesi Linux headers
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
+                  wget -O /tmp/linux-libc-dev.deb \
+                    "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb"
+                  sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
+
+            - name: Cross-build libcmt (real IO driver)
+              run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
+
+            - run: npm install --ignore-scripts
+
+            - name: Prebuild riscv64 addon
+              env:
+                  CC: riscv64-linux-gnu-gcc
+                  CXX: riscv64-linux-gnu-g++
+                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+              run: npx prebuildify --napi --strip --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+
+            - name: Run end-to-end test inside cartesi-machine
+              run: |
+                  CARTESI_MACHINE="docker run --rm -u $(id -u):$(id -g) -v $PWD:/mnt -w /mnt cartesi/machine-emulator:0.19.0 cartesi-machine" \
+                  SKIP_PREBUILD=1 test/machine/run.sh
