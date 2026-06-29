@@ -1,0 +1,143 @@
+# Builds @deroll/cmio's native prebuilds for every platform it supports:
+# linux-x64, linux-arm64, darwin-x64, darwin-arm64 (native runners) and
+# linux-riscv64 (cross-compiled against the Cartesi Linux headers, then
+# exercised inside an emulated Cartesi Machine). The merge job collects them
+# into a single `prebuilds` artifact.
+#
+# Adapted from tuler/libcmt-node's build.yml. Run manually (workflow_dispatch);
+# wiring the merged prebuilds into the changesets publish of @deroll/cmio is a
+# follow-up — for now download the `prebuilds` artifact and drop it into
+# packages/bindings/cmio/prebuilds/ before publishing.
+#
+# NOTE: keep LINUX_IMAGE_VERSION / LINUX_VERSION in sync with the
+# machine-guest-tools submodule (its Makefile LINUX_HEADERS_* variables).
+name: cmio prebuild
+on:
+    workflow_dispatch:
+
+env:
+    LINUX_IMAGE_VERSION: v0.20.0
+    LINUX_VERSION: 6.5.13-ctsi-1
+
+defaults:
+    run:
+        working-directory: packages/bindings/cmio
+
+jobs:
+    prebuild:
+        name: prebuild ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest # linux-x64
+                    - os: ubuntu-24.04-arm # linux-arm64
+                    - os: macos-15-intel # darwin-x64
+                    - os: macos-latest # darwin-arm64
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - run: npm install --ignore-scripts
+            - run: npm run prebuild
+
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: prebuilds-${{ matrix.os }}
+                  if-no-files-found: error
+                  path: packages/bindings/cmio/prebuilds/
+
+    prebuild-riscv64:
+        name: prebuild linux-riscv64 (cross)
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Install riscv64 cross toolchain and Cartesi Linux headers
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
+                  wget -O /tmp/linux-libc-dev.deb \
+                    "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb"
+                  sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
+
+            - name: Cross-build libcmt (real IO driver)
+              run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
+
+            - run: npm install --ignore-scripts
+
+            - name: Prebuild riscv64 addon
+              env:
+                  CC: riscv64-linux-gnu-gcc
+                  CXX: riscv64-linux-gnu-g++
+                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+              run: npx prebuildify --napi --strip --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: prebuilds-riscv64
+                  if-no-files-found: error
+                  path: packages/bindings/cmio/prebuilds/
+
+    # Runs the riscv64 prebuild inside a real (emulated) Cartesi Machine,
+    # exercising the real IO driver end to end.
+    test-machine:
+        name: test riscv64 prebuild in cartesi-machine
+        needs: prebuild-riscv64
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - uses: docker/setup-qemu-action@v3
+              with:
+                  platforms: riscv64
+
+            - uses: actions/download-artifact@v7
+              with:
+                  name: prebuilds-riscv64
+                  path: packages/bindings/cmio/prebuilds/
+
+            - name: Run end-to-end test inside cartesi-machine
+              run: |
+                  CARTESI_MACHINE="docker run --rm -u $(id -u):$(id -g) -v $PWD:/mnt -w /mnt cartesi/machine-emulator:0.19.0 cartesi-machine" \
+                  SKIP_PREBUILD=1 test/machine/run.sh
+
+    merge-prebuilds:
+        name: merge prebuilds
+        needs: [prebuild, prebuild-riscv64]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Merge all platform prebuilds
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: prebuilds-*
+                  merge-multiple: true
+                  path: prebuilds/
+
+            - name: List prebuilds
+              run: ls -lR prebuilds/
+              working-directory: .
+
+            - name: Upload combined prebuilds
+              uses: actions/upload-artifact@v7
+              with:
+                  name: prebuilds
+                  if-no-files-found: error
+                  path: prebuilds/
