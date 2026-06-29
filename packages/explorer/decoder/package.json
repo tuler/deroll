@@ -1,6 +1,6 @@
 {
   "name": "@deroll/decoder",
-  "version": "0.1.0",
+  "version": "0.2.0-alpha.0",
   "description": "Typed toolkit for writing Cartesi Node Explorer payload decoders",
   "repository": {
     "type": "git",
@@ -14,7 +14,10 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist/index.js", "src"],
+  "files": [
+    "dist/index.js",
+    "src"
+  ],
   "publishConfig": {
     "access": "public"
   },
