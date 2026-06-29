@@ -63,7 +63,7 @@
         "vitest": "^4.1.9",
       },
     },
-    "packages/app": {
+    "packages/app/app": {
       "name": "@deroll/app",
       "version": "2.0.0-alpha.5",
       "dependencies": {
@@ -81,7 +81,7 @@
         "vitest": "^4.1.9",
       },
     },
-    "packages/core": {
+    "packages/app/core": {
       "name": "@deroll/core",
       "version": "2.0.0-alpha.4",
       "dependencies": {
@@ -98,7 +98,7 @@
         "vitest": "^4.1.9",
       },
     },
-    "packages/create-app": {
+    "packages/app/create-app": {
       "name": "@deroll/create-app",
       "version": "2.0.0-alpha.10",
       "bin": "dist/cli.js",
@@ -125,7 +125,7 @@
         "typescript": "^6.0.3",
       },
     },
-    "packages/router": {
+    "packages/app/router": {
       "name": "@deroll/router",
       "version": "2.0.0-alpha.4",
       "dependencies": {
@@ -145,11 +145,11 @@
         "vitest-mock-extended": "^4.0.0",
       },
     },
-    "packages/tsconfig": {
+    "packages/app/tsconfig": {
       "name": "@deroll/tsconfig",
       "version": "1.0.0",
     },
-    "packages/wallet": {
+    "packages/app/wallet": {
       "name": "@deroll/wallet",
       "version": "2.0.0-alpha.6",
       "dependencies": {
@@ -316,21 +316,21 @@
 
     "@cspotcode/source-map-support": ["@cspotcode/source-map-support@0.8.1", "", { "dependencies": { "@jridgewell/trace-mapping": "0.3.9" } }, "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw=="],
 
-    "@deroll/app": ["@deroll/app@workspace:packages/app"],
+    "@deroll/app": ["@deroll/app@workspace:packages/app/app"],
 
-    "@deroll/core": ["@deroll/core@workspace:packages/core"],
+    "@deroll/core": ["@deroll/core@workspace:packages/app/core"],
 
-    "@deroll/create-app": ["@deroll/create-app@workspace:packages/create-app"],
+    "@deroll/create-app": ["@deroll/create-app@workspace:packages/app/create-app"],
 
     "@deroll/docs": ["@deroll/docs@workspace:apps/docs"],
 
     "@deroll/examples": ["@deroll/examples@workspace:apps/examples"],
 
-    "@deroll/router": ["@deroll/router@workspace:packages/router"],
+    "@deroll/router": ["@deroll/router@workspace:packages/app/router"],
 
-    "@deroll/tsconfig": ["@deroll/tsconfig@workspace:packages/tsconfig"],
+    "@deroll/tsconfig": ["@deroll/tsconfig@workspace:packages/app/tsconfig"],
 
-    "@deroll/wallet": ["@deroll/wallet@workspace:packages/wallet"],
+    "@deroll/wallet": ["@deroll/wallet@workspace:packages/app/wallet"],
 
     "@emnapi/core": ["@emnapi/core@1.11.1", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.2", "tslib": "^2.4.0" } }, "sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ=="],
 

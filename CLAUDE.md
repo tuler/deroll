@@ -14,17 +14,19 @@ The four outputs a backend can emit: **notices** (verifiable event logs), **repo
 
 ## Monorepo layout
 
-bun + Turborepo workspace. Published packages live in `packages/*`; `apps/*` are private (docs + examples).
+bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glob) and `apps/*`. The three pillars are **App** (`packages/app/*`), **Bindings** (`packages/bindings/*`), and **Explorer** (`packages/explorer/*`). `apps/*` are private (docs + examples + the explorer site).
 
-- **`packages/core`** (`@deroll/core`) — shared types and the OpenAPI-generated `schema.ts`. Defines the `App` interface and request/output types. No runtime logic; everything else depends on this.
-- **`packages/app`** (`@deroll/app`) — `createApp()`. The concrete `HttpApp` that runs the poll loop against the Rollup HTTP Server via an `openapi-fetch` client, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
-- **`packages/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
-- **`packages/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
-- **`packages/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
-- **`packages/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
-- **`packages/testing`** — currently empty (no `package.json` or source).
+App pillar — `packages/app/*`:
+- **`packages/app/core`** (`@deroll/core`) — shared types and the OpenAPI-generated `schema.ts`. Defines the `App` interface and request/output types. No runtime logic; everything else depends on this.
+- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `HttpApp` that runs the poll loop against the Rollup HTTP Server via an `openapi-fetch` client, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
+- **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
+- **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
+- **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
+- **`packages/app/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
 
-Apps: `apps/docs` (Vocs documentation site) and `apps/examples` (runnable backend examples — `echo`, `minimal`, `router`, `wallet`, `walletRouter`, `withdraw`, `abi`).
+Bindings pillar — `packages/bindings/*` (`@deroll/cmio`, `@deroll/cm`) and Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
+
+Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend examples — `echo`, `minimal`, `router`, `wallet`, `walletRouter`, `withdraw`, `abi`), and `apps/explorer` (the explorer site, deployed to explorer.deroll.dev).
 
 ### How the pieces compose
 
@@ -62,8 +64,8 @@ Per-package / focused work:
 ```sh
 bun run --filter @deroll/wallet test        # test one package
 bun run --filter @deroll/wallet build       # build one package
-cd packages/wallet && bunx vitest run __tests__/transfer.test.ts   # single test file
-cd packages/wallet && bunx vitest run -t "withdraw"                # tests matching a name
+cd packages/app/wallet && bunx vitest run __tests__/transfer.test.ts   # single test file
+cd packages/app/wallet && bunx vitest run -t "withdraw"                # tests matching a name
 ```
 
 Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` currently have them). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
@@ -71,7 +73,7 @@ Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` curren
 ## Build & codegen specifics
 
 - Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`.
-- **`@deroll/core` build is two-step**: `codegen` then `compile`. `codegen` runs `tsx schema.ts`, which fetches the Cartesi rollup OpenAPI spec (pinned to a `cartesi/openapi-interfaces` version) and generates `src/schema.ts` via `openapi-typescript`. A custom transform rewrites OpenAPI `format: hex`/`format: address` fields to viem's `Hex`/`Address` types instead of plain strings. **Do not hand-edit `packages/core/src/schema.ts`** — change `packages/core/schema.ts` (the generator) and re-run codegen.
+- **`@deroll/core` build is two-step**: `codegen` then `compile`. `codegen` runs `tsx schema.ts`, which fetches the Cartesi rollup OpenAPI spec (pinned to a `cartesi/openapi-interfaces` version) and generates `src/schema.ts` via `openapi-typescript`. A custom transform rewrites OpenAPI `format: hex`/`format: address` fields to viem's `Hex`/`Address` types instead of plain strings. **Do not hand-edit `packages/app/core/src/schema.ts`** — change `packages/app/core/schema.ts` (the generator) and re-run codegen.
 - `viem` is the shared toolkit for hex/ABI encoding throughout. Deposit parsing and voucher creation in `@deroll/wallet` rely on `@cartesi/viem` for portal/contract addresses and ABIs.
 
 ## Conventions
