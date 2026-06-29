@@ -56,7 +56,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     const { directory, libraries, packageManager } = options;
 
     // let's keep this as a variable, because it might change
-    const bindingPackage = "@tuler/node-libcmt";
+    const bindingPackage = "@deroll/cmio";
 
     // choose one of the examples based on the selected libraries
     let example = "minimal";

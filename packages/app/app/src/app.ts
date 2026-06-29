@@ -10,7 +10,7 @@ import type {
     RequestHandlerResult,
     Voucher,
 } from "@deroll/core";
-import { Rollup, RollupError } from "@tuler/node-libcmt";
+import { Rollup, RollupError } from "@deroll/cmio";
 
 export class NativeApp implements App {
     private options: AppOptions;

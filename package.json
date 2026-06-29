@@ -25,11 +25,11 @@
         "@biomejs/biome": "2.5.0"
     },
     "trustedDependencies": [
-        "@tuler/node-libcmt",
         "bufferutil",
         "es5-ext",
         "esbuild",
         "koffi",
+        "node-gyp-build",
         "sharp",
         "utf-8-validate",
         "vue-demi"

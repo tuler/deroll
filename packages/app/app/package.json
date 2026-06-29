@@ -32,7 +32,7 @@
         "prepack": "run-s build"
     },
     "dependencies": {
-        "@tuler/node-libcmt": "^0.1.4",
+        "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
         "viem": "^2.53.1"
     },

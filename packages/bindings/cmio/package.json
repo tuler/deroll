@@ -1,6 +1,6 @@
 {
-    "name": "@tuler/node-libcmt",
-    "version": "0.1.4",
+    "name": "@deroll/cmio",
+    "version": "0.1.0",
     "description": "Node.js bindings for libcmt, the Cartesi Machine guest rollup library",
     "keywords": [
         "cartesi",
@@ -12,7 +12,7 @@
     "author": "Cartesi and individual authors (see AUTHORS)",
     "repository": {
         "type": "git",
-        "url": "https://github.com/tuler/libcmt-node.git"
+        "url": "https://github.com/tuler/deroll"
     },
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
@@ -46,10 +46,7 @@
         "build": "node-gyp rebuild",
         "prebuild": "prebuildify --napi --strip",
         "test": "node --test \"test/*.test.mjs\"",
-        "check:package": "attw --pack .",
-        "docs:dev": "vite dev",
-        "docs:build": "vite build --app",
-        "docs:preview": "vocs preview"
+        "check:package": "attw --pack ."
     },
     "dependencies": {
         "node-addon-api": "^8.3.0",
@@ -57,16 +54,10 @@
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.3",
-        "@changesets/cli": "^2.31.0",
         "@types/node": "^25.9.2",
-        "@vitejs/plugin-react": "^6.0.2",
         "node-gyp": "^11.0.0",
         "prebuildify": "^6.0.1",
-        "react-server-dom-webpack": "~19.2.4",
-        "typescript": "^6.0.3",
-        "vite": "^8.0.16",
-        "vocs": "^2.0.12",
-        "waku": "1.0.0-beta.1"
+        "typescript": "^6.0.3"
     },
     "engines": {
         "node": ">=18"
