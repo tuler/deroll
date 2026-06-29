@@ -1,0 +1,415 @@
+# CartesiMachine
+
+## Interface
+
+This is the complete TypeScript interface of a `machine` object.
+Descriptions for each method are in the following sections.
+
+```ts
+export interface CartesiMachine {
+    //// Machine Lifecycle
+    isEmpty(): boolean;
+    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
+    load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+    cloneEmpty(): CartesiMachine;
+    store(dir: string): void;
+    destroy(): void;
+    
+    //// Configuration
+    getDefaultConfig(): MachineConfig;
+    getInitialConfig(): MachineConfig;
+    setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
+    getRuntimeConfig(): MachineRuntimeConfig;
+    getMemoryRanges(): MemoryRangeDescription[];
+
+    //// Memory Operations
+    replaceMemoryRange(
+        start: bigint,
+        length: bigint,
+        shared: boolean,
+        imageFilename?: string,
+    ): void;
+    readWord(address: bigint): bigint;
+    readMemory(address: bigint, length: bigint): Buffer;
+    writeMemory(address: bigint, data: Buffer): void;
+    readVirtualMemory(address: bigint, length: bigint): Buffer;
+    writeVirtualMemory(address: bigint, data: Buffer): void;
+    translateVirtualAddress(vaddr: bigint): bigint;
+
+    //// Register Operations
+    getRegAddress(reg: Reg): bigint;
+    readReg(reg: Reg): bigint;
+    writeReg(reg: Reg, value: bigint): void;
+
+    //// Execution
+    run(mcycleEnd?: bigint): BreakReason;
+    runUarch(uarchCycleEnd: bigint): UarchBreakReason;
+    resetUarch(): void;
+
+    //// Merkle Tree Operations
+    getRootHash(): Buffer;
+    getProof(address: bigint, log2Size: number): Proof;
+    verifyMerkleTree(): boolean;
+    verifyDirtyPageMaps(): boolean;
+
+    //// Execution Log
+    logStep(mcycleCount: bigint, logFilename: string): BreakReason;
+    logStepUarch(logType: AccessLogType): AccessLog;
+    logResetUarch(logType: AccessLogType): AccessLog;
+    logSendCmioResponse(
+        reason: CmioYieldReason,
+        data: Buffer,
+        logType: AccessLogType,
+    ): string;
+
+    //// Verification
+    verifyStep(
+        rootHashBefore: Buffer,
+        logFilename: string,
+        mcycleCount: bigint,
+        rootHashAfter: Buffer,
+    ): BreakReason;
+    verifyStepUarch(
+        rootHashBefore: Buffer,
+        log: AccessLog,
+        rootHashAfter: Buffer,
+    ): void;
+    verifyResetUarch(
+        rootHashBefore: Buffer,
+        log: AccessLog,
+        rootHashAfter: Buffer,
+    ): void;
+
+    //// CMIO Operations
+    sendCmioResponse(reason: CmioYieldReason, data: Buffer): void;
+    receiveCmioRequest(): {
+        cmd: CmioYieldCommand;
+        reason: CmioYieldReason;
+        data: Buffer;
+    };
+}
+```
+
+## isEmpty
+
+Checks if the machine object is empty (does not hold a machine instance).
+
+```ts
+isEmpty(): boolean;
+```
+
+## create
+
+Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty.
+
+```ts
+create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
+```
+
+## load
+
+Loads a machine instance from a previously stored directory, with optional runtime configuration. The machine object must be empty.
+
+```ts
+load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+```
+
+## cloneEmpty
+
+Clones an empty machine object from an existing one. The new object is empty and of the same type (local or remote) as the original.
+
+```ts
+cloneEmpty(): CartesiMachine;
+```
+
+## store
+
+Stores the current machine instance to a directory, serializing its entire state. Will not overwrite an existing directory.
+
+```ts
+store(dir: string): void;
+```
+
+## destroy
+
+Destroys the current machine instance and removes it from the object. Does not delete the machine object itself.
+
+```ts
+destroy(): void;
+```
+
+## getDefaultConfig
+
+Returns the default machine configuration. The returned config is not sufficient to run a machine; additional fields must be set.
+
+```ts
+getDefaultConfig(): MachineConfig;
+```
+
+## getInitialConfig
+
+Returns the initial configuration used to create the current machine instance.
+
+```ts
+getInitialConfig(): MachineConfig;
+```
+
+## setRuntimeConfig
+
+Changes the machine runtime configuration.
+
+```ts
+setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
+```
+
+## getRuntimeConfig
+
+Returns the current machine runtime configuration.
+
+```ts
+getRuntimeConfig(): MachineRuntimeConfig;
+```
+
+## getMemoryRanges
+
+Returns a list of all memory ranges in the machine.
+
+```ts
+getMemoryRanges(): MemoryRangeDescription[];
+```
+
+## replaceMemoryRange
+
+Replaces a memory range in the machine. The new range must match an existing range's start and length.
+
+```ts
+replaceMemoryRange(
+    start: bigint,
+    length: bigint,
+    shared: boolean,
+    imageFilename?: string,
+): void;
+```
+
+## readWord
+
+Reads a 64-bit word from memory at the given physical address.
+
+```ts
+readWord(address: bigint): bigint;
+```
+
+## readMemory
+
+Reads a chunk of data from memory at the given physical address and length.
+
+```ts
+readMemory(address: bigint, length: bigint): Buffer;
+```
+
+## writeMemory
+
+Writes a chunk of data to memory at the given physical address and length.
+
+```ts
+writeMemory(address: bigint, data: Buffer): void;
+```
+
+## readVirtualMemory
+
+Reads a chunk of data from memory at the given virtual address and length, using the current address mapping.
+
+```ts
+readVirtualMemory(address: bigint, length: bigint): Buffer;
+```
+
+## writeVirtualMemory
+
+Writes a chunk of data to memory at the given virtual address and length, using the current address mapping.
+
+```ts
+writeVirtualMemory(address: bigint, data: Buffer): void;
+```
+
+## translateVirtualAddress
+
+Translates a virtual memory address to its corresponding physical memory address.
+
+```ts
+translateVirtualAddress(vaddr: bigint): bigint;
+```
+
+## getRegAddress
+
+Returns the address of a register.
+
+```ts
+getRegAddress(reg: Reg): bigint;
+```
+
+## readReg
+
+Reads the value of a register.
+
+```ts
+readReg(reg: Reg): bigint;
+```
+
+## writeReg
+
+Writes a value to a register.
+
+```ts
+writeReg(reg: Reg, value: bigint): void;
+```
+
+## run
+
+Runs the machine until the given cycle, or until it yields or halts. If no argument is provided, runs until `MAX_MCYCLE` (the maximum cycle value), which is equivalent to running until the machine yields or halts.
+
+```ts
+run(mcycleEnd?: bigint): BreakReason;
+```
+
+**Note:** `MAX_MCYCLE` is exported as a constant and can be used to explicitly specify the maximum cycle value.
+
+## runUarch
+
+Runs the machine microarchitecture until the given micro cycle or until it halts.
+
+```ts
+runUarch(uarchCycleEnd: bigint): UarchBreakReason;
+```
+
+## resetUarch
+
+Resets the entire microarchitecture state to pristine values.
+
+```ts
+resetUarch(): void;
+```
+
+## getRootHash
+
+Obtains the root hash of the current machine state.
+
+```ts
+getRootHash(): Buffer;
+```
+
+## getProof
+
+Obtains a Merkle proof for a range in the machine state.
+
+```ts
+getProof(address: bigint, log2Size: number): Proof;
+```
+
+## verifyMerkleTree
+
+Verifies the integrity of the Merkle tree against the current machine state.
+
+```ts
+verifyMerkleTree(): boolean;
+```
+
+## verifyDirtyPageMaps
+
+Verifies the integrity of the dirty page maps.
+
+```ts
+verifyDirtyPageMaps(): boolean;
+```
+
+## logStep
+
+Runs the machine for the given cycle count and generates a log of accessed pages and proof data.
+
+```ts
+logStep(mcycleCount: bigint, logFilename: string): BreakReason;
+```
+
+## logStepUarch
+
+Runs the machine microarchitecture for one cycle and returns a log of state accesses.
+
+```ts
+logStepUarch(logType: AccessLogType): AccessLog;
+```
+
+## logResetUarch
+
+Resets the microarchitecture state to pristine values and returns a log of state accesses.
+
+```ts
+logResetUarch(logType: AccessLogType): AccessLog;
+```
+
+## logSendCmioResponse
+
+Sends a cmio response and returns a log of state accesses.
+
+```ts
+logSendCmioResponse(
+    reason: CmioYieldReason,
+    data: Buffer,
+    logType: AccessLogType,
+): string;
+```
+
+## verifyStep
+
+Checks the validity of a step log file.
+
+```ts
+verifyStep(
+    rootHashBefore: Buffer,
+    logFilename: string,
+    mcycleCount: bigint,
+    rootHashAfter: Buffer,
+): BreakReason;
+```
+
+## verifyStepUarch
+
+Checks the validity of a state transition produced by a microarchitecture step log.
+
+```ts
+verifyStepUarch(
+    rootHashBefore: Buffer,
+    log: AccessLog,
+    rootHashAfter: Buffer,
+): void;
+```
+
+## verifyResetUarch
+
+Checks the validity of a state transition produced by a microarchitecture reset log.
+
+```ts
+verifyResetUarch(
+    rootHashBefore: Buffer,
+    log: AccessLog,
+    rootHashAfter: Buffer,
+): void;
+```
+
+## sendCmioResponse
+
+Sends a cmio response. Should only be called as a response to cmio requests with manual yield command.
+
+```ts
+sendCmioResponse(reason: CmioYieldReason, data: Buffer): void;
+```
+
+## receiveCmioRequest
+
+Receives a cmio request, including the yield command, reason, and data.
+
+```ts
+receiveCmioRequest(): {
+    cmd: CmioYieldCommand;
+    reason: CmioYieldReason;
+    data: Buffer;
+};
+```

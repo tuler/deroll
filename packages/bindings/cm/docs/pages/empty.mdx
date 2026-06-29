@@ -1,0 +1,33 @@
+# empty
+
+Creates an empty Cartesi machine object. The returned object does not hold a machine instance and must be initialized by calling `create()` or `load()` before it can be used for computation.
+
+## Function Signature
+
+```ts
+enpty(): CartesiMachine
+```
+
+## Example
+
+```ts twoslash
+import { empty } from "@tuler/node-cartesi-machine";
+
+// Create an empty machine object
+const machine = empty();
+
+// At this point, the machine is not initialized and cannot be used for computation
+console.log(machine.isEmpty()); // true
+
+// You must initialize it with create() or load() before use
+machine.create({
+    ram: { length: 0x8000000 },
+    // ... other config fields ...
+});
+console.log(machine.isEmpty()); // false
+```
+
+## Notes
+
+- Calling any method that requires an initialized machine (such as `run()` or `getRootHash()`) on an empty machine will result in an error.
+- Always check `isEmpty()` if you are unsure whether a machine object has been initialized. 

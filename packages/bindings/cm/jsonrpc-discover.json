@@ -1,0 +1,2023 @@
+{
+    "openrpc": "1.0.0-rc1",
+    "info": {
+        "title": "Remote Cartesi Machine",
+        "version": "0.5.0",
+        "description": "API for controlling a remote Cartesi Machine server",
+        "license": {
+            "name": "MIT"
+        }
+    },
+    "methods": [
+        {
+            "name": "fork",
+            "summary": "Forks the server",
+            "params": [],
+            "result": {
+                "name": "fork_result",
+                "description": "Information about the forked child",
+                "schema": {
+                    "$ref": "#/components/schemas/ForkResult"
+                }
+            }
+        },
+        {
+            "name": "rebind",
+            "summary": "Changes the address the server is listening to",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "URL of the new address",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "address",
+                "description": "URL of address server actually bound to",
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        {
+            "name": "shutdown",
+            "summary": "Causes the server to shutdown and exit",
+            "params": [],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "get_version",
+            "summary": "Returns the server version",
+            "params": [],
+            "result": {
+                "name": "version",
+                "description": "Semantic version",
+                "schema": {
+                    "$ref": "#/components/schemas/SemanticVersion"
+                }
+            }
+        },
+        {
+            "name": "is_empty",
+            "summary": "Checks if server has no machine instance",
+            "params": [],
+            "result": {
+                "name": "empty",
+                "description": "True if server has no machine",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.set_runtime_config",
+            "summary": "Changes the machine runtime configuration",
+            "params": [
+                {
+                    "name": "runtime_config",
+                    "description": "Machine runtime configuration",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/MachineRuntimeConfig"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.get_runtime_config",
+            "summary": "Returns the current machine runtime configuration",
+            "params": [],
+            "result": {
+                "name": "runtime_config",
+                "description": "Machine runtime configuration",
+                "schema": {
+                    "$ref": "#/components/schemas/MachineRuntimeConfig"
+                }
+            }
+        },
+        {
+            "name": "machine.create",
+            "summary": "Instantiates a machine from a machine configuration",
+            "params": [
+                {
+                    "name": "config",
+                    "description": "Machine configuration",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/MachineConfig"
+                    }
+                },
+                {
+                    "name": "runtime_config",
+                    "description": "Machine runtime configuration",
+                    "required": false,
+                    "schema": {
+                        "$ref": "#/components/schemas/MachineRuntimeConfig"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.load",
+            "summary": "Instantiates a machine from a directory where a machine instance was stored",
+            "params": [
+                {
+                    "name": "directory",
+                    "description": "Directory with stored machine instance",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "runtime_config",
+                    "description": "Machine runtime configuration",
+                    "required": false,
+                    "schema": {
+                        "$ref": "#/components/schemas/MachineRuntimeConfig"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.destroy",
+            "summary": "Destroys current machine instance",
+            "params": [],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.store",
+            "summary": "Stores machine instance in a directory",
+            "params": [
+                {
+                    "name": "directory",
+                    "description": "Directory to stored machine instance",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.run",
+            "summary": "Runs the emulator until a given cycle",
+            "params": [
+                {
+                    "name": "mcycle_end",
+                    "description": "The maximum value of the cycle counter",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "reason",
+                "description": "Reason call returned",
+                "schema": {
+                    "$ref": "#/components/schemas/InterpreterBreakReason"
+                }
+            }
+        },
+        {
+            "name": "machine.run_uarch",
+            "summary": "Runs the small emulator until a given cycle",
+            "params": [
+                {
+                    "name": "uarch_cycle_end",
+                    "description": "The maximum value of the cycle counter",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "reason",
+                "description": "Reason call returned",
+                "schema": {
+                    "$ref": "#/components/schemas/UarchInterpreterBreakReason"
+                }
+            }
+        },
+        {
+            "name": "machine.log_step_uarch",
+            "summary": "Runs the small emulator for one cycle and return a log of state accesses",
+            "params": [
+                {
+                    "name": "log_type",
+                    "description": "The maximum value of the cycle counter",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLogType"
+                    }
+                }
+            ],
+            "result": {
+                "name": "log",
+                "description": "Log of state accesses",
+                "schema": {
+                    "$ref": "#/components/schemas/AccessLog"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_step_uarch",
+            "summary": "Verifies a state transition caused by log_step_uarch",
+            "params": [
+                {
+                    "name": "root_hash_before",
+                    "description": "State hash before transition described by access log",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
+                {
+                    "name": "log",
+                    "description": "Access log describing transition",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLog"
+                    }
+                },
+                {
+                    "name": "root_hash_after",
+                    "description": "State hash after transition described by access log",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_reset_uarch",
+            "summary": "Verifies a state transition caused by log_reset_uarch",
+            "params": [
+                {
+                    "name": "root_hash_before",
+                    "description": "State hash before transition described by access log",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
+                {
+                    "name": "log",
+                    "description": "Access log describing transition",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLog"
+                    }
+                },
+                {
+                    "name": "root_hash_after",
+                    "description": "State hash after transition described by access log",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.get_root_hash",
+            "summary": "Obtains the Merkle hash of the current machine state",
+            "params": [],
+            "result": {
+                "name": "hash",
+                "description": "Merkle hash",
+                "schema": {
+                    "$ref": "#/components/schemas/Base64Hash"
+                }
+            }
+        },
+        {
+            "name": "machine.get_proof",
+            "summary": "Obtains a Merkle proof for a range in the machine state",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting address of range in state (must be aligned to size)",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "log2_size",
+                    "description": "Log2 of size of range",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "proof",
+                "description": "Proof of range contents",
+                "schema": {
+                    "$ref": "#/components/schemas/Proof"
+                }
+            }
+        },
+        {
+            "name": "machine.read_word",
+            "summary": "Reads a 64-bit word from memory (must be aligned)",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting physical address of word",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "value",
+                "description": "Value of word (little-endian)",
+                "schema": {
+                    "$ref": "#/components/schemas/UnsignedInteger"
+                }
+            }
+        },
+        {
+            "name": "machine.read_memory",
+            "summary": "Reads a span of memory from the state (must be contained in the same memory range)",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting physical address of span",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "length",
+                    "description": "Length of span",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "Data",
+                "description": "Span of memory",
+                "schema": {
+                    "$ref": "#/components/schemas/Base64String"
+                }
+            }
+        },
+        {
+            "name": "machine.write_memory",
+            "summary": "Writes a span of memory to the state (must be contained in the same memory range)",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting physical address of span",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "data",
+                    "description": "Span of memory",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64String"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.read_virtual_memory",
+            "summary": "Reads a span of memory from the state (must be contained in the same memory range)",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting virtual address of span according to current mapping",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "length",
+                    "description": "Length of span",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "Data",
+                "description": "Span of memory",
+                "schema": {
+                    "$ref": "#/components/schemas/Base64String"
+                }
+            }
+        },
+        {
+            "name": "machine.write_virtual_memory",
+            "summary": "Writes a span of memory to the state (must be contained in the same memory range)",
+            "params": [
+                {
+                    "name": "address",
+                    "description": "Starting virtual address of span according to current mapping",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "data",
+                    "description": "Span of memory",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64String"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.translate_virtual_address",
+            "summary": "Translates a virtual memory address to its corresponding physical memory address",
+            "params": [
+                {
+                    "name": "vaddr",
+                    "description": "Virtual address to translate",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "paddr",
+                "description": "Value of corresponding physical address (little-endian)",
+                "schema": {
+                    "$ref": "#/components/schemas/UnsignedInteger"
+                }
+            }
+        },
+        {
+            "name": "machine.replace_memory_range",
+            "summary": "Replaces a memory range",
+            "params": [
+                {
+                    "name": "range",
+                    "description": "New memory range (must be compatible with existing range)",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/MemoryRangeConfig"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.read_register",
+            "summary": "Reads the value of a register",
+            "params": [
+                {
+                    "name": "reg",
+                    "description": "Register to read",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/REG"
+                    }
+                }
+            ],
+            "result": {
+                "name": "value",
+                "description": "Value of register (little-endian)",
+                "schema": {
+                    "$ref": "#/components/schemas/UnsignedInteger"
+                }
+            }
+        },
+        {
+            "name": "machine.write_reg",
+            "summary": "Writes the value of a register",
+            "params": [
+                {
+                    "name": "reg",
+                    "description": "Register to write",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/REG"
+                    }
+                },
+                {
+                    "name": "value",
+                    "description": "Value of register (little-endian)",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.get_reg_address",
+            "summary": "Returns the address of a register",
+            "params": [
+                {
+                    "name": "reg",
+                    "description": "Register to obtain address",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/REG"
+                    }
+                }
+            ],
+            "result": {
+                "name": "address",
+                "description": "Address of register",
+                "schema": {
+                    "$ref": "#/components/schemas/UnsignedInteger"
+                }
+            }
+        },
+        {
+            "name": "machine.reset_uarch",
+            "summary": "Reset uarch to pristine state",
+            "params": [],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.log_reset_uarch",
+            "summary": "Reset uarch to pristine state and return a log of state accesses",
+            "params": [
+                {
+                    "name": "log_type",
+                    "description": "The maximum value of the cycle counter",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLogType"
+                    }
+                }
+            ],
+            "result": {
+                "name": "log",
+                "description": "Log of state accesses",
+                "schema": {
+                    "$ref": "#/components/schemas/AccessLog"
+                }
+            }
+        },
+        {
+            "name": "machine.get_initial_config",
+            "summary": "Returns initial machine configuration for instance",
+            "params": [],
+            "result": {
+                "name": "config",
+                "description": "Machine configuration",
+                "schema": {
+                    "$ref": "#/components/schemas/MachineConfig"
+                }
+            }
+        },
+        {
+            "name": "machine.get_default_config",
+            "summary": "Returns default machine configuration",
+            "params": [],
+            "result": {
+                "name": "config",
+                "description": "Machine configuration",
+                "schema": {
+                    "$ref": "#/components/schemas/MachineConfig"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_merkle_tree",
+            "summary": "Verifies sanity of Merkle tree",
+            "params": [],
+            "result": {
+                "name": "valid",
+                "description": "True if Merkle tree is sane",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_dirty_page_maps",
+            "summary": "Verifies sanity of dirty page maps",
+            "params": [],
+            "result": {
+                "name": "valid",
+                "description": "True if dirty page maps are sane",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.get_memory_ranges",
+            "summary": "Returns a list with descriptions for all of the machine's memory ranges",
+            "params": [],
+            "result": {
+                "name": "ranges",
+                "description": "Array of memory range descriptions",
+                "schema": {
+                    "$ref": "#/components/schemas/MemoryRangeDescriptionArray"
+                }
+            }
+        },
+        {
+            "name": "machine.send_cmio_response",
+            "summary": "Sends cmio response.",
+            "params": [
+                {
+                    "name": "reason",
+                    "description": "Reason for sending response",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "data",
+                    "description": "Response data to send",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64String"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.log_send_cmio_response",
+            "summary": "Sends cmio response and returns an access log",
+            "params": [
+                {
+                    "name": "reason",
+                    "description": "Reason for sending response",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "data",
+                    "description": "Response data to send",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64String"
+                    }
+                },
+                {
+                    "name": "log_type",
+                    "description": "The log type to generate",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLogType"
+                    }
+                }
+            ],
+            "result": {
+                "name": "log",
+                "description": "Log of state accesses",
+                "schema": {
+                    "$ref": "#/components/schemas/AccessLog"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_send_cmio_response",
+            "summary": "Verifies a state transition caused by log_send_cmio_response",
+            "params": [
+                {
+                    "name": "reason",
+                    "description": "Reason for sending response",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "data",
+                    "description": "The response data sent when the log was generated.",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64String"
+                    }
+                },
+                {
+                    "name": "root_hash_before",
+                    "description": "State hash before response was sent.",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
+                {
+                    "name": "log",
+                    "description": "State access log to be verified.",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/AccessLog"
+                    }
+                },
+                {
+                    "name": "root_hash_after",
+                    "description": "State hash after response was sent.",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "machine.log_step",
+            "summary": "Logs a step of a given number of cycles",
+            "params": [
+                {
+                    "name": "mcycle_count",
+                    "description": "Number of cycles to log",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "filename",
+                    "description": "Filename to store the log",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "reason",
+                "description": "Reason call returned",
+                "schema": {
+                    "$ref": "#/components/schemas/InterpreterBreakReason"
+                }
+            }
+        },
+        {
+            "name": "machine.verify_step",
+            "summary": "Checks the validity of a step log file.",
+            "params": [
+                {
+                    "name": "root_hash_before",
+                    "description": "State hash before step",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
+                {
+                    "name": "filename",
+                    "description": "Filename containing the log of the step",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "mcycle_count",
+                    "description": "Number of cycles in step",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "root_hash_after",
+                    "description": "State hash after step",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        }
+    ],
+    "components": {
+        "schemas": {
+            "UnsignedInteger": {
+                "title": "UnsignedInteger",
+                "type": "integer",
+                "minimum": 0
+            },
+            "ForkResult": {
+                "title": "ForkResult",
+                "type": "object",
+                "properties": {
+                    "address": {
+                        "type": "string"
+                    },
+                    "pid": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "SemanticVersion": {
+                "title": "SemanticVersion",
+                "type": "object",
+                "required": ["major", "minor", "patch"],
+                "properties": {
+                    "major": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "minor": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "patch": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "pre_release": {
+                        "type": "string"
+                    },
+                    "build": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ConcurrencyRuntimeConfig": {
+                "title": "ConcurrencyRuntimeConfig",
+                "type": "object",
+                "properties": {
+                    "update_merkle_tree": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "HTIFRuntimeConfig": {
+                "title": "HTIFRuntimeConfig",
+                "type": "object",
+                "properties": {
+                    "no_console_putchar": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "MachineRuntimeConfig": {
+                "title": "MachineRuntimeConfig",
+                "type": "object",
+                "properties": {
+                    "concurrency": {
+                        "$ref": "#/components/schemas/ConcurrencyRuntimeConfig"
+                    },
+                    "htif": {
+                        "$ref": "#/components/schemas/HTIFRuntimeConfig"
+                    },
+                    "skip_root_hash_check": {
+                        "type": "boolean"
+                    },
+                    "skip_root_hash_store": {
+                        "type": "boolean"
+                    },
+                    "skip_version_check": {
+                        "type": "boolean"
+                    },
+                    "soft_yield": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ProcessorConfig": {
+                "title": "ProcessorConfig",
+                "type": "object",
+                "properties": {
+                    "x0": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x1": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x2": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x3": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x4": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x5": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x6": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x7": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x8": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x9": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x10": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x11": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x12": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x13": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x14": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x15": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x16": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x17": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x18": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x19": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x20": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x21": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x22": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x23": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x24": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x25": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x26": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x27": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x28": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x29": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x30": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x31": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f0": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f1": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f2": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f3": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f4": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f5": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f6": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f7": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f8": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f9": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f10": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f11": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f12": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f13": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f14": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f15": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f16": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f17": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f18": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f19": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f20": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f21": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f22": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f23": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f24": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f25": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f26": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f27": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f28": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f29": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f30": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "f31": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "pc": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "fcsr": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mvendorid": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "marchid": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mimpid": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mcycle": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "icycleinstret": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mstatus": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mtvec": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mscratch": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mepc": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mcause": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mtval": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "misa": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mie": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mip": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "medeleg": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mideleg": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "mcounteren": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "menvcfg": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "stvec": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "sscratch": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "sepc": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "scause": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "stval": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "satp": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "scounteren": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "senvcfg": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "ilrsc": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "iprv": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "iflags_X": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "iflags_Y": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "iflags_H": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "iunrep": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "RAMConfig": {
+                "title": "RAMConfig",
+                "type": "object",
+                "properties": {
+                    "length": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "image_filename": {
+                        "type": "string"
+                    }
+                },
+                "required": ["length"]
+            },
+            "DTBConfig": {
+                "title": "DTBConfig",
+                "type": "object",
+                "properties": {
+                    "bootargs": {
+                        "type": "string"
+                    },
+                    "init": {
+                        "type": "string"
+                    },
+                    "entrypoint": {
+                        "type": "string"
+                    },
+                    "image_filename": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MemoryRangeConfig": {
+                "title": "MemoryRangeConfig",
+                "type": "object",
+                "properties": {
+                    "start": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "length": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "image_filename": {
+                        "type": "string"
+                    },
+                    "shared": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "CmioBufferConfig": {
+                "title": "CmioBufferConfig",
+                "type": "object",
+                "properties": {
+                    "image_filename": {
+                        "type": "string"
+                    },
+                    "shared": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "VirtIOHostfwd": {
+                "title": "VirtIOHostfwd",
+                "type": "object",
+                "properties": {
+                    "is_udp": {
+                        "type": "boolean"
+                    },
+                    "host_ip": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "guest_ip": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "host_port": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "guest_port": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "VirtIOHostfwdArray": {
+                "title": "VirtIOHostfwdArray",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/VirtIOHostfwd"
+                }
+            },
+            "VirtIODeviceType": {
+                "title": "VirtIODeviceType",
+                "enum": ["console", "p9fs", "net-user", "net-tuntap"]
+            },
+            "VirtIODeviceConfig": {
+                "title": "VirtIODeviceConfig",
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/VirtIODeviceType"
+                    },
+                    "tag": {
+                        "type": "string"
+                    },
+                    "host_directory": {
+                        "type": "string"
+                    },
+                    "hostfwd": {
+                        "$ref": "#/components/schemas/VirtIOHostfwdArray"
+                    },
+                    "iface": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FlashDriveConfigs": {
+                "title": "FlashDriveConfigs",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/MemoryRangeConfig"
+                }
+            },
+            "TLBConfig": {
+                "title": "TLBConfig",
+                "type": "object",
+                "properties": {
+                    "image_filename": {
+                        "type": "string"
+                    }
+                }
+            },
+            "CLINTConfig": {
+                "title": "CLINTConfig",
+                "type": "object",
+                "properties": {
+                    "mtimecmp": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "PLICConfig": {
+                "title": "PLICConfig",
+                "type": "object",
+                "properties": {
+                    "girqpend": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "girqsrvd": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "HTIFConfig": {
+                "title": "HTIFConfig",
+                "type": "object",
+                "properties": {
+                    "fromhost": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "tohost": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "console_getchar": {
+                        "type": "boolean"
+                    },
+                    "yield_manual": {
+                        "type": "boolean"
+                    },
+                    "yield_automatic": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "UarchProcessorConfig": {
+                "title": "UarchProcessorConfig",
+                "type": "object",
+                "properties": {
+                    "x0": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x1": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x2": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x3": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x4": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x5": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x6": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x7": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x8": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x9": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x10": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x11": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x12": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x13": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x14": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x15": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x16": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x17": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x18": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x19": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x20": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x21": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x22": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x23": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x24": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x25": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x26": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x27": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x28": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x29": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x30": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "x31": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "pc": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "cycle": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "halt_flag": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "UarchRAMConfig": {
+                "title": "UarchRAMConfig",
+                "type": "object",
+                "properties": {
+                    "length": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "image_filename": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UarchConfig": {
+                "title": "UarchConfig",
+                "type": "object",
+                "properties": {
+                    "processor": {
+                        "$ref": "#/components/schemas/UarchProcessorConfig"
+                    },
+                    "ram": {
+                        "$ref": "#/components/schemas/UarchRAMConfig"
+                    }
+                }
+            },
+            "CmioConfig": {
+                "title": "CmioConfig",
+                "type": "object",
+                "properties": {
+                    "rx_buffer": {
+                        "$ref": "#/components/schemas/CmioBufferConfig"
+                    },
+                    "tx_buffer": {
+                        "$ref": "#/components/schemas/CmioBufferConfig"
+                    }
+                }
+            },
+            "VirtIOConfigs": {
+                "title": "VirtIOConfigs",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/VirtIODeviceConfig"
+                }
+            },
+            "MachineConfig": {
+                "title": "MachineConfig",
+                "type": "object",
+                "properties": {
+                    "processor": {
+                        "$ref": "#/components/schemas/ProcessorConfig"
+                    },
+                    "ram": {
+                        "$ref": "#/components/schemas/RAMConfig"
+                    },
+                    "dtb": {
+                        "$ref": "#/components/schemas/DTBConfig"
+                    },
+                    "flash_drive": {
+                        "$ref": "#/components/schemas/FlashDriveConfigs"
+                    },
+                    "tlb": {
+                        "$ref": "#/components/schemas/TLBConfig"
+                    },
+                    "clint": {
+                        "$ref": "#/components/schemas/CLINTConfig"
+                    },
+                    "plic": {
+                        "$ref": "#/components/schemas/PLICConfig"
+                    },
+                    "htif": {
+                        "$ref": "#/components/schemas/HTIFConfig"
+                    },
+                    "uarch": {
+                        "$ref": "#/components/schemas/UarchConfig"
+                    },
+                    "cmio": {
+                        "$ref": "#/components/schemas/CmioConfig"
+                    },
+                    "virtio": {
+                        "$ref": "#/components/schemas/VirtIOConfigs"
+                    }
+                },
+                "required": ["ram"]
+            },
+            "InterpreterBreakReason": {
+                "title": "InterpreterBreakReason",
+                "enum": [
+                    "failed",
+                    "halted",
+                    "yielded_manually",
+                    "yielded_automatically",
+                    "yielded_softly",
+                    "reached_target_mcycle"
+                ]
+            },
+            "UarchInterpreterBreakReason": {
+                "title": "UarchInterpreterBreakReason",
+                "enum": ["reached_target_cycle", "uarch_halted"]
+            },
+            "Base64String": {
+                "title": "Base64String",
+                "type": "string",
+                "contentEncoding": "base64"
+            },
+            "Base64Hash": {
+                "title": "Base64Hash",
+                "type": "string",
+                "description": "32-byte hash encoded in base64",
+                "contentEncoding": "base64",
+                "minLength": 45,
+                "maxLength": 45
+            },
+            "Base64HashArray": {
+                "title": "Base64HashArray",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/Base64Hash"
+                }
+            },
+            "NoteArray": {
+                "title": "NoteArray",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            },
+            "BracketArray": {
+                "title": "BracketArray",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/Bracket"
+                }
+            },
+            "BracketType": {
+                "title": "BracketType",
+                "enum": ["begin", "end"]
+            },
+            "Bracket": {
+                "title": "Bracket",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/BracketType"
+                    },
+                    "where": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "text": {
+                        "type": "string"
+                    }
+                },
+                "required": ["type", "where", "text"]
+            },
+            "Proof": {
+                "title": "Proof",
+                "type": "object",
+                "properties": {
+                    "target_address": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "log2_target_size": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "target_hash": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    },
+                    "log2_root_size": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "root_hash": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    },
+                    "sibling_hashes": {
+                        "$ref": "#/components/schemas/Base64HashArray"
+                    }
+                },
+                "required": [
+                    "target_address",
+                    "log2_target_size",
+                    "target_hash",
+                    "log2_root_size",
+                    "root_hash",
+                    "sibling_hashes"
+                ]
+            },
+            "Access": {
+                "title": "Access",
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "$ref": "#/components/schemas/AccessType"
+                    },
+                    "address": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "log2_size": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "read_hash": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    },
+                    "read": {
+                        "$ref": "#/components/schemas/Base64String"
+                    },
+                    "written_hash": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    },
+                    "written": {
+                        "$ref": "#/components/schemas/Base64String"
+                    },
+                    "sibling_hashes": {
+                        "$ref": "#/components/schemas/Base64HashArray"
+                    }
+                },
+                "required": ["type", "address", "log2_size", "read_hash"]
+            },
+            "AccessArray": {
+                "title": "AccessArray",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/Access"
+                }
+            },
+            "AccessType": {
+                "title": "AccessType",
+                "enum": ["read", "write"]
+            },
+            "AccessLogType": {
+                "title": "AccessLogType",
+                "type": "object",
+                "properties": {
+                    "has_annotations": {
+                        "type": "boolean"
+                    },
+                    "has_large_data": {
+                        "type": "boolean"
+                    }
+                },
+                "required": ["has_annotations", "has_large_data"]
+            },
+            "AccessLog": {
+                "title": "AccessLog",
+                "type": "object",
+                "properties": {
+                    "log_type": {
+                        "$ref": "#/components/schemas/AccessLogType"
+                    },
+                    "accesses": {
+                        "$ref": "#/components/schemas/AccessArray"
+                    },
+                    "notes": {
+                        "$ref": "#/components/schemas/NoteArray"
+                    },
+                    "brackets": {
+                        "$ref": "#/components/schemas/BracketArray"
+                    }
+                },
+                "required": ["log_type", "accesses"]
+            },
+            "REG": {
+                "title": "REG",
+                "enum": [
+                    "x0",
+                    "x1",
+                    "x2",
+                    "x3",
+                    "x4",
+                    "x5",
+                    "x6",
+                    "x7",
+                    "x8",
+                    "x9",
+                    "x10",
+                    "x11",
+                    "x12",
+                    "x13",
+                    "x14",
+                    "x15",
+                    "x16",
+                    "x17",
+                    "x18",
+                    "x19",
+                    "x20",
+                    "x21",
+                    "x22",
+                    "x23",
+                    "x24",
+                    "x25",
+                    "x26",
+                    "x27",
+                    "x28",
+                    "x29",
+                    "x30",
+                    "x31",
+                    "f0",
+                    "f1",
+                    "f2",
+                    "f3",
+                    "f4",
+                    "f5",
+                    "f6",
+                    "f7",
+                    "f8",
+                    "f9",
+                    "f10",
+                    "f11",
+                    "f12",
+                    "f13",
+                    "f14",
+                    "f15",
+                    "f16",
+                    "f17",
+                    "f18",
+                    "f19",
+                    "f20",
+                    "f21",
+                    "f22",
+                    "f23",
+                    "f24",
+                    "f25",
+                    "f26",
+                    "f27",
+                    "f28",
+                    "f29",
+                    "f30",
+                    "f31",
+                    "pc",
+                    "fcsr",
+                    "mvendorid",
+                    "marchid",
+                    "mimpid",
+                    "mcycle",
+                    "icycleinstret",
+                    "mstatus",
+                    "mtvec",
+                    "mscratch",
+                    "mepc",
+                    "mcause",
+                    "mtval",
+                    "misa",
+                    "mie",
+                    "mip",
+                    "medeleg",
+                    "mideleg",
+                    "mcounteren",
+                    "menvcfg",
+                    "stvec",
+                    "sscratch",
+                    "sepc",
+                    "scause",
+                    "stval",
+                    "satp",
+                    "scounteren",
+                    "senvcfg",
+                    "ilrsc",
+                    "iprv",
+                    "iflags_X",
+                    "iflags_Y",
+                    "iflags_H",
+                    "iunrep",
+                    "clint_mtimecmp",
+                    "plic_girqpend",
+                    "plic_girqsrvd",
+                    "htif_tohost",
+                    "htif_tohost_dev",
+                    "htif_tohost_cmd",
+                    "htif_tohost_reason",
+                    "htif_tohost_data",
+                    "htif_fromhost",
+                    "htif_fromhost_dev",
+                    "htif_fromhost_cmd",
+                    "htif_fromhost_reason",
+                    "htif_fromhost_data",
+                    "htif_ihalt",
+                    "htif_iconsole",
+                    "htif_iyield",
+                    "uarch_x0",
+                    "uarch_x1",
+                    "uarch_x2",
+                    "uarch_x3",
+                    "uarch_x4",
+                    "uarch_x5",
+                    "uarch_x6",
+                    "uarch_x7",
+                    "uarch_x8",
+                    "uarch_x9",
+                    "uarch_x10",
+                    "uarch_x11",
+                    "uarch_x12",
+                    "uarch_x13",
+                    "uarch_x14",
+                    "uarch_x15",
+                    "uarch_x16",
+                    "uarch_x17",
+                    "uarch_x18",
+                    "uarch_x19",
+                    "uarch_x20",
+                    "uarch_x21",
+                    "uarch_x22",
+                    "uarch_x23",
+                    "uarch_x24",
+                    "uarch_x25",
+                    "uarch_x26",
+                    "uarch_x27",
+                    "uarch_x28",
+                    "uarch_x29",
+                    "uarch_x30",
+                    "uarch_x31",
+                    "uarch_pc",
+                    "uarch_cycle",
+                    "uarch_halt_flag"
+                ]
+            },
+            "MemoryRangeDescription": {
+                "title": "MemoryRangeDescription",
+                "type": "object",
+                "properties": {
+                    "start": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "length": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "MemoryRangeDescriptionArray": {
+                "title": "MemoryRangeDescriptionArray",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/MemoryRangeDescription"
+                }
+            }
+        }
+    }
+}

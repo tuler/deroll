@@ -1,0 +1,44 @@
+# Troubleshooting
+
+## Can't find dynamic library
+
+This library works on Linux and macOS.
+It needs the following dynamic libraries to be installed in the system:
+
+:::code-group
+
+```bash [Linux]
+libcartesi.so
+libcartesi_jsonrpc.so
+```
+
+```bash [macOS]
+libcartesi.dylib
+libcartesi_jsonrpc.dylib
+```
+:::
+
+The libraries above are searched in the following directories by default:
+
+```ts
+const defaultPaths = [
+    // System library paths
+    "/usr/lib",
+    "/usr/local/lib",
+    "/opt/homebrew/lib", // macOS Homebrew
+    "/opt/local/lib", // macOS MacPorts
+    // Current directory
+    ".",
+    // Relative to current working directory
+    join(process.cwd(), "lib"),
+    join(process.cwd(), "build"),
+];
+```
+
+On Linux it also uses the `LD_LIBRARY_PATH` environment variable, which is expected to be a list of directories separated by `:`.
+On macOS the environment variable names used are `DYLD_LIBRARY_PATH` and `DYLD_FALLBACK_LIBRARY_PATH`.
+
+## Error spawning server
+
+The address does not support DNS.
+So addresses like `localhost:0` are not supported, use `127.0.0.1:0` instead.

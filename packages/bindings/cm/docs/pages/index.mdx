@@ -1,0 +1,36 @@
+# Cartesi Machine + Node.js
+
+The [Cartesi machine emulator](https://github.com/cartesi/machine-emulator) is distributed as a C dynamic library, and can be used from any programming language that provides some kind of C code integration. Node.js is no exception, and this library provides a binding using FFI through the [koffi](https://koffi.dev) library.
+
+It provides a fully typed and ergonomic TypeScript API for the Cartesi Machine C API and the Cartesi Machine JSON-RPC API, which allows you to create, manage, and interact with local or remote Cartesi machines from TypeScript/JavaScript applications.
+
+## Features
+
+- **Comprehensive**: Complete API, for any use case, including [local](/local) and [remote](/remote) machines;
+- **Full Type Safety**: Complete TypeScript definitions for all C API functions and types;
+- **High-Level Wrapper**: Easy-to-use [CartesiMachine](/api/cartesi-machine) and [RemoteCartesiMachine](/api/remote-cartesi-machine) interfaces that wraps the C API;
+- **Error Handling**: Easy [error handling](/error-handling) with detailed error messages.
+
+## Installation
+
+Make sure you install the Cartesi Machine [0.19.0](https://github.com/cartesi/machine-emulator/releases/tag/v0.19.0) library in your system by following the official [instructions](https://github.com/cartesi/machine-emulator?tab=readme-ov-file#installation).
+
+Then install this package
+
+:::code-group
+
+```bash [pnpm]
+pnpm add @tuler/node-cartesi-machine
+```
+
+```bash [npm]
+npm install @tuler/node-cartesi-machine
+```
+
+```bash [yarn]
+yarn add @tuler/node-cartesi-machine
+```
+:::
+
+The library supports both Linux and macOS, and searches for the Cartesi dynamic libraries in a few standard places.
+Check the [troubleshooting](./troubleshooting) section in case of problems.

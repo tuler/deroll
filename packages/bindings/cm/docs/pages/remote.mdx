@@ -1,0 +1,76 @@
+# Remote Machine
+
+The library also provides a way to run a Cartesi machine out-process, by running a server which a client can connect to and control a machine remotely.
+
+:::info
+The communication is done through a JSON-RPC connection, which is handled internally by the library, so the user doesn't need to understand the protocol.
+:::
+
+## Example
+
+Here is a modified version of the [local](./local) example that creates a remote machine instead.
+As simple as that.
+
+```ts twoslash
+// @noErrors
+import { BreakReason, create } from "@tuler/node-cartesi-machine"; // [!code --]
+import { BreakReason, spawn } from "@tuler/node-cartesi-machine"; // [!code ++]
+
+// create a basic machine that print Hello world
+const machine = create({ // [!code --]
+const machine = spawn().create({ // [!code ++]
+    ram: {
+        length: 0x8000000, // 128MB of RAM
+        image_filename: "linux.bin",
+    },
+    flash_drive: [
+        {
+            image_filename: "rootfs.ext2",
+        },
+    ],
+    dtb: {
+        entrypoint: "echo Hello world!",
+    },
+});
+
+// run the machine until it yields or halts (default is MAX_MCYCLE)
+const reason = machine.run();
+switch (reason) {
+    case BreakReason.YieldedManually:
+        console.log("Machine yielded manually");
+        break;
+    case BreakReason.Halted:
+        console.log("Machine halted");
+        break;
+    default:
+        console.log(`Machine halted: ${reason}`);
+}
+console.log(reason);
+
+// calculate machine root hash
+const hash = machine.getRootHash();
+console.log(hash);
+```
+
+What is happening under the hood is that we are spawning a child `cartesi-jsonrpc-machine` process, which hosts a local Cartesi machine, and expose a JSON-RPC server to control it.
+
+The returned `machine` object is now a [RemoteCartesiMachine](./api/remote-cartesi-machine), which extends the [CartesiMachine](./api/cartesi-machine) interface, thus providing all its methods, and a few additional ones.
+
+## Why remote?
+
+The use of a remote Cartesi machine has three main objectives:
+
+1. Horizontal Scalability
+
+It allows the execution of a Cartesi machine server on a different host machine than the process that is controlling it.
+So you can have a heavy-weight instance to host the Cartesi machine, and a light-weight instance to control it.
+
+2. Forking
+
+The [RemoteCartesiMachine](./api/remote-cartesi-machine) API provides a `fork` method that allows you to create a "copy" of an existing machine, execute it, and throw it away (or not).
+This allows an "inspect" capability, where you want to execute the machine only for the purpose of reading some computation result.
+It also allows to properly handle "reverts", when an execution does not have the intended outcome.
+
+3. Safety
+
+As the Cartesi machine runs out-process that provides more safety to the controlling client, because some crash of the server process does not affect the client process.

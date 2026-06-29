@@ -1,0 +1,28 @@
+# connect
+
+Connects to an existing remote Cartesi machine server at the specified address. Returns a [RemoteCartesiMachine](/api/remote-cartesi-machine) instance that can be used to interact with the remote server. This is the main entry point for connecting to a running remote machine server from your application.
+
+## Function Signature
+
+```ts
+connect(address: string, timeout?: number): RemoteCartesiMachine
+```
+
+- `address`: The address (`host:port`) of the remote machine server to connect to.
+- `timeout` (optional): Maximum time in milliseconds to wait for the remote server to connect before giving up and returning an error. Use `-1` for no timeout.
+
+## Example
+
+```ts twoslash
+import { connect } from "@tuler/node-cartesi-machine";
+
+// Connect to an existing remote machine server on localhost:5000
+const remoteMachine = connect("127.0.0.1:5000");
+
+// You can now use remoteMachine as a RemoteCartesiMachine
+const version = remoteMachine.getServerVersion();
+console.log("Remote server version:", version);
+
+// When done, you can shutdown or disconnect as needed
+remoteMachine.shutdown();
+```

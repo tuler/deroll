@@ -1,0 +1,57 @@
+# RollupsMachine
+
+## Interface
+
+The `RollupsMachine` interface provides the main methods for interacting with a Cartesi rollup machine. It exposes generator-based methods for advance and inspect requests, as well as methods for shutting down and storing the machine state.
+
+```ts
+interface RollupsMachine {
+    advance(input: Buffer): IterableIterator<AdvanceYield>;
+    inspect(query: Buffer): IterableIterator<Buffer>;
+    shutdown(): void;
+    store(dir: string): RollupsMachine;
+}
+```
+
+## advance
+
+Sends an advance request to the machine. Yields outputs, reports, and progress updates as they are produced.
+
+```ts
+advance(input: Buffer): IterableIterator<AdvanceYield>
+
+type AdvanceYield =
+    | { type: "output"; data: Buffer }
+    | { type: "report"; data: Buffer }
+    | { type: "progress"; data: number };
+```
+
+- Throws `RollupsInputRejectedError` if the input is rejected.
+- Throws `RollupsFatalError` for fatal machine errors.
+
+## inspect
+
+Sends an inspect request to the machine. Yields each report (as a Buffer) produced by the inspect request.
+
+```ts
+inspect(query: Buffer): IterableIterator<Buffer>
+```
+
+- Throws `RollupsInputRejectedError` if the query is rejected.
+- Throws `RollupsFatalError` for fatal machine errors.
+
+## shutdown
+
+Shuts down the underlying machine/server.
+
+```ts
+shutdown(): void
+```
+
+## store
+
+Stores the current machine state to the specified directory.
+
+```ts
+store(dir: string): RollupsMachine
+```

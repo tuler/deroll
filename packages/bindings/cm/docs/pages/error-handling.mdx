@@ -1,0 +1,28 @@
+# Error Handling
+
+## Local and Remote Machines
+Many of the API methods can raise a `MachineError` exception that provides visibility to the error code and a description.
+
+```ts twoslash
+// [!include ~/snippets/error-handling.ts] 
+```
+
+Executing the code above without a Cartesi machine stored at `./snapshot` produces the following output:
+
+```shell
+-11 unable to open './snapshot/config.json' for reading: No such file or directory
+```
+
+:::info
+The `InvalidArgument` error handling above is only illustrative of the defined types, it doesn't really make sense in a production code.
+:::
+
+## Rollups Machine
+
+The [advance](/api/rollups-machine#advance) and [inspect](/api/rollups-machine#inspect) methods throw `RollupsFatalError` if the machine halts with a fatal unrecoverable error, or throw a `RollupsInputRejectedError` if the machine halts with a manual input rejection.
+
+Users should always wrap the [advance](/api/rollups-machine#advance) and [inspect](/api/rollups-machine#inspect) calls in a `try`/`catch` block, and handle the errors accordingly by checking the error type like in the example below.
+
+```ts twoslash
+// [!include ~/snippets/error-handling-rollups.ts] 
+```
