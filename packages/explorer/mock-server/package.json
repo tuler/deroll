@@ -1,0 +1,10 @@
+{
+  "name": "@tuler/luke-mock",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mock Cartesi Rollups Node JSON-RPC server for developing the explorer",
+  "type": "module",
+  "scripts": {
+    "start": "bun server.ts"
+  }
+}

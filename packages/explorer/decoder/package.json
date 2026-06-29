@@ -1,0 +1,21 @@
+{
+  "name": "@tuler/luke-decoder",
+  "version": "0.1.0",
+  "description": "Typed toolkit for writing Cartesi Node Explorer payload decoders",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist/index.js", "src"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rm -rf dist && bun build src/index.ts --target=browser --format=esm --outdir dist",
+    "prepublishOnly": "bun run build"
+  }
+}
