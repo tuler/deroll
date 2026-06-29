@@ -1,0 +1,35 @@
+# Cross-builds the linux-riscv64 prebuild, mirroring the CI prebuild-riscv64
+# job (see .github/workflows/build.yml). Build from the repository root:
+#
+#   docker build --platform linux/amd64 -f test/machine/Dockerfile.prebuild \
+#     --target export --output type=local,dest=prebuilds .
+
+FROM node:22-bookworm AS build
+
+ARG LINUX_IMAGE_VERSION=v0.20.0
+ARG LINUX_VERSION=6.5.13-ctsi-1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc-riscv64-linux-gnu g++-riscv64-linux-gnu wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget -q -O /tmp/linux-libc-dev.deb \
+        "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb" \
+    && dpkg -i /tmp/linux-libc-dev.deb \
+    && rm /tmp/linux-libc-dev.deb
+
+WORKDIR /work
+COPY . .
+
+RUN make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
+
+RUN npm install --ignore-scripts
+
+ENV CC=riscv64-linux-gnu-gcc \
+    CXX=riscv64-linux-gnu-g++ \
+    LIBCMT_LIB=/work/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+
+RUN npx prebuildify --napi --strip --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+
+FROM scratch AS export
+COPY --from=build /work/prebuilds /

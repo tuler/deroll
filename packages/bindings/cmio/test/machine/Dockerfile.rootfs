@@ -1,0 +1,20 @@
+# riscv64 guest root filesystem for the cartesi-machine end-to-end test:
+# Debian + Node.js + machine-guest-tools (cartesi-init) + the dapp with the
+# packed @cartesi/libcmt installed. Built by run.sh with the staged work/dapp
+# directory as context:
+#
+#   docker build --platform linux/riscv64 -f test/machine/Dockerfile.rootfs \
+#     -t libcmt-node-machine-rootfs test/machine/work/context
+
+FROM debian:trixie-slim
+
+ARG GUEST_TOOLS_VERSION=v0.17.2
+
+ADD https://github.com/cartesi/machine-guest-tools/releases/download/${GUEST_TOOLS_VERSION}/machine-guest-tools_riscv64.deb /tmp/machine-guest-tools.deb
+
+# machine-guest-tools' postinst creates the `dapp` user the entrypoint runs as
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs /tmp/machine-guest-tools.deb \
+    && rm -rf /var/lib/apt/lists/* /tmp/machine-guest-tools.deb
+
+COPY dapp /opt/dapp

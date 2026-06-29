@@ -1,0 +1,155 @@
+# Testing on the Host
+
+On any architecture other than riscv64 the binding embeds libcmt's **mock IO driver**. The mock replaces the machine: inputs come from files you provide, and every output is written to a file next to them. This gives you fast, emulator-free feedback during development and works in any test runner.
+
+## Feeding inputs
+
+The `CMT_INPUTS` environment variable lists the inputs for the session, as comma-separated `reason:file` pairs, consumed in order:
+
+```sh
+CMT_INPUTS="0:advance.bin,1:inspect.bin" node app.js
+```
+
+The *reason* selects the request type:
+
+| Reason | Request | File contents |
+| --- | --- | --- |
+| `0` | advance | EVM-ABI encoded `EvmAdvance` input (see below) |
+| `1` | inspect | raw query payload |
+| anything else | [gio](/reference/gio) reply | raw response data (the reason is the response code) |
+
+Set `CMT_DEBUG=yes` to make the mock log every operation.
+
+When the input list is exhausted, the next [`finish`](/reference/finish) call fails and [`run`](/reference/run) rejects — that is your test's natural end-of-session signal.
+
+## Collecting outputs
+
+Each output is written to a file named after the input that produced it:
+
+```
+advance.output-0.bin    # first voucher/notice while handling advance.bin
+advance.report-0.bin    # first report
+advance.finish.bin      # accept/reject result
+```
+
+Vouchers and notices are EVM-ABI encoded (`Voucher(address,uint256,bytes)` / `Notice(bytes)`); reports are raw bytes.
+
+## Generating an advance input
+
+An advance input file is the ABI encoding of the `EvmAdvance(uint256,address,address,uint256,uint256,uint256,uint256,bytes)` call that the on-chain input box would produce. You can craft one with foundry's `cast calldata`, or in a few lines of TypeScript:
+
+```ts twoslash
+// @filename: encode.ts
+const word = (value: bigint) => {
+    const bytes = Buffer.alloc(32);
+    let v = value;
+    for (let i = 31; i >= 0 && v > 0n; i--) {
+        bytes[i] = Number(v & 0xffn);
+        v >>= 8n;
+    }
+    return bytes;
+};
+const addressWord = (hex: string) =>
+    Buffer.concat([Buffer.alloc(12), Buffer.from(hex.slice(2), 'hex')]);
+const pad32 = (bytes: Buffer) =>
+    Buffer.concat([bytes, Buffer.alloc((32 - (bytes.length % 32)) % 32)]);
+
+export function encodeEvmAdvance(input: {
+    chainId: bigint;
+    appContract: string;
+    msgSender: string;
+    blockNumber: bigint;
+    blockTimestamp: bigint;
+    prevRandao: bigint;
+    index: bigint;
+    payload: Buffer;
+}) {
+    return Buffer.concat([
+        Buffer.from('415bf363', 'hex'), // EvmAdvance selector
+        word(input.chainId),
+        addressWord(input.appContract),
+        addressWord(input.msgSender),
+        word(input.blockNumber),
+        word(input.blockTimestamp),
+        word(input.prevRandao),
+        word(input.index),
+        word(8n * 32n), // offset of the payload `bytes` field
+        word(BigInt(input.payload.length)),
+        pad32(input.payload),
+    ]);
+}
+```
+
+## A complete test
+
+Putting it together with `node:test` — encode an input, point `CMT_INPUTS` at it, run the application, and assert on the output files:
+
+```ts twoslash
+// @filename: encode.ts
+export declare function encodeEvmAdvance(input: {
+    chainId: bigint;
+    appContract: string;
+    msgSender: string;
+    blockNumber: bigint;
+    blockTimestamp: bigint;
+    prevRandao: bigint;
+    index: bigint;
+    payload: Buffer;
+}): Buffer;
+
+// @filename: app.test.ts
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { encodeEvmAdvance } from './encode.js';
+
+test('echoes the payload as a notice', async () => {
+    // run in a temp dir: the mock writes output files next to the inputs
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'my-app-'));
+    process.chdir(dir);
+
+    const input = path.join(dir, 'input.bin');
+    fs.writeFileSync(
+        input,
+        encodeEvmAdvance({
+            chainId: 31337n,
+            appContract: `0x${'02'.repeat(20)}`,
+            msgSender: `0x${'03'.repeat(20)}`,
+            blockNumber: 1n,
+            blockTimestamp: 1700000000n,
+            prevRandao: 0n,
+            index: 0n,
+            payload: Buffer.from('hello'),
+        }),
+    );
+    process.env.CMT_INPUTS = `0:${input}`;
+
+    // the app under test: import it AFTER setting CMT_INPUTS, since the
+    // device opens on construction. run() rejects when inputs run out.
+    const { Rollup } = await import('@tuler/node-libcmt');
+    const rollup = new Rollup();
+    await rollup
+        .run({
+            advance(request, rollup) {
+                rollup.emitNotice(request.payload);
+                return true;
+            },
+        })
+        .catch(() => {}); // inputs exhausted — session over
+
+    // Notice(bytes) ABI: selector + offset + length + padded payload
+    const notice = fs.readFileSync(path.join(dir, 'input.output-0.bin'));
+    assert.equal(notice.subarray(0, 4).toString('hex'), 'c258d6e5');
+    assert.equal(notice.subarray(68, 68 + 5).toString(), 'hello');
+});
+```
+
+:::tip
+The mock enforces the same rules as the real device — only one `Rollup` instance may exist at a time. If your test suite creates several, [`close`](/reference/close) each instance before creating the next.
+:::
+
+## Where the real thing differs
+
+The mock approximates the machine but does not emulate it: state is not rolled back on reject, and there is no determinism enforcement. Before shipping, run your application [inside a real Cartesi Machine](/guide/cartesi-machine).

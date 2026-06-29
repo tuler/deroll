@@ -1,0 +1,79 @@
+{
+    "name": "@tuler/node-libcmt",
+    "version": "0.1.4",
+    "description": "Node.js bindings for libcmt, the Cartesi Machine guest rollup library",
+    "keywords": [
+        "cartesi",
+        "rollups",
+        "libcmt",
+        "riscv64"
+    ],
+    "license": "Apache-2.0",
+    "author": "Cartesi and individual authors (see AUTHORS)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/libcmt-node.git"
+    },
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./lib/index.d.mts",
+                "default": "./lib/index.mjs"
+            },
+            "require": {
+                "types": "./lib/index.d.ts",
+                "default": "./lib/index.js"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "AUTHORS",
+        "binding.gyp",
+        "lib/",
+        "src/",
+        "prebuilds/",
+        "deps/machine-guest-tools/sys-utils/libcmt/include/",
+        "deps/machine-guest-tools/sys-utils/libcmt/src/"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "install": "node-gyp-build",
+        "build": "node-gyp rebuild",
+        "prebuild": "prebuildify --napi --strip",
+        "test": "node --test \"test/*.test.mjs\"",
+        "check:package": "attw --pack .",
+        "docs:dev": "vite dev",
+        "docs:build": "vite build --app",
+        "docs:preview": "vocs preview"
+    },
+    "dependencies": {
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4"
+    },
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.3",
+        "@changesets/cli": "^2.31.0",
+        "@types/node": "^25.9.2",
+        "@vitejs/plugin-react": "^6.0.2",
+        "node-gyp": "^11.0.0",
+        "prebuildify": "^6.0.1",
+        "react-server-dom-webpack": "~19.2.4",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.16",
+        "vocs": "^2.0.12",
+        "waku": "1.0.0-beta.1"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "binary": {
+        "napi_versions": [
+            8
+        ]
+    }
+}

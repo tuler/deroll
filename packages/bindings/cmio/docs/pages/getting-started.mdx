@@ -1,0 +1,68 @@
+# Getting Started
+
+## Install
+
+:::code-group
+
+```bash [npm]
+npm install @tuler/node-libcmt
+```
+
+```bash [pnpm]
+pnpm add @tuler/node-libcmt
+```
+
+```bash [yarn]
+yarn add @tuler/node-libcmt
+```
+
+:::
+
+Prebuilt binaries are used automatically on linux-x64, linux-arm64, linux-riscv64, darwin-x64 and darwin-arm64 — no toolchain needed. The package is dual ESM + CommonJS and ships TypeScript types.
+
+## Your first application
+
+A Cartesi application is a loop: wait for a request, process it, emit outputs, accept or reject. The [`run`](/reference/run) method drives that loop for you — you provide a handler per request type:
+
+```ts twoslash
+// @filename: app.ts
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        // `advance` requests are inputs submitted on-chain.
+        // This one echoes the input payload back as a notice (a provable
+        // output) and logs a report (debugging, not provable).
+        rollup.emitNotice(request.payload);
+        rollup.emitReport(Buffer.from(`processed input ${request.index}`));
+        return true; // accept the input (returning nothing also accepts)
+    },
+    inspect(request, rollup) {
+        // `inspect` requests are off-chain, read-only queries.
+        rollup.emitReport(request.payload);
+    },
+});
+```
+
+Two things worth noticing:
+
+- **Everything is synchronous.** Calls that wait for the next request pause the entire machine — including Node's event loop — so there is nothing to run concurrently while they wait. Handlers *may* be `async` (e.g. to read files), but the rollup calls themselves return immediately-resolved values.
+- **There is no framework.** `Rollup` is a class with a dozen methods over the device; `run` is a convenience loop you can [replace with your own](/guide/handling-requests#driving-the-loop-yourself).
+
+## Run it on your machine
+
+On a development host the binding uses libcmt's **mock driver**: you feed it input files through the `CMT_INPUTS` environment variable, and it writes each output to a file:
+
+```sh
+CMT_INPUTS="0:advance.bin" node app.js
+# -> advance.output-0.bin   (the notice)
+# -> advance.report-0.bin   (the report)
+```
+
+The input file contains the EVM-ABI encoded input — see [Testing on the Host](/guide/testing) for how to generate one and how to assert on the outputs in your test suite.
+
+## Run it inside a Cartesi Machine
+
+Inside the machine the exact same code talks to the real rollup device, driven by actual on-chain inputs. The package's riscv64 prebuild statically links the real libcmt driver, so deployment is just `npm install` in your machine image. See [Running in the Cartesi Machine](/guide/cartesi-machine).

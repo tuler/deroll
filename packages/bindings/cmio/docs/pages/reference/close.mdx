@@ -1,0 +1,27 @@
+# rollup.close
+
+Releases the rollup device. After closing, every method on the instance throws; create a new [`Rollup`](/reference/rollup) to start again.
+
+Because the device is exclusive (one open instance at a time), `close` is what lets a process — typically a test suite — open the device more than once.
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+// ---cut---
+const first = new Rollup();
+// ... use it ...
+first.close();
+
+const second = new Rollup(); // would throw -EBUSY without the close() above
+```
+
+## Returns
+
+`void`
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Methods called after `close` | `Error` |

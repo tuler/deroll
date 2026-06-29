@@ -1,0 +1,34 @@
+# rollup.emitException
+
+Signals that the current request **could not be processed** — a structural failure, not a business-rule rejection. The exception payload is surfaced to the outside world; the machine treats the request as failed.
+
+Prefer the gentler paths first: return `false` from a [`run`](/reference/run) handler to reject an input, or throw (which `run` converts to a report plus rejection). `emitException` is the last resort for "this application cannot meaningfully continue with this request".
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+const rollup = new Rollup();
+// ---cut---
+rollup.emitException(Buffer.from('unrecoverable: state corrupted'));
+```
+
+## Returns
+
+`void`
+
+## Parameters
+
+### payload
+
+- Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
+- Required
+
+Diagnostic data describing the failure.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Malformed hex string / wrong argument type | `TypeError` |
+| Underlying libcmt failure | `RollupError` with negative `errno` |

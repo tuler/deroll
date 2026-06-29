@@ -1,0 +1,59 @@
+# rollup.run
+
+Convenience request loop: repeatedly [`finish`](/reference/finish)es the previous request and dispatches the next one to your handlers.
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        rollup.emitNotice(request.payload);
+        return true;
+    },
+    inspect(request, rollup) {
+        rollup.emitReport(request.payload);
+    },
+});
+```
+
+## Returns
+
+`Promise<never>` — the loop runs until `finish` fails (inputs exhausted on the mock, or device closed), and the promise rejects with that error. It never resolves.
+
+## Parameters
+
+### handlers
+
+- Type: `RunHandlers`
+
+An object with an optional handler per request type. Both receive `(request, rollup)` and may be synchronous or `async`:
+
+```ts twoslash
+import type { AdvanceRequest, InspectRequest, Rollup } from '@tuler/node-libcmt';
+// ---cut---
+type RunHandlers = {
+    advance?: (
+        request: AdvanceRequest,
+        rollup: Rollup,
+    ) => boolean | void | Promise<boolean | void>;
+    inspect?: (
+        request: InspectRequest,
+        rollup: Rollup,
+    ) => boolean | void | Promise<boolean | void>;
+};
+```
+
+The handler's result decides the request's fate:
+
+| Handler outcome | Effect |
+| --- | --- |
+| returns `true` or `undefined` | request **accepted** |
+| returns `false` | request **rejected** |
+| throws | exception emitted as a [report](/reference/emit-report), request **rejected** |
+| no handler for the request type | request **rejected** |
+
+See [Handling Requests](/guide/handling-requests) for the semantics of accept/reject.

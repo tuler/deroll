@@ -1,0 +1,72 @@
+# Running in the Cartesi Machine
+
+Inside the Cartesi Machine — the deterministic riscv64 Linux VM your application ships in — the binding stops simulating: it statically links the real libcmt and talks to the machine's rollup device through the kernel driver. **Your application code does not change.** The right flavor is selected by CPU architecture at install time.
+
+## What your machine image needs
+
+1. **Node.js for riscv64** — Debian's `nodejs` package works out of the box.
+2. **Your application and its dependencies** — installed with npm as usual. The package's linux-riscv64 prebuild is picked up automatically; no compiler or libcmt development files are needed inside the image.
+
+A minimal Dockerfile for a machine rootfs:
+
+```dockerfile
+FROM --platform=linux/riscv64 debian:trixie-slim
+ARG GUEST_TOOLS_VERSION=v0.17.2
+ADD https://github.com/cartesi/machine-guest-tools/releases/download/${GUEST_TOOLS_VERSION}/machine-guest-tools_riscv64.deb /tmp/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs /tmp/machine-guest-tools_riscv64.deb \
+    && rm -rf /var/lib/apt/lists/* /tmp/machine-guest-tools_riscv64.deb
+COPY app /opt/app
+ENTRYPOINT ["node", "/opt/app/index.mjs"]
+```
+
+(`machine-guest-tools` provides the machine's init system; tools like [cartesi-cli](https://docs.cartesi.io) automate this whole image-building step.)
+
+## Why the API is synchronous
+
+When the application calls [`finish`](/reference/finish) and no input is available, the machine **yields**: the emulator stops executing it entirely until the next input arrives. From the guest's perspective time freezes — the Node event loop, timers, everything. An async API would suggest concurrency that cannot exist; the synchronous one tells the truth.
+
+This has a practical consequence: don't schedule background work (intervals, keep-alives, watchers) and expect it to run "while waiting" — it will only run while a request is being handled.
+
+## Determinism rules
+
+Every node validating your application re-executes the same machine and must reach bit-identical results. The machine guarantees this for you — there is no wall-clock, no real randomness, no network inside. Use the request's own context when you need these:
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        // ✓ deterministic time: the L1 block timestamp of the input
+        const now = request.blockTimestamp;
+        // ✓ deterministic randomness beacon: prevRandao
+        const seed = request.prevRandao;
+        rollup.emitReport(Buffer.from(`t=${now} seed=${seed}`));
+        return true;
+    },
+});
+```
+
+## Trying it locally
+
+The [cartesi-machine emulator](https://github.com/cartesi/machine-emulator) can run your image on your development host and feed it inputs from files:
+
+```sh
+cartesi-machine \
+  --flash-drive=label:root,filename:rootfs.ext2 \
+  --cmio-advance-state=input:input-%i.bin,input_index_begin:0,input_index_end:1 \
+  --no-rollback \
+  -- node /opt/app/index.mjs
+```
+
+Each input file uses the same `EvmAdvance` encoding as the [host mock](/guide/testing#generating-an-advance-input); outputs and reports are stored to files as the machine emits them.
+
+For a complete, working example — building the rootfs, feeding inputs, verifying outputs byte-for-byte — see the package's own end-to-end test harness: [`test/machine/`](https://github.com/tuler/libcmt-node/tree/main/test/machine).
+
+## Limits to keep in mind
+
+- **One `Rollup` instance at a time.** The device is exclusive; a second `new Rollup()` throws `-EBUSY` until the first is [closed](/reference/close).
+- **Output sizes are bounded** by the machine's cmio buffers (2 MiB by default) — a too-large voucher/notice/report throws with `error.errno`.
+- **RAM is configured per machine** (`--ram-length`); Node.js is comfortable from 512 MiB up.

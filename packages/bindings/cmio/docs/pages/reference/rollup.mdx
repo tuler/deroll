@@ -1,0 +1,25 @@
+# new Rollup()
+
+Opens the rollup device and initializes the outputs merkle tree.
+
+On riscv64 (inside the Cartesi Machine) the constructor opens the real machine IO device; elsewhere it starts libcmt's mock driver, configured by the `CMT_INPUTS` / `CMT_DEBUG` environment variables (see [Testing on the Host](/guide/testing)).
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+```
+
+## Behavior
+
+- The device is **exclusive**: while an instance is open, constructing another throws with `error.errno === -16` (`EBUSY`). Call [`close`](/reference/close) first.
+- On the mock, `CMT_INPUTS` is read once, at construction time — set it before creating the instance.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Device already open | `RollupError` with `errno: -16` (`EBUSY`) |
+| Device unavailable / driver failure | `RollupError` with the negative errno in `errno` and the libcmt call in `syscall` |

@@ -1,0 +1,157 @@
+# Handling Requests
+
+A Cartesi application processes two kinds of requests:
+
+- **Advance** — an input submitted on-chain. It can change application state and produce provable outputs ([vouchers](/reference/emit-voucher) and [notices](/reference/emit-notice)).
+- **Inspect** — an off-chain, read-only query. It can only answer with [reports](/reference/emit-report).
+
+This page shows the request lifecycle; [Emitting Outputs](/guide/emitting-outputs) covers what you can produce while handling them.
+
+## The request cycle
+
+Processing follows a strict cycle, inherited from how the machine and the blockchain interact:
+
+1. The application calls [`finish`](/reference/finish), telling the machine whether it **accepts or rejects** the previous request.
+2. The call blocks (the whole machine yields) until the next request arrives.
+3. The application handles the request, emitting outputs along the way.
+4. Back to step 1.
+
+[`run`](/reference/run) implements this cycle; your handlers plug into step 3.
+
+## Advance requests
+
+Advance handlers receive the decoded input metadata along with the payload:
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        request.msgSender;
+        //       ^?
+
+
+
+
+        // every input is identified by its index and carries the L1 context
+        // it was included in: block number, timestamp and prevRandao
+        rollup.emitReport(
+            Buffer.from(
+                `input ${request.index} from ${request.msgSender} ` +
+                    `at block ${request.blockNumber} (chain ${request.chainId})`,
+            ),
+        );
+        return true;
+    },
+});
+```
+
+Addresses arrive as 0x-prefixed hex strings, numeric fields as `bigint`, and the payload as a `Buffer`.
+
+## Inspect requests
+
+Inspect handlers only get a payload — the query — and should answer with reports:
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+const balances = new Map<string, bigint>();
+
+await rollup.run({
+    inspect(request, rollup) {
+        const address = request.payload.toString();
+        const balance = balances.get(address) ?? 0n;
+        rollup.emitReport(Buffer.from(balance.toString()));
+    },
+});
+```
+
+Inside the machine, any state changes made while handling an inspect are reverted afterwards — inspects are queries, not transactions.
+
+## Accepting and rejecting
+
+A handler's return value decides the input's fate:
+
+- `true` or `undefined` (no return) — **accept**: outputs become part of the application's verifiable history.
+- `false` — **reject**: the machine reverts to the state before the input; its outputs are discarded.
+- **throwing** — the exception is caught, emitted as a report (so you can see it from the outside), and the input is **rejected**.
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        if (request.payload.length === 0) {
+            return false; // reject empty inputs — state is rolled back
+        }
+        if (request.payload.length > 1024) {
+            // also rejects, and the message lands in a report
+            throw new Error('payload too large');
+        }
+        rollup.emitNotice(request.payload);
+        return true;
+    },
+});
+```
+
+## Async handlers
+
+Handlers may be `async` — `run` awaits them before finishing the request:
+
+```ts twoslash
+import { readFile } from 'node:fs/promises';
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    async advance(request, rollup) {
+        const config = await readFile('/etc/app/config.json', 'utf8');
+        rollup.emitReport(Buffer.from(`config loaded: ${config.length} bytes`));
+        return true;
+    },
+});
+```
+
+Remember that the machine is paused *between* requests, not within them: timers and I/O work normally while your handler runs, but nothing executes while the application waits for the next request.
+
+## Driving the loop yourself
+
+`run` is a thin convenience. If you prefer explicit control — custom dispatch, graceful shutdown, request batching — call [`finish`](/reference/finish) directly:
+
+```ts twoslash
+import { Rollup } from '@tuler/node-libcmt';
+
+const rollup = new Rollup();
+
+let accept = true;
+for (;;) {
+    const request = rollup.finish({ accept });
+    //     ^?
+
+
+
+
+    switch (request.type) {
+        case 'advance':
+            rollup.emitNotice(request.payload);
+            accept = true;
+            break;
+        case 'inspect':
+            rollup.emitReport(request.payload);
+            accept = true;
+            break;
+    }
+}
+```
+
+The request is a discriminated union — narrowing on `type` gives you the right fields in each branch.
+
+## When the loop ends
+
+`run` returns a `Promise<never>`: under normal operation inside the machine, the loop never ends. It rejects when `finish` fails — for example when the mock runs out of inputs during [host testing](/guide/testing), or after [`close`](/reference/close) is called. Let the rejection propagate (the process exits), or catch it if you have cleanup to do.
