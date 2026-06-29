@@ -1,5 +1,11 @@
 # @tuler/node-cartesi-machine
 
+## 0.2.0-alpha.0
+
+### Minor Changes
+
+- df387f6: Add `@deroll/cm` — Cartesi Machine Node.js bindings (migrated from `@tuler/node-cartesi-machine`). Loads `libcartesi` at runtime via koffi FFI; no native build step.
+
 ## 0.7.0
 
 ### Minor Changes

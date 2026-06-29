@@ -1,5 +1,12 @@
 # @deroll/examples
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- Updated dependencies [bff06a2]
+  - @deroll/app@2.0.0-alpha.6
+
 ## 2.0.0-alpha.7
 
 ### Patch Changes
