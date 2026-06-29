@@ -1,7 +1,11 @@
 {
-    "name": "@tuler/node-cartesi-machine",
-    "version": "0.7.0",
+    "name": "@deroll/cm",
+    "version": "0.1.0",
     "description": "Cartesi Machine Node.js bindings",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
     "type": "module",
     "main": "dist/index.cjs",
     "module": "dist/index.js",
@@ -20,13 +24,14 @@
     },
     "scripts": {
         "build": "tsup",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "docs:dev": "vocs dev",
         "docs:build": "vocs build",
         "docs:preview": "vocs preview",
         "lint": "biome check",
         "lint:ci": "biome ci",
-        "release": "tsup && changeset publish",
-        "test": "vitest"
+        "test:integration": "vitest",
+        "prepack": "run-s build"
     },
     "keywords": [
         "cartesi",
@@ -39,8 +44,7 @@
         "koffi": "^2.12.2"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.1.2",
-        "@changesets/cli": "^2.29.5",
+        "@biomejs/biome": "catalog:",
         "@types/node": "^24.1.0",
         "npm-run-all": "^4.1.5",
         "tsup": "^8.5.0",
@@ -53,5 +57,7 @@
     "files": [
         "dist"
     ],
-    "packageManager": "pnpm@10.12.4"
+    "publishConfig": {
+        "access": "public"
+    }
 }

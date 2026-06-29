@@ -29,6 +29,7 @@
         "bufferutil",
         "es5-ext",
         "esbuild",
+        "koffi",
         "sharp",
         "utf-8-validate",
         "vue-demi"

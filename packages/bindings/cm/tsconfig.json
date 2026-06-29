@@ -10,7 +10,7 @@
         "skipLibCheck": true,
         "target": "es2021",
         "paths": {
-            "@tuler/node-cartesi-machine": ["./src/index.ts"]
+            "@deroll/cm": ["./src/index.ts"]
         }
     }
 }
