@@ -19,30 +19,32 @@ env:
     LINUX_VERSION: 6.5.13-ctsi-1
 
 jobs:
-    # changesets/action publishes only when there are no pending changesets (the
-    # "Version Packages" PR was just merged); otherwise it creates/updates that
-    # PR. Mirror that here so the cmio prebuild matrix runs only on the
-    # publishing push, not on every changeset merge.
+    # Build cmio prebuilds only when @deroll/cmio is actually about to be
+    # published — i.e. its package.json version is not yet on npm. This is the
+    # only reason the prebuild matrix needs to run, and it's correct in every
+    # case: false on Version-PR runs (cmio not bumped yet) and on already-
+    # published versions. (Counting .changeset/*.md does NOT work: in changesets
+    # pre mode the .md files persist after `changeset version`, so they can't
+    # signal whether this push publishes.)
     detect:
-        name: Detect publish
+        name: Detect cmio publish
         runs-on: ubuntu-latest
         outputs:
             publish: ${{ steps.check.outputs.publish }}
         steps:
             - uses: actions/checkout@v6
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
             - id: check
               run: |
-                  shopt -s nullglob
-                  pending=0
-                  for f in .changeset/*.md; do
-                      [ "$(basename "$f")" = "README.md" ] || pending=$((pending + 1))
-                  done
-                  if [ "$pending" -eq 0 ]; then
-                      echo "publish=true" >> "$GITHUB_OUTPUT"
-                      echo "No pending changesets -> this run publishes."
-                  else
+                  LOCAL=$(node -p "require('./packages/bindings/cmio/package.json').version")
+                  if npm view "@deroll/cmio@${LOCAL}" version >/dev/null 2>&1; then
                       echo "publish=false" >> "$GITHUB_OUTPUT"
-                      echo "$pending pending changeset(s) -> this run creates/updates the Version PR."
+                      echo "@deroll/cmio@${LOCAL} already on npm -> skip prebuilds."
+                  else
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                      echo "@deroll/cmio@${LOCAL} not yet published -> build prebuilds."
                   fi
 
     # @deroll/cmio native prebuilds, built from the exact commit being published
