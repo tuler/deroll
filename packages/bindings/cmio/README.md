@@ -1,6 +1,4 @@
-# @tuler/node-libcmt
-
-> Temporarily published as `@tuler/node-libcmt` while it is not an official Cartesi package.
+# @deroll/cmio
 
 Node.js bindings for [libcmt](https://github.com/cartesi/machine-guest-tools/tree/main/sys-utils/libcmt), the Cartesi Machine guest rollup library. It lets Node.js applications running inside a Cartesi Machine process rollup inputs (advances and inspects) and emit vouchers, notices, reports and exceptions — without going through the rollup HTTP server.
 
@@ -16,7 +14,7 @@ The API is **fully synchronous** on purpose: calls that wait on the emulator (`f
 ## Usage
 
 ```js
-import { Rollup } from '@tuler/node-libcmt';
+import { Rollup } from '@deroll/cmio';
 
 const rollup = new Rollup();
 await rollup.run({
@@ -50,7 +48,7 @@ for (;;) {
 
 Byte arguments accept `Buffer`, `Uint8Array` or 0x-prefixed hex strings. Addresses are returned as 0x-hex strings, payloads as `Buffer`, and numeric fields as `bigint`.
 
-The package is dual ESM + CommonJS — `const { Rollup } = require('@tuler/node-libcmt')` works too, and both entry points share the same native addon instance.
+The package is dual ESM + CommonJS — `const { Rollup } = require('@deroll/cmio')` works too, and both entry points share the same native addon instance.
 
 ### API
 

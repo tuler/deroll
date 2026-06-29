@@ -2,7 +2,7 @@ import {
     rollups,
     RollupsFatalError,
     RollupsInputRejectedError,
-} from "@tuler/node-cartesi-machine";
+} from "@deroll/cm";
 import fs from "node:fs";
 import { encodePacked, parseUnits } from "viem";
 import { Sequencer } from "./util";

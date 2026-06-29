@@ -2,7 +2,7 @@ import {
     rollups,
     RollupsFatalError,
     RollupsInputRejectedError,
-} from "@tuler/node-cartesi-machine";
+} from "@deroll/cm";
 import { InputsAbi } from "docs/snippets/inputsAbi";
 import fs from "node:fs";
 import {

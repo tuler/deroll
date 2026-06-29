@@ -18,7 +18,7 @@
 // advance it emits a notice and a voucher echoing the payload plus a report;
 // for each inspect it reports the query payload back.
 
-import { Rollup } from '@tuler/node-libcmt';
+import { Rollup } from '@deroll/cmio';
 
 const rollup = new Rollup();
 await rollup.run({

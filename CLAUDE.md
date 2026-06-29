@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@tuler/node-libcmt`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
+Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@deroll/cmio`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
 
 The two request types from the rollup are:
 - **advance_state** — a state-changing input (on-chain). Handlers return `"accept"` or `"reject"`; on reject the machine state is reverted and vouchers/notices are discarded (reports survive).
