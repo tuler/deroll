@@ -2,7 +2,7 @@
 
 The `@deroll/app` module provides the entry point of every deroll application: the `App`.
 
-An `App` owns the main loop of a Cartesi application. It fetches [advance](../advance-handlers) and [inspect](../inspect-handlers) requests from the Cartesi Machine, dispatches them to the handlers you register, and exposes methods to produce the outputs a backend can emit.
+An `App` owns the main loop of a Cartesi application. It fetches [advance](./advance-handlers) and [inspect](./inspect-handlers) requests from the Cartesi Machine, dispatches them to the handlers you register, and exposes methods to produce the outputs a backend can emit.
 
 You create one with [`createApp`](./create-app) and start its loop with `app.start()`.
 

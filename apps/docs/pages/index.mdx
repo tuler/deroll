@@ -7,11 +7,30 @@ import { HomePage } from 'vocs'
 
 <HomePage.Root>
   <HomePage.Logo />
-  <HomePage.Tagline>TypeScript libraries for Cartesi applications</HomePage.Tagline>
-  <HomePage.InstallPackage name="@deroll/app@alpha" type="init" />
-  <HomePage.Description>deroll is a set of libraries that helps the development of Cartesi applications, both on the backend and on the frontend.</HomePage.Description>
+  <HomePage.Tagline>The TypeScript toolkit for Cartesi</HomePage.Tagline>
+  <HomePage.Description>deroll is an umbrella of TypeScript libraries for building, running, and observing Cartesi applications.</HomePage.Description>
   <HomePage.Buttons>
-    <HomePage.Button href="/quick-start" variant="accent">Get started</HomePage.Button>
-    <HomePage.Button href="https://github.com/tuler/deroll">GitHub</HomePage.Button>
+    <HomePage.Button href="/app/quick-start" variant="accent">App</HomePage.Button>
+    <HomePage.Button href="/cmio/getting-started">Bindings</HomePage.Button>
+    <HomePage.Button href="/explorer">Explorer</HomePage.Button>
   </HomePage.Buttons>
 </HomePage.Root>
+
+## [App](/app/quick-start)
+
+Develop Cartesi applications in TypeScript. A small set of composable libraries —
+`@deroll/app`, `@deroll/wallet`, `@deroll/router` — for writing the backend that runs
+inside the Cartesi Machine: handle inputs, manage assets, and emit notices, reports and
+vouchers.
+
+## [Bindings](/cmio/getting-started)
+
+Low-level communication with Cartesi. Native Node.js bindings for the guest rollup
+library ([`@deroll/cmio`](/cmio/getting-started)) and the Cartesi Machine itself
+([`@deroll/cm`](/cm)) — the foundation the higher-level libraries build on.
+
+## [Explorer](/explorer)
+
+Observability for Cartesi. A web UI for navigating a rollups node — applications, epochs,
+inputs, outputs, reports and tournaments — plus [`@deroll/decoder`](/explorer/decoders)
+for turning raw payloads into readable summaries.
