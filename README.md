@@ -6,7 +6,7 @@ Deroll, a TypeScript framework, facilitates the development of decentralized app
 
 ### Prerequisites
 
-Ensure you have Node.js and pnpm installed; you can download them from [nodejs.org](https://nodejs.org/) and [pnpm.io](https://pnpm.io). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
+Ensure you have Node.js and a package manager (npm, pnpm, or bun) installed; you can download Node.js from [nodejs.org](https://nodejs.org/). Additionally, it's necessary to install [Cartesi CLI](https://docs.cartesi.io/).
 
 ### Creating a project
 
@@ -113,25 +113,22 @@ Now you're ready to start building your Cartesi application with cartesi and der
 
 ### Requirements
 
--   Corepack (with pnpm) or pnpm v11
+-   [Bun](https://bun.sh) v1.3 or greater
 -   Node 24 or greater (LTS)
 
 ### Installation
 
-Corepack is a package manager that allows you to install packages from different package managers.
-It is recommended to use it to install deroll because it come with nodejs.
-But you can use pnpm if you want. To install corepack follow the instructions [here](https://pnpm.io/installation).
+Deroll uses [Bun](https://bun.sh) as its package manager. To install it follow the instructions [here](https://bun.sh/docs/installation).
 
 ```sh
-corepack install
-corepack pnpm install
+bun install
 ```
 
 ### Build
 
 ```sh
-pnpm i
-pnpm run build
+bun install
+bun run build
 ```
 
 ## How to contribute
