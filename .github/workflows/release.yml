@@ -12,8 +12,51 @@ permissions:
     pull-requests: write
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
+    # Decide whether this push publishes. changesets/action publishes only when
+    # there are no pending changesets (i.e. the "Version Packages" PR was just
+    # merged); otherwise it creates/updates that PR. We mirror that here so the
+    # expensive prebuild matrix runs only on the publishing push, not on every
+    # changeset merge.
+    detect:
+        name: Detect publish
+        runs-on: ubuntu-latest
+        outputs:
+            publish: ${{ steps.check.outputs.publish }}
+        steps:
+            - uses: actions/checkout@v6
+            - id: check
+              run: |
+                  shopt -s nullglob
+                  pending=0
+                  for f in .changeset/*.md; do
+                      [ "$(basename "$f")" = "README.md" ] || pending=$((pending + 1))
+                  done
+                  if [ "$pending" -eq 0 ]; then
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                      echo "No pending changesets -> this run publishes."
+                  else
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                      echo "$pending pending changeset(s) -> this run creates/updates the Version PR."
+                  fi
+
+    # Build @deroll/cmio's native prebuilds for every supported platform, in the
+    # SAME run as the publish, so they're built from the exact release commit and
+    # uploaded as the `prebuilds` artifact for the release job to consume.
+    prebuilds:
+        name: cmio prebuilds
+        needs: detect
+        if: needs.detect.outputs.publish == 'true'
+        uses: ./.github/workflows/cmio-prebuild.yml
+
     release:
         name: Release
+        needs: [detect, prebuilds]
+        # Run when creating the Version PR (publish=false, prebuilds skipped), or
+        # when publishing AND the prebuilds succeeded. Never publish cmio without
+        # its prebuilds: a prebuild failure blocks the release (re-runnable).
+        if: >-
+            always() && needs.detect.result == 'success' &&
+            (needs.detect.outputs.publish == 'false' || needs.prebuilds.result == 'success')
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repo
@@ -34,30 +77,22 @@ jobs:
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
-            # Fetch the multi-platform native prebuilds (built by
-            # cmio-prebuild.yml) into the cmio package so `changeset publish`
-            # packs @deroll/cmio WITH them, instead of forcing consumers to
-            # compile from source. Best-effort: if no successful prebuild run
-            # exists yet, the release proceeds and cmio publishes without
-            # prebuilds. Run cmio-prebuild on the release commit so the
-            # prebuilds match the version being published.
-            - name: Fetch cmio prebuilds
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  RUN_ID=$(gh run list --workflow=cmio-prebuild.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId // empty')
-                  if [ -n "$RUN_ID" ] && gh run download "$RUN_ID" -n prebuilds -D packages/bindings/cmio/prebuilds; then
-                      echo "fetched prebuilds from cmio-prebuild run $RUN_ID:"
-                      ls -lR packages/bindings/cmio/prebuilds
-                  else
-                      echo "no cmio prebuilds available (no successful run, or artifact expired); @deroll/cmio will publish without prebuilds (consumers compile from source)"
-                  fi
+            # Same-run artifact from the prebuilds job; only present when
+            # publishing. Lands in the cmio package so `changeset publish` packs
+            # @deroll/cmio with multi-platform prebuilds instead of forcing
+            # consumers to compile from source.
+            - name: Download cmio prebuilds
+              if: needs.detect.outputs.publish == 'true'
+              uses: actions/download-artifact@v8
+              with:
+                  name: prebuilds
+                  path: packages/bindings/cmio/prebuilds
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets
               uses: changesets/action@v1
               with:
-                  # This expects you to have a script called release which does a build for your packages and calls changeset publish
+                  # `release` builds the packages and calls `changeset publish`
                   publish: bun run release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,7 +13,11 @@
 # machine-guest-tools submodule (its Makefile LINUX_HEADERS_* variables).
 name: cmio prebuild
 on:
+    # manual runs (e.g. to refresh prebuilds ad hoc)
     workflow_dispatch:
+    # called by release.yml in the same run, so the prebuilds are built from
+    # the exact commit being published and handed straight to changeset publish
+    workflow_call:
 
 env:
     LINUX_IMAGE_VERSION: v0.20.0
