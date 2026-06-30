@@ -9,7 +9,6 @@ export default defineConfig({
     },
     topNav: [
         { text: "App", link: "/app/quick-start" },
-        { text: "Explorer", link: "/explorer" },
         {
             text: "Bindings",
             items: [
@@ -17,6 +16,7 @@ export default defineConfig({
                 { text: "cm (cartesi-machine)", link: "/cm" },
             ],
         },
+        { text: "Explorer", link: "/explorer" },
     ],
     sidebar: {
         "/app/": [

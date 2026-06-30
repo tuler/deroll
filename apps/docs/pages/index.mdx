@@ -8,29 +8,61 @@ import { HomePage } from 'vocs'
 <HomePage.Root>
   <HomePage.Logo />
   <HomePage.Tagline>The TypeScript toolkit for Cartesi</HomePage.Tagline>
-  <HomePage.Description>deroll is an umbrella of TypeScript libraries for building, running, and observing Cartesi applications.</HomePage.Description>
-  <HomePage.Buttons>
-    <HomePage.Button href="/app/quick-start" variant="accent">App</HomePage.Button>
-    <HomePage.Button href="/cmio/getting-started">Bindings</HomePage.Button>
-    <HomePage.Button href="/explorer">Explorer</HomePage.Button>
-  </HomePage.Buttons>
+  <HomePage.Description>A collection of TypeScript libraries to build, run, and observe Cartesi applications.</HomePage.Description>
 </HomePage.Root>
 
-## [App](/app/quick-start)
+<div className="home-cards">
+  <a className="home-card" href="/app/quick-start">
+    <h3>App</h3>
+    <p>Build Cartesi application backends in TypeScript — handle inputs, manage assets, and emit outputs.</p>
+  </a>
+  <a className="home-card" href="/cmio/getting-started">
+    <h3>Bindings</h3>
+    <p>Low-level Node.js bindings for the guest rollup library and the Cartesi Machine itself.</p>
+  </a>
+  <a className="home-card" href="/explorer">
+    <h3>Explorer</h3>
+    <p>A web UI to navigate a rollups node, plus a toolkit for decoding payloads.</p>
+  </a>
+</div>
 
-Develop Cartesi applications in TypeScript. A small set of composable libraries —
-`@deroll/app`, `@deroll/wallet`, `@deroll/router` — for writing the backend that runs
-inside the Cartesi Machine: handle inputs, manage assets, and emit notices, reports and
-vouchers.
-
-## [Bindings](/cmio/getting-started)
-
-Low-level communication with Cartesi. Native Node.js bindings for the guest rollup
-library ([`@deroll/cmio`](/cmio/getting-started)) and the Cartesi Machine itself
-([`@deroll/cm`](/cm)) — the foundation the higher-level libraries build on.
-
-## [Explorer](/explorer)
-
-Observability for Cartesi. A web UI for navigating a rollups node — applications, epochs,
-inputs, outputs, reports and tournaments — plus [`@deroll/decoder`](/explorer/decoders)
-for turning raw payloads into readable summaries.
+<style>{`
+  .home-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 1120px;
+    margin: 48px auto 0;
+    padding: 0 24px;
+  }
+  @media (min-width: 768px) {
+    .home-cards {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .home-card {
+    display: block;
+    padding: 24px;
+    border: 1px solid var(--vocs-color_border, rgba(125,125,125,0.25));
+    border-radius: 12px;
+    background-color: var(--vocs-color_background2, rgba(125,125,125,0.04));
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+  }
+  .home-card:hover {
+    border-color: var(--vocs-color_textAccent, #ff6b35);
+    background-color: var(--vocs-color_background3, rgba(125,125,125,0.08));
+    transform: translateY(-2px);
+  }
+  .home-card h3 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+    color: var(--vocs-color_heading, inherit);
+  }
+  .home-card p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--vocs-color_text3, var(--vocs-color_text2, #888));
+  }
+`}</style>
