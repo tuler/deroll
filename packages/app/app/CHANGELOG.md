@@ -1,5 +1,12 @@
 # @deroll/app
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- Updated dependencies [692adda]
+  - @deroll/cmio@0.2.0-alpha.2
+
 ## 2.0.0-alpha.7
 
 ### Patch Changes

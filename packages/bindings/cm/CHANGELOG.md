@@ -1,5 +1,15 @@
 # @tuler/node-cartesi-machine
 
+## 0.2.0-alpha.2
+
+### Minor Changes
+
+- 966dccd: Upgrade koffi from 2.x to 3.x. koffi 3 ships its native engine as platform-specific subpackages (`@koromix/koffi-<platform>`) pulled in via optionalDependencies, and represents pointers as BigInt. cm's FFI usage — `koffi.load`, opaque types, C-prototype function declarations and `_Out_` parameters — is unchanged, so there is no change to cm's public API.
+
+### Patch Changes
+
+- d97d160: Align the TypeScript configuration with the monorepo: extend `@deroll/tsconfig/base.json` (NodeNext, ES2022, strict), add `.js` extensions to relative imports, and upgrade to TypeScript 6. Internal tooling change — the public API is unchanged.
+
 ## 0.2.0-alpha.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
     "name": "@deroll/cmio",
-    "version": "0.2.0-alpha.1",
+    "version": "0.2.0-alpha.2",
     "description": "Node.js bindings for libcmt, the Cartesi Machine guest rollup library",
     "keywords": [
         "cartesi",

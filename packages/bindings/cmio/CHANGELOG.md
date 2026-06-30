@@ -1,5 +1,11 @@
 # @tuler/node-libcmt
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 692adda: bump node-gyp
+
 ## 0.2.0-alpha.1
 
 ### Patch Changes

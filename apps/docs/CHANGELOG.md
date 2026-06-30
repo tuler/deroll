@@ -1,5 +1,16 @@
 # @deroll/docs
 
+## 1.0.0-alpha.6
+
+### Patch Changes
+
+- Updated dependencies [966dccd]
+- Updated dependencies [d97d160]
+- Updated dependencies [692adda]
+  - @deroll/cm@0.2.0-alpha.2
+  - @deroll/cmio@0.2.0-alpha.2
+  - @deroll/app@2.0.0-alpha.8
+
 ## 1.0.0-alpha.5
 
 ### Patch Changes
