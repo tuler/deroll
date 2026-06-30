@@ -245,6 +245,7 @@ export default defineConfig({
         "/explorer/": [
             { text: "Overview", link: "/explorer" },
             { text: "Writing Decoders", link: "/explorer/decoders" },
+            { text: "Open explorer.deroll.dev", link: "https://explorer.deroll.dev" },
         ],
         "/cmio/": [
             { text: "Introduction", link: "/cmio" },

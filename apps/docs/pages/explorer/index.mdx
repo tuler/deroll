@@ -1,8 +1,22 @@
 # Explorer
 
-The **Cartesi Node Explorer** is a web UI for navigating the entities exposed by the
-[Cartesi Rollups Node JSON-RPC API](https://github.com/cartesi/rollups-node) (v2.0.0, the
-current alpha). It follows the natural hierarchy of the API:
+The **deroll Explorer** is a web UI for inspecting a Cartesi application by talking to a
+Cartesi Rollups **Node's JSON-RPC API** ([rollups-node](https://github.com/cartesi/rollups-node),
+v2 — the current alpha). Point it at a node — local, self-hosted, or remote — and browse
+everything that node knows about your application.
+
+**Live site:** [explorer.deroll.dev](https://explorer.deroll.dev) — open it and connect it
+to your node's JSON-RPC endpoint, or self-host the app yourself.
+
+:::info
+The rollups node must have **CORS** configured to accept requests from the explorer's
+origin (e.g. `https://explorer.deroll.dev`). Without it, the browser blocks the explorer's
+calls to the node's JSON-RPC API.
+:::
+
+## What it shows
+
+The explorer follows the natural hierarchy of the node API:
 
 ```
 Node
@@ -20,13 +34,39 @@ voucher address, status, …), and filters are kept in the URL so any view is sh
 Detail pages cross-link related entities — an epoch links to its inputs, an input to the
 outputs and reports it produced, an epoch under dispute to its tournament.
 
-- **Live site:** [explorer.deroll.dev](https://explorer.deroll.dev)
-- **Writing decoders:** [`@deroll/decoder`](/explorer/decoders) turns raw payloads into readable summaries.
+## Why another explorer?
 
-## Packages
+Cartesi already has an official, full-featured explorer, [CartesiScan](https://cartesiscan.io).
+It's open-source, indexes on-chain rollups activity (and connects to a node to show
+outputs), and works against both public networks and a local node — it ships with the
+Cartesi CLI.
 
-| Package | Description |
-| --- | --- |
-| [`@deroll/decoder`](/explorer/decoders) | Typed toolkit for writing payload decoders. |
-| `@deroll/json-decoder` | Example decoder for plain-JSON payloads. |
-| `@deroll/mock-server` | Mock Rollups Node JSON-RPC server for developing the explorer locally. |
+The deroll Explorer is a lighter, complementary tool built around one capability CartesiScan
+doesn't have: **custom, app-specific payload decoding**. It's a thin client over a node's
+JSON-RPC API — there's no indexer to run — and it lets you teach it how to read your
+application's data.
+
+| | deroll Explorer | CartesiScan |
+| --- | --- | --- |
+| **Payload decoding** | pluggable, app-specific decoders (TypeScript) | built-in: strings, JSON, ABI |
+| **Setup** | point it at a node's JSON-RPC endpoint — no indexer | also indexes on-chain data, so self-hosting needs an indexer |
+
+## Decoders — the headline feature
+
+A Cartesi application's inputs and outputs are just **bytes**. Explorers can decode the
+common formats — UTF-8 strings, JSON, ABI-encoded data — but they can't know what *your*
+application's custom payloads mean.
+
+The deroll Explorer lets you tell it. You write a small TypeScript **decoder** that turns a
+raw payload into a human-readable summary plus structured data, and the explorer renders
+that in place of the hex dump.
+
+- **Plain TypeScript**, using [`@deroll/decoder`](/explorer/decoders) — a typed,
+  dependency-free toolkit. Standard portal-deposit decoding and byte-reading helpers are
+  included, so you only write the part that's unique to your app.
+- **Nothing to publish.** Point the explorer at a decoder's source on GitHub and it
+  transpiles it on the fly (via [esm.sh](https://esm.sh)) — no build step, no npm release.
+- **Per application**, so every app reads in its own domain language. Inputs become
+  "deposit 10 USDC", "place order", "settle round 7" instead of `0x…`.
+
+→ **[Writing decoders](/explorer/decoders)**
