@@ -1,5 +1,11 @@
 # @deroll/decoder
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 2cfadb7: fix addresses (lowercase)
+
 ## 0.2.0-alpha.1
 
 ### Patch Changes
