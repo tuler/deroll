@@ -13,15 +13,24 @@ import { HomePage } from 'vocs'
 
 <div className="home-cards">
   <a className="home-card" href="/app/quick-start">
-    <h3>App</h3>
+    <div className="home-card-header">
+      <h3>App</h3>
+      <span className="home-card-packages"><code>@deroll/app</code>, <code>@deroll/wallet</code></span>
+    </div>
     <p>Build Cartesi application backends in TypeScript — handle inputs, manage assets, and emit outputs.</p>
   </a>
   <a className="home-card" href="/cmio/getting-started">
-    <h3>Bindings</h3>
+    <div className="home-card-header">
+      <h3>Bindings</h3>
+      <span className="home-card-packages"><code>@deroll/cm</code>, <code>@deroll/cmio</code></span>
+    </div>
     <p>Low-level Node.js bindings for the guest rollup library and the Cartesi Machine itself.</p>
   </a>
   <a className="home-card" href="/explorer">
-    <h3>Explorer</h3>
+    <div className="home-card-header">
+      <h3>Explorer</h3>
+      <span className="home-card-packages"><code>@deroll/decoder</code>, explorer.deroll.dev</span>
+    </div>
     <p>A web UI to navigate a rollups node, plus a toolkit for decoding payloads.</p>
   </a>
 </div>
@@ -54,10 +63,30 @@ import { HomePage } from 'vocs'
     background-color: var(--vocs-color_background3, rgba(125,125,125,0.08));
     transform: translateY(-2px);
   }
-  .home-card h3 {
+  .home-card-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
     margin: 0 0 8px;
+  }
+  .home-card h3 {
+    margin: 0;
     font-size: 1.2rem;
     color: var(--vocs-color_heading, inherit);
+  }
+  .home-card-packages {
+    font-size: 0.8rem;
+    color: var(--vocs-color_text3, var(--vocs-color_text2, #888));
+    opacity: 0.7;
+    text-align: right;
+  }
+  .home-card-packages code {
+    font-size: 0.8rem;
+    color: inherit;
+    background: none;
+    padding: 0;
   }
   .home-card p {
     margin: 0;
