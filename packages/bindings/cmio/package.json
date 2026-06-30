@@ -54,8 +54,8 @@
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.3",
-        "@types/node": "^25.9.2",
-        "node-gyp": "^11.0.0",
+        "@types/node": "^26",
+        "node-gyp": "^13.0.0",
         "prebuildify": "^6.0.1",
         "typescript": "^6.0.3"
     },
