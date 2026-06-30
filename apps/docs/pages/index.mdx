@@ -13,25 +13,19 @@ import { HomePage } from 'vocs'
 
 <div className="home-cards">
   <a className="home-card" href="/app/quick-start">
-    <div className="home-card-header">
-      <h3>App</h3>
-      <span className="home-card-packages"><code>@deroll/app</code>, <code>@deroll/wallet</code></span>
-    </div>
+    <h3>App</h3>
     <p>Build Cartesi application backends in TypeScript — handle inputs, manage assets, and emit outputs.</p>
+    <span className="home-card-packages"><code>@deroll/app</code>, <code>@deroll/wallet</code></span>
   </a>
   <a className="home-card" href="/cmio/getting-started">
-    <div className="home-card-header">
-      <h3>Bindings</h3>
-      <span className="home-card-packages"><code>@deroll/cm</code>, <code>@deroll/cmio</code></span>
-    </div>
+    <h3>Bindings</h3>
     <p>Low-level Node.js bindings for the guest rollup library and the Cartesi Machine itself.</p>
+    <span className="home-card-packages"><code>@deroll/cm</code>, <code>@deroll/cmio</code></span>
   </a>
   <a className="home-card" href="/explorer">
-    <div className="home-card-header">
-      <h3>Explorer</h3>
-      <span className="home-card-packages"><code>@deroll/decoder</code>, explorer.deroll.dev</span>
-    </div>
+    <h3>Explorer</h3>
     <p>A web UI to navigate a rollups node, plus a toolkit for decoding payloads.</p>
+    <span className="home-card-packages"><code>@deroll/decoder</code>, explorer.deroll.dev</span>
   </a>
 </div>
 
@@ -50,7 +44,8 @@ import { HomePage } from 'vocs'
     }
   }
   .home-card {
-    display: block;
+    display: flex;
+    flex-direction: column;
     padding: 24px;
     border: 1px solid var(--vocs-color_border, rgba(125,125,125,0.25));
     border-radius: 12px;
@@ -63,24 +58,17 @@ import { HomePage } from 'vocs'
     background-color: var(--vocs-color_background3, rgba(125,125,125,0.08));
     transform: translateY(-2px);
   }
-  .home-card-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 0 0 8px;
-  }
   .home-card h3 {
-    margin: 0;
+    margin: 0 0 8px;
     font-size: 1.2rem;
     color: var(--vocs-color_heading, inherit);
   }
   .home-card-packages {
+    margin-top: auto;
+    padding-top: 16px;
     font-size: 0.8rem;
     color: var(--vocs-color_text3, var(--vocs-color_text2, #888));
     opacity: 0.7;
-    text-align: right;
   }
   .home-card-packages code {
     font-size: 0.8rem;
