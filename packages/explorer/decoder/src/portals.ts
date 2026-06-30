@@ -32,11 +32,11 @@ export const PORTAL_ADDRESSES_V2: Readonly<Record<string, PortalKind>> = {
 };
 
 export const PORTAL_ADDRESSES_V3: Readonly<Record<string, PortalKind>> = {
-    "0x8b53327575ac999bdfa8003f4b5134DFF9027516": "EtherPortal",
-    "0x22E57511C30CcE6CDaa742E13CE3b774fDC663b1": "ERC20Portal",
-    "0xcA3a0a47915C12F020CF70B938aCC8e744414cb8": "ERC721Portal",
-    "0x13663E193673756a02e84b724B8a3422A9a7aab4": "ERC1155SinglePortal",
-    "0x3649c5E2De91C69a7Bb80D864f0039da5E511096": "ERC1155BatchPortal",
+    "0x8b53327575ac999bdfa8003f4b5134dff9027516": "EtherPortal",
+    "0x22e57511c30cce6cdaa742e13ce3b774fdc663b1": "ERC20Portal",
+    "0xca3a0a47915c12f020cf70b938acc8e744414cb8": "ERC721Portal",
+    "0x13663e193673756a02e84b724b8a3422a9a7aab4": "ERC1155SinglePortal",
+    "0x3649c5e2de91c69a7bb80d864f0039da5e511096": "ERC1155BatchPortal",
 };
 
 const ETHER_DECIMALS = 18; // wei → ETH is a protocol constant, safe to format
