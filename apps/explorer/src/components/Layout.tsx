@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
+import { RpcError } from '../api/client'
 import { useChainId, useNodeVersion } from '../api/hooks'
 import { formatUint } from '../lib/format'
 import { useServer } from '../server'
@@ -12,8 +13,15 @@ function ServerBar() {
 
   const chainId = useChainId()
   const version = useNodeVersion()
-  const connected = chainId.isSuccess
-  const checking = chainId.isLoading
+  // An RPC-level error still proves the server is answering — e.g. a node
+  // running without an EVM reader errors on cartesi_getChainId while serving
+  // everything else.
+  const connected =
+    chainId.isSuccess ||
+    version.isSuccess ||
+    chainId.error instanceof RpcError ||
+    version.error instanceof RpcError
+  const checking = (chainId.isLoading || version.isLoading) && !connected
 
   return (
     <form
@@ -32,7 +40,8 @@ function ServerBar() {
         />
         {connected ? (
           <span className="hidden sm:inline whitespace-nowrap">
-            chain {formatUint(chainId.data?.data)} · node v{version.data?.data ?? '?'}
+            {chainId.isSuccess && <>chain {formatUint(chainId.data?.data)} · </>}
+            node v{version.data?.data ?? '?'}
           </span>
         ) : (
           <span className="hidden sm:inline">{checking ? 'connecting…' : 'unreachable'}</span>

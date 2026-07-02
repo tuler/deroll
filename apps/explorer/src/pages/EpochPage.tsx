@@ -65,6 +65,7 @@ export function EpochPage() {
             ['Outputs merkle root', <Hex value={e.outputs_merkle_root} full />],
             ['Commitment', <Hex value={e.commitment} full />],
             ['Claim transaction', <TxHash value={e.claim_transaction_hash} full />],
+            e.staged_at_block ? ['Staged at block', formatUint(e.staged_at_block)] : null,
             e.tournament_address
               ? [
                   'Tournament',

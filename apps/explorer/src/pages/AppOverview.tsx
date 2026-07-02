@@ -1,7 +1,8 @@
 import { useLastAcceptedEpochIndex, useProcessedInputCount } from '../api/hooks'
 import { DecoderSettings } from '../components/DecoderSettings'
+import { TxHash } from '../components/TxHash'
 import { Collapsible, Hex, JsonView, KV, Section, StatusBadge } from '../components/ui'
-import { formatDate, formatNanos, formatUint } from '../lib/format'
+import { formatDate, formatNanos, formatUint, isZeroHex } from '../lib/format'
 import { useApp } from './AppLayout'
 
 function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
@@ -28,7 +29,15 @@ export function AppOverview() {
           value={lastAccepted.isSuccess ? formatUint(lastAccepted.data.data) : '—'}
         />
         <StatCard label="Epoch length" value={formatUint(app.epoch_length)} />
-        <StatCard label="State" value={<StatusBadge status={app.state} />} />
+        <StatCard
+          label="Status"
+          value={
+            <span className="inline-flex items-center gap-1.5">
+              <StatusBadge status={app.status} />
+              {!app.enabled && <StatusBadge status="DISABLED" />}
+            </span>
+          }
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -48,13 +57,67 @@ export function AppOverview() {
         <Section title="Status">
           <KV
             rows={[
-              ['State', <StatusBadge status={app.state} />],
+              ['Status', <StatusBadge status={app.status} />],
+              ['Enabled', <StatusBadge status={app.enabled ? 'ENABLED' : 'DISABLED'} />],
               ['Consensus type', <StatusBadge status={app.consensus_type} />],
               app.reason ? (['Reason', app.reason] as [React.ReactNode, React.ReactNode]) : null,
+              ['Claim staging period', `${formatUint(app.claim_staging_period)} blocks`],
               ['Created', formatDate(app.created_at)],
               ['Updated', formatDate(app.updated_at)],
             ]}
           />
+        </Section>
+
+        <Section title="Withdrawal config">
+          {app.withdrawal_config ? (
+            <KV
+              rows={[
+                ['Guardian', <Hex value={app.withdrawal_config.guardian} full />],
+                [
+                  'Output builder',
+                  <Hex value={app.withdrawal_config.withdrawal_output_builder} full />,
+                ],
+                [
+                  'Accounts drive start index',
+                  <Hex value={app.withdrawal_config.accounts_drive_start_index} />,
+                ],
+                [
+                  'Max accounts (log2)',
+                  formatUint(app.withdrawal_config.log2_max_num_of_accounts),
+                ],
+                [
+                  'Leaves per account (log2)',
+                  formatUint(app.withdrawal_config.log2_leaves_per_account),
+                ],
+              ]}
+            />
+          ) : (
+            <p className="text-sm text-slate-500 dark:text-slate-400">Not available.</p>
+          )}
+        </Section>
+
+        <Section title="Foreclosure">
+          {isZeroHex(app.foreclose_block) ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">Not foreclosed.</p>
+          ) : (
+            <KV
+              rows={[
+                ['Foreclosed at block', formatUint(app.foreclose_block)],
+                ['Foreclose transaction', <TxHash value={app.foreclose_transaction} full />],
+                [
+                  'Accounts drive proved at block',
+                  isZeroHex(app.accounts_drive_proved_block)
+                    ? '—'
+                    : formatUint(app.accounts_drive_proved_block),
+                ],
+                [
+                  'Accounts drive proved transaction',
+                  <TxHash value={app.accounts_drive_proved_transaction} full />,
+                ],
+                ['Accounts drive merkle root', <Hex value={app.accounts_drive_merkle_root} full />],
+              ]}
+            />
+          )}
         </Section>
 
         <Section title="Sync checkpoints (last scanned block)">
@@ -64,6 +127,9 @@ export function AppOverview() {
               ['Inputs', formatUint(app.last_input_check_block)],
               ['Outputs', formatUint(app.last_output_check_block)],
               ['Tournaments', formatUint(app.last_tournament_check_block)],
+              ['Foreclosures', formatUint(app.last_foreclose_check_block)],
+              ['Accounts drive proofs', formatUint(app.last_accounts_drive_proved_check_block)],
+              ['Withdrawals', formatUint(app.last_withdrawal_check_block)],
             ]}
           />
         </Section>

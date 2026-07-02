@@ -90,19 +90,23 @@ const VIOLET = 'bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-vi
 const AMBER = 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300'
 
 const STATUS_COLORS: Record<string, string> = {
-  // application state
+  // application status (+ ENABLED/DISABLED derived from the enabled flag)
+  OK: GREEN,
+  FAILED: RED,
+  DIVERGED: RED,
+  CORRUPTED: RED,
   ENABLED: GREEN,
   DISABLED: GRAY,
-  FAILED: RED,
-  INOPERABLE: RED,
   // epoch
   OPEN: BLUE,
   CLOSED: GRAY,
   INPUTS_PROCESSED: INDIGO,
   CLAIM_COMPUTED: VIOLET,
   CLAIM_SUBMITTED: AMBER,
+  CLAIM_STAGED: AMBER,
   CLAIM_ACCEPTED: GREEN,
   CLAIM_REJECTED: RED,
+  CLAIM_FORECLOSED: GRAY,
   // input
   NONE: GRAY,
   ACCEPTED: GREEN,
@@ -110,6 +114,7 @@ const STATUS_COLORS: Record<string, string> = {
   EXCEPTION: RED,
   MACHINE_HALTED: RED,
   OUTPUTS_LIMIT_EXCEEDED: AMBER,
+  REPORTS_LIMIT_EXCEEDED: AMBER,
   CYCLE_LIMIT_EXCEEDED: AMBER,
   TIME_LIMIT_EXCEEDED: AMBER,
   PAYLOAD_LENGTH_LIMIT_EXCEEDED: AMBER,

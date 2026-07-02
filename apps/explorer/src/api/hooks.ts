@@ -14,6 +14,7 @@ import type {
   Output,
   Report,
   Tournament,
+  Withdrawal,
 } from './types'
 
 export interface ListOptions {
@@ -102,6 +103,20 @@ export const useReports = (
 
 export const useReport = (application: string, reportIndex: HexUint) =>
   useRpc<GetResult<Report>>('cartesi_getReport', { application, report_index: reportIndex })
+
+// Withdrawals
+
+export const useWithdrawals = (
+  application: string,
+  filters: { account_index?: HexUint } = {},
+  opts: ListOptions = {},
+) => useRpc<ListResult<Withdrawal>>('cartesi_listWithdrawals', { application, ...filters, ...opts })
+
+export const useWithdrawal = (application: string, accountIndex: HexUint) =>
+  useRpc<GetResult<Withdrawal>>('cartesi_getWithdrawal', {
+    application,
+    account_index: accountIndex,
+  })
 
 // Tournaments
 
