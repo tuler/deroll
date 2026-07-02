@@ -57,9 +57,17 @@ function gistFileAnchor(filename: string): string {
 /**
  * Find the decoder's filename in a gist via the (CORS-enabled, unauthenticated)
  * gists API: the file the page URL's #file- anchor points at, or the gist's
- * only file, or its only script file.
+ * only file, or its only script file. Also returns the gist's current revision
+ * so the esm.sh URL can be pinned — esm.sh resolves an unpinned gist at
+ * request time and caches the result, so after the gist is edited (or when
+ * that resolution intermittently fails) an unpinned URL serves a stale or
+ * broken module while a revision-pinned one is immutable.
  */
-async function resolveGistFilename(id: string, rev: string | undefined, anchor: string | undefined): Promise<string> {
+async function resolveGistFile(
+  id: string,
+  rev: string | undefined,
+  anchor: string | undefined,
+): Promise<{ filename: string; rev: string | undefined }> {
   const res = await fetch(`https://api.github.com/gists/${id}${rev ? `/${rev}` : ''}`)
   if (!res.ok) {
     throw new Error(
@@ -68,16 +76,23 @@ async function resolveGistFilename(id: string, rev: string | undefined, anchor: 
         : `Failed to look up the gist (GitHub API returned ${res.status}).`,
     )
   }
-  const gist = (await res.json()) as { files?: Record<string, unknown> }
+  const gist = (await res.json()) as {
+    files?: Record<string, unknown>
+    history?: { version?: string }[]
+  }
+  // History is newest-first; when no revision was asked for, its head is the
+  // gist's current revision.
+  const resolvedRev = rev ?? gist.history?.[0]?.version
   const files = Object.keys(gist.files ?? {})
+  const found = (filename: string) => ({ filename, rev: resolvedRev })
   if (anchor) {
     const match = files.find((f) => gistFileAnchor(f) === anchor.toLowerCase())
-    if (match) return match
+    if (match) return found(match)
     throw new Error(`The gist has no file matching #${anchor}.`)
   }
-  if (files.length === 1) return files[0]
+  if (files.length === 1) return found(files[0])
   const scripts = files.filter((f) => /\.(?:ts|tsx|mts|js|mjs|jsx)$/i.test(f))
-  if (scripts.length === 1) return scripts[0]
+  if (scripts.length === 1) return found(scripts[0])
   throw new Error(
     'The gist has several files — pick one by opening it on gist.github.com and copying the link with its #file-… anchor, or the file\'s "Raw" URL.',
   )
@@ -100,7 +115,9 @@ async function resolveGistFilename(id: string, rev: string | undefined, anchor: 
  *   gist:<id>[@<rev>]/<file>
  *
  * A gist page URL names no file, so the filename is resolved through the
- * gists API (the #file- anchor, the only file, or the only script file).
+ * gists API (the #file- anchor, the only file, or the only script file),
+ * and the result is pinned to the gist's current revision so esm.sh serves
+ * an immutable build instead of re-resolving a floating ref.
  * A hand-pasted esm.sh URL keeps the kit external too (see below); any other
  * http(s) URL (a self-hosted .js, …) is returned unchanged, so
  * already-registered decoders keep working.
@@ -152,8 +169,8 @@ export async function resolveDecoderImportUrl(input: string, esmBase: string = E
     const page = /^\/(?:[\w-]+\/)?([0-9a-f]+)(?:\/([0-9a-f]{40}))?\/?$/i.exec(url.pathname)
     if (page) {
       const anchor = /^#(file-.+)$/.exec(url.hash)?.[1]
-      const filename = await resolveGistFilename(page[1], page[2], anchor)
-      return gistUrl(esmBase, page[1], page[2], filename)
+      const file = await resolveGistFile(page[1], page[2], anchor)
+      return gistUrl(esmBase, page[1], file.rev, file.filename)
     }
   }
 
