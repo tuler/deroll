@@ -44,9 +44,9 @@ export function AppOverview() {
         <Section title="Contracts">
           <KV
             rows={[
-              ['Application', <Hex value={app.iapplication_address} full />],
-              ['Consensus', <Hex value={app.iconsensus_address} full />],
-              ['Input box', <Hex value={app.iinputbox_address} full />],
+              ['Application', <Hex value={app.iapplication_address} />],
+              ['Consensus', <Hex value={app.iconsensus_address} />],
+              ['Input box', <Hex value={app.iinputbox_address} />],
               ['Template hash', <Hex value={app.template_hash} />],
               ['Data availability', <Hex value={app.data_availability} />],
               ['Input box deployed at block', formatUint(app.iinputbox_block)],
@@ -72,10 +72,10 @@ export function AppOverview() {
           {app.withdrawal_config ? (
             <KV
               rows={[
-                ['Guardian', <Hex value={app.withdrawal_config.guardian} full />],
+                ['Guardian', <Hex value={app.withdrawal_config.guardian} />],
                 [
                   'Output builder',
-                  <Hex value={app.withdrawal_config.withdrawal_output_builder} full />,
+                  <Hex value={app.withdrawal_config.withdrawal_output_builder} />,
                 ],
                 [
                   'Accounts drive start index',
