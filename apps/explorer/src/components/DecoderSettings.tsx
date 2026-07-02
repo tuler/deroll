@@ -26,9 +26,9 @@ export function DecoderSettings({ application }: { application: string }) {
         <p className="text-sm text-slate-500 dark:text-slate-400">
           A module that translates this application's payloads into readable data — a built ES
           module URL, or a decoder's TypeScript source on GitHub (paste the file's{' '}
-          <code className="font-mono">github.com</code> URL, or use{' '}
-          <code className="font-mono">gh:owner/repo@ref/path.ts</code>). It runs with full access
-          to this page — only add sources you trust.
+          <code className="font-mono">github.com</code> or <code className="font-mono">gist.github.com</code>{' '}
+          URL, or use <code className="font-mono">gh:owner/repo@ref/path.ts</code>). It runs with
+          full access to this page — only add sources you trust.
         </p>
         <form
           className="flex flex-wrap items-center gap-2"

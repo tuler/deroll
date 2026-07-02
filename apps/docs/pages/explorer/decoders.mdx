@@ -50,6 +50,12 @@ decoder's `import … from "@deroll/decoder"` needs **nothing published**: the e
 supplies the kit via an import map pointing at its own source, so kit-using decoders work
 even in production over public esm.sh. The repo must be public.
 
+**Gists work too** — no repo needed. Paste the gist's page URL
+(`https://gist.github.com/owner/id`) and the explorer finds the decoder file by itself
+(for a gist with several files, include the `#file-…` anchor or use the file's **Raw**
+URL). Secret gists work as long as you share the link; `gist:id/file.ts` is the
+shorthand form.
+
 ## Distributing as a package
 
 To ship a decoder as a versioned package instead, publish it to npm (or any registry) and

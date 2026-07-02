@@ -16,10 +16,10 @@ export function loadDecoder(url: string): Promise<DecoderModule> {
 }
 
 async function importDecoder(url: string): Promise<DecoderModule> {
-  // GitHub references are rewritten to the esm.sh /gh/ route, which serves the
-  // decoder's TypeScript source as a browser ES module; any other URL is used
-  // as-is.
-  const importUrl = resolveDecoderImportUrl(url)
+  // GitHub and gist references are rewritten to the esm.sh /gh/ route, which
+  // serves the decoder's TypeScript source as a browser ES module; any other
+  // URL is used as-is.
+  const importUrl = await resolveDecoderImportUrl(url)
   let mod: Record<string, unknown>
   try {
     mod = (await import(/* @vite-ignore */ importUrl)) as Record<string, unknown>
