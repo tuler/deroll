@@ -101,8 +101,9 @@ async function resolveGistFilename(id: string, rev: string | undefined, anchor: 
  *
  * A gist page URL names no file, so the filename is resolved through the
  * gists API (the #file- anchor, the only file, or the only script file).
- * Any other http(s) URL (an esm.sh package URL, a self-hosted .js, …) is
- * returned unchanged, so already-registered decoders keep working.
+ * A hand-pasted esm.sh URL keeps the kit external too (see below); any other
+ * http(s) URL (a self-hosted .js, …) is returned unchanged, so
+ * already-registered decoders keep working.
  */
 export async function resolveDecoderImportUrl(input: string, esmBase: string = ESM_BASE): Promise<string> {
   const ref = input.trim()
@@ -154,6 +155,16 @@ export async function resolveDecoderImportUrl(input: string, esmBase: string = E
       const filename = await resolveGistFilename(page[1], page[2], anchor)
       return gistUrl(esmBase, page[1], page[2], filename)
     }
+  }
+
+  // A URL already pointing at the kit-serving esm.sh (e.g. a hand-pasted
+  // /gh/ repo or gist URL) works as-is, except that esm.sh would resolve the
+  // decoder's bare `@deroll/decoder` import from npm into an absolute URL the
+  // import map cannot remap — floating at whatever npm's `latest` tag points
+  // to, not the kit the explorer pins. Keep the kit external here too, unless
+  // the URL already manages its own externals.
+  if (ref.startsWith(`${esmBase}/`) && !url.searchParams.has('external')) {
+    return withKitExternal(ref)
   }
 
   return ref
