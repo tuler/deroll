@@ -1,0 +1,86 @@
+# Asset transfer encoders
+
+Encoders for the **typed asset-transfer outputs** introduced by the new rollups contracts: instead of hand-crafting a [call voucher](/cmio/reference/encode-call-voucher) with ERC-20/721/1155 calldata, the application emits a first-class transfer output that the contracts know how to execute. Each helper mirrors one entry of libcmt's codec module and produces the exact same bytes.
+
+| Function | Wire format |
+| --- | --- |
+| `encodeERC20Transfer` | `ERC20Transfer(address,address,uint256)` |
+| `encodeERC721Transfer` | `ERC721Transfer(address,address,uint256,bytes)` |
+| `encodeERC1155SingleTransfer` | `ERC1155SingleTransfer(address,address,uint256,uint256,bytes)` |
+| `encodeERC1155BatchTransfer` | `ERC1155BatchTransfer(address,address,uint256[2][],bytes)` |
+
+All of them return a `Buffer`, ready to pass to [`emitOutput`](/cmio/reference/emit-output).
+
+## Usage
+
+```ts twoslash
+import {
+    Rollup,
+    encodeERC20Transfer,
+    encodeERC721Transfer,
+    encodeERC1155SingleTransfer,
+    encodeERC1155BatchTransfer,
+} from '@deroll/cmio';
+const rollup = new Rollup();
+// ---cut---
+const recipient = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+
+// 100 units of an ERC-20 token
+rollup.emitOutput(
+    encodeERC20Transfer({
+        recipient,
+        token: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        value: 100n,
+    }),
+);
+
+// one ERC-721 token
+rollup.emitOutput(
+    encodeERC721Transfer({
+        recipient,
+        token: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+        tokenId: 7n,
+    }),
+);
+
+// ERC-1155: a single (id, value) or a batch of [id, value] pairs
+rollup.emitOutput(
+    encodeERC1155SingleTransfer({
+        recipient,
+        token: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+        tokenId: 7n,
+        value: 3n,
+    }),
+);
+rollup.emitOutput(
+    encodeERC1155BatchTransfer({
+        recipient,
+        token: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+        tokenIdsAndValues: [
+            [1n, 2n],
+            [3n, 4n],
+        ],
+    }),
+);
+```
+
+## Parameters
+
+All four take a named options object:
+
+| Field | Type | Applies to | Description |
+| --- | --- | --- | --- |
+| `recipient` | `AddressLike` | all | Address receiving the assets (20 bytes) |
+| `token` | `AddressLike` | all | Token contract address (20 bytes) |
+| `value` | `U256Like` | ERC-20, ERC-1155 single | Amount of tokens to transfer |
+| `tokenId` | `U256Like` | ERC-721, ERC-1155 single | Token id to transfer |
+| `tokenIdsAndValues` | `[U256Like, U256Like][]` | ERC-1155 batch | `[tokenId, value]` pairs |
+| `data` | `BytesLike`, default empty | ERC-721, ERC-1155 | Extra data forwarded to the recipient |
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| `recipient`/`token` not 20 bytes / malformed hex | `TypeError` |
+| `value`/`tokenId` negative or ≥ 2²⁵⁶ | `RangeError` |
+| `tokenIdsAndValues` entry not a `[tokenId, value]` pair | `TypeError` |

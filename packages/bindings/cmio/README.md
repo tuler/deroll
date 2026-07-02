@@ -9,24 +9,28 @@ The package is a Node-API native addon:
 
 The right flavor is selected automatically by target architecture, so the same dapp code runs unchanged on the host and in the machine.
 
-The API is **fully synchronous** on purpose: calls that wait on the emulator (`finish`, `gio`) yield the machine, which pauses the entire guest — including the Node.js event loop — so there is nothing to run concurrently while they wait. On the host mock they return immediately.
+The API is **fully synchronous** on purpose: calls that wait on the emulator (`waitForInput`) yield the machine, which pauses the entire guest — including the Node.js event loop — so there is nothing to run concurrently while they wait. On the host mock they return immediately.
+
+The binding mirrors libcmt's own split between its **rollup** module (raw I/O) and its **codec** module (EVM-ABI wire formats): the `Rollup` class only moves raw bytes, and standalone `encode*`/`decodeAdvance` helpers translate between structured values and bytes.
 
 ## Usage
 
 ```js
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance, encodeCallVoucher, encodeNotice } from '@deroll/cmio';
 
 const rollup = new Rollup();
 await rollup.run({
     advance(request, rollup) {
-        // request: { chainId, appContract, msgSender, blockNumber,
+        // request.payload is the raw EvmAdvance input; decode it
+        const advance = decodeAdvance(request.payload);
+        // advance: { chainId, appContract, msgSender, blockNumber,
         //            blockTimestamp, prevRandao, index, payload }
-        rollup.emitNotice(request.payload);
-        rollup.emitVoucher({
-            destination: request.msgSender,
+        rollup.emitOutput(encodeNotice(advance.payload));
+        rollup.emitOutput(encodeCallVoucher({
+            destination: advance.msgSender,
             value: 0n,
             payload: '0xdeadbeef',
-        });
+        }));
         return true; // accept (default); return false to reject
     },
     inspect(request, rollup) {
@@ -41,7 +45,7 @@ Or drive the loop yourself:
 const rollup = new Rollup();
 let accept = true;
 for (;;) {
-    const request = rollup.finish({ accept });
+    const request = rollup.waitForInput({ accept });
     accept = handle(request); // your logic
 }
 ```
@@ -50,30 +54,40 @@ Byte arguments accept `Buffer`, `Uint8Array` or 0x-prefixed hex strings. Address
 
 The package is dual ESM + CommonJS — `const { Rollup } = require('@deroll/cmio')` works too, and both entry points share the same native addon instance.
 
-### API
+### Rollup API (raw I/O)
 
 | Method | Description |
 | --- | --- |
 | `new Rollup()` | Opens the rollup device. Only **one** instance may be open at a time (`-EBUSY` otherwise); `close()` the previous one first. |
-| `finish({ accept })` | Accepts/rejects the previous request, yields, and returns the next `{ type: 'advance' \| 'inspect', payload, ... }`. |
-| `emitVoucher({ destination, value, payload })` | Emits `Voucher(address,uint256,bytes)`. Returns the output index. |
-| `emitDelegateCallVoucher({ destination, payload })` | Emits `DelegateCallVoucher(address,bytes)`. Returns the output index. |
-| `emitNotice(payload)` | Emits `Notice(bytes)`. Returns the output index. |
+| `waitForInput({ accept })` | Accepts/rejects the previous request, yields, and returns the next `{ type: 'advance' \| 'inspect', payload }` with the raw, undecoded payload. |
+| `emitOutput(bytes)` | Emits a raw, already EVM-ABI encoded output; adds it to the outputs merkle tree and returns its index. |
 | `emitReport(payload)` | Emits a report (raw bytes, not in the outputs merkle tree). |
 | `emitException(payload)` | Signals that the request could not be processed. |
 | `progress(value)` | Reports progress (raw uint32). |
-| `gio({ domain, id })` | Generic IO request; returns `{ responseCode, responseData }`. |
-| `saveMerkle(file)` / `loadMerkle(file)` / `resetMerkle()` | Persist/restore/reset the outputs merkle tree. |
 | `close()` | Releases the device. |
-| `run({ advance, inspect })` | Convenience loop over `finish`; handlers may be async. Handler exceptions reject the input and are emitted as reports. |
+| `run({ advance, inspect })` | Convenience loop over `waitForInput`; handlers may be async. Handler exceptions reject the input and are emitted as reports. |
 
 Failed libcmt calls throw a `RollupError` with the negative errno in `error.errno` and the failed call in `error.syscall`.
 
+### Codec helpers (EVM-ABI wire formats)
+
+Each helper mirrors one entry of libcmt's `codec.h` and produces/consumes the exact same bytes:
+
+| Function | Wire format |
+| --- | --- |
+| `decodeAdvance(input)` / `encodeAdvance(fields)` | `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` |
+| `encodeNotice(payload)` | `Notice(bytes)` |
+| `encodeCallVoucher({ destination, value, payload })` | `CallVoucher(address,uint256,bytes)` |
+| `encodeERC20Transfer({ recipient, token, value })` | `ERC20Transfer(address,address,uint256)` |
+| `encodeERC721Transfer({ recipient, token, tokenId, data })` | `ERC721Transfer(address,address,uint256,bytes)` |
+| `encodeERC1155SingleTransfer({ recipient, token, tokenId, value, data })` | `ERC1155SingleTransfer(address,address,uint256,uint256,bytes)` |
+| `encodeERC1155BatchTransfer({ recipient, token, tokenIdsAndValues, data })` | `ERC1155BatchTransfer(address,address,uint256[2][],bytes)` |
+
+Compose them with the raw API: `rollup.emitOutput(encodeNotice(payload))`. `encodeAdvance` is the inverse of `decodeAdvance`, useful for crafting mock inputs when testing on the host.
+
 ## Documentation
 
-Published at **<https://tuler.github.io/libcmt-node/>** (deployed by the [Docs workflow](.github/workflows/docs.yml) on every push to `main`).
-
-The site ([Vocs](https://vocs.dev)) has its pages in [`docs/pages/`](docs/pages/) and is configured by [`vocs.config.ts`](vocs.config.ts): `npm run docs:dev` / `docs:build` / `docs:preview`.
+Published at **<https://deroll.dev>** (the `apps/docs` Vocs site in this monorepo, under *cmio*).
 
 ## Testing on the host (mock)
 
@@ -84,7 +98,7 @@ CMT_INPUTS="0:advance.bin,1:inspect.bin" node my-dapp.js
 # -> advance.output-0.bin, advance.report-0.bin, ...
 ```
 
-Reason `0` is advance (EVM-ABI encoded `EvmAdvance`), `1` is inspect (raw payload); any other reason is a gio reply with that response code. Set `CMT_DEBUG=yes` for verbose logging. See the [libcmt README](https://github.com/cartesi/machine-guest-tools/tree/main/sys-utils/libcmt#testing) for how to generate inputs with foundry's `cast`, or `test/rollup.test.mjs` here for a pure-JS encoder.
+Reason `0` is advance (EVM-ABI encoded `EvmAdvance` — build one with `encodeAdvance`), `1` is inspect (raw payload). Set `CMT_DEBUG=yes` for verbose logging. See the [libcmt README](https://github.com/cartesi/machine-guest-tools/tree/main/sys-utils/libcmt#testing) for how to generate inputs with foundry's `cast`, or `test/rollup.test.mjs` here for a pure-JS encoder.
 
 ## Testing inside a Cartesi Machine
 
@@ -117,4 +131,4 @@ Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishe
 
 ## License
 
-The libcmt-node repository and all contributions are licensed under [APACHE 2.0](https://www.apache.org/licenses/LICENSE-2.0). Please review our [LICENSE](LICENSE) file.
+This package and all contributions are licensed under [APACHE 2.0](https://www.apache.org/licenses/LICENSE-2.0). Please review our [LICENSE](LICENSE) file.

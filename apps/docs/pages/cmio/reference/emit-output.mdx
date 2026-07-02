@@ -5,8 +5,8 @@ Emits a **provable output** — a raw, already EVM-ABI encoded output that is ad
 `emitOutput` takes the encoded bytes directly. Build them with one of the standalone encoders:
 
 - [`encodeNotice`](/cmio/reference/encode-notice) — attest a fact about the application state.
-- [`encodeVoucher`](/cmio/reference/encode-voucher) — authorize an on-chain transaction (transfer assets, call a contract).
-- [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher) — a `DELEGATECALL` voucher.
+- [`encodeCallVoucher`](/cmio/reference/encode-call-voucher) — authorize an on-chain transaction (transfer ether, call a contract).
+- [asset transfer encoders](/cmio/reference/encode-asset-transfers) — typed ERC-20/721/1155 transfer outputs.
 
 ## Usage
 
@@ -22,11 +22,11 @@ const index = rollup.emitOutput(
 A voucher is emitted the same way:
 
 ```ts twoslash
-import { Rollup, encodeVoucher } from '@deroll/cmio';
+import { Rollup, encodeCallVoucher } from '@deroll/cmio';
 const rollup = new Rollup();
 // ---cut---
 const index = rollup.emitOutput(
-    encodeVoucher({
+    encodeCallVoucher({
         destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
         value: 1_000_000_000_000_000_000n, // 1 ETH in wei
     }),
@@ -44,7 +44,7 @@ const index = rollup.emitOutput(
 - Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
 - Required
 
-The already-encoded output bytes. Produce them with [`encodeNotice`](/cmio/reference/encode-notice), [`encodeVoucher`](/cmio/reference/encode-voucher) or [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher).
+The already-encoded output bytes. Produce them with [`encodeNotice`](/cmio/reference/encode-notice), [`encodeCallVoucher`](/cmio/reference/encode-call-voucher) or the [asset transfer encoders](/cmio/reference/encode-asset-transfers).
 
 ## Errors
 

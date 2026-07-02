@@ -31,52 +31,29 @@ advance.report-0.bin    # first report
 advance.exception-0.bin # first exception
 ```
 
-Provable outputs are EVM-ABI encoded in the `Output1..Output4(bytes32[N],bytes)` envelope: a 4-byte function selector, a 32-byte type tag identifying the output kind (notice, call voucher, …), then the ABI-encoded fields. Reports and exceptions are raw bytes.
+Provable outputs are EVM-ABI encoded calls with a per-type function selector — `Notice(bytes)`, `CallVoucher(address,uint256,bytes)`, `ERC20Transfer(address,address,uint256)`, … — exactly the bytes the `encode*` helpers produce. Reports and exceptions are raw bytes.
 
 ## Generating an advance input
 
-An advance input file is the ABI encoding of the `EvmAdvance(uint256,address,address,uint256,uint256,uint256,uint256,bytes)` call that the on-chain input box would produce. You can craft one with foundry's `cast calldata`, or in a few lines of TypeScript:
+An advance input file is the ABI encoding of the `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` call that the on-chain input box would produce. [`encodeAdvance`](/cmio/reference/decode-advance) builds one:
 
 ```ts twoslash
-// @filename: encode.ts
-const word = (value: bigint) => {
-    const bytes = Buffer.alloc(32);
-    let v = value;
-    for (let i = 31; i >= 0 && v > 0n; i--) {
-        bytes[i] = Number(v & 0xffn);
-        v >>= 8n;
-    }
-    return bytes;
-};
-const addressWord = (hex: string) =>
-    Buffer.concat([Buffer.alloc(12), Buffer.from(hex.slice(2), 'hex')]);
-const pad32 = (bytes: Buffer) =>
-    Buffer.concat([bytes, Buffer.alloc((32 - (bytes.length % 32)) % 32)]);
+import fs from 'node:fs';
+import { encodeAdvance } from '@deroll/cmio';
 
-export function encodeEvmAdvance(input: {
-    chainId: bigint;
-    appContract: string;
-    msgSender: string;
-    blockNumber: bigint;
-    blockTimestamp: bigint;
-    prevRandao: bigint;
-    index: bigint;
-    payload: Buffer;
-}) {
-    return Buffer.concat([
-        Buffer.from('415bf363', 'hex'), // EvmAdvance selector
-        word(input.chainId),
-        addressWord(input.appContract),
-        addressWord(input.msgSender),
-        word(input.blockNumber),
-        word(input.blockTimestamp),
-        word(input.prevRandao),
-        word(input.index),
-        word(8n * 32n), // offset of the payload `bytes` field
-        word(BigInt(input.payload.length)),
-        pad32(input.payload),
-    ]);
-}
+fs.writeFileSync(
+    'input.bin',
+    encodeAdvance({
+        chainId: 31337n,
+        appContract: `0x${'02'.repeat(20)}`,
+        msgSender: `0x${'03'.repeat(20)}`,
+        blockNumber: 1n,
+        blockTimestamp: 1700000000n,
+        prevRandao: 0n,
+        index: 0n,
+        payload: Buffer.from('hello'),
+    }),
+);
 ```
 
 ## A complete test
@@ -84,26 +61,13 @@ export function encodeEvmAdvance(input: {
 Putting it together with `node:test` — encode an input, point `CMT_INPUTS` at it, run the application, and assert on the output files:
 
 ```ts twoslash
-// @filename: encode.ts
-export declare function encodeEvmAdvance(input: {
-    chainId: bigint;
-    appContract: string;
-    msgSender: string;
-    blockNumber: bigint;
-    blockTimestamp: bigint;
-    prevRandao: bigint;
-    index: bigint;
-    payload: Buffer;
-}): Buffer;
-
 // @filename: app.test.ts
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { decodeAdvance, encodeNotice } from '@deroll/cmio';
-import { encodeEvmAdvance } from './encode.js';
+import { decodeAdvance, encodeAdvance, encodeNotice } from '@deroll/cmio';
 
 test('echoes the payload as a notice', async () => {
     // run in a temp dir: the mock writes output files next to the inputs
@@ -113,7 +77,7 @@ test('echoes the payload as a notice', async () => {
     const input = path.join(dir, 'input.bin');
     fs.writeFileSync(
         input,
-        encodeEvmAdvance({
+        encodeAdvance({
             chainId: 31337n,
             appContract: `0x${'02'.repeat(20)}`,
             msgSender: `0x${'03'.repeat(20)}`,
@@ -140,15 +104,11 @@ test('echoes the payload as a notice', async () => {
         })
         .catch(() => {}); // inputs exhausted — session over
 
-    // Output1 envelope: funsel (4) + notice type tag (32) + offset (32) +
-    // length (32) + padded payload — so the payload starts at byte 100.
+    // Notice(bytes): funsel (4) + offset (32) + length (32) + padded
+    // payload — so the payload starts at byte 68.
     const notice = fs.readFileSync(path.join(dir, 'input.output-0.bin'));
-    assert.equal(notice.subarray(0, 4).toString('hex'), 'aed682a1');
-    assert.equal(
-        notice.subarray(4, 36).toString('hex'),
-        'e4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed',
-    );
-    assert.equal(notice.subarray(100, 100 + 5).toString(), 'hello');
+    assert.equal(notice.subarray(0, 4).toString('hex'), 'c258d6e5');
+    assert.equal(notice.subarray(68, 68 + 5).toString(), 'hello');
 });
 ```
 

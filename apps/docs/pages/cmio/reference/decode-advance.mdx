@@ -1,6 +1,8 @@
 # decodeAdvance
 
-Decodes the raw payload of an [advance request](/cmio/reference/wait-for-input) — an EVM-ABI encoded `EvmAdvance` input — into its structured fields. This is a pure-JS helper that mirrors libcmt's `cmt_decode_advance_state`; it touches no device state.
+Decodes the raw payload of an [advance request](/cmio/reference/wait-for-input) — an EVM-ABI encoded `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` input — into its structured fields. This is a pure-JS helper that mirrors libcmt's `cmt_evmadvance_decode`; it touches no device state.
+
+The inverse, `encodeAdvance`, builds the input bytes from the same fields (mirroring `cmt_evmadvance_encode`) — useful for crafting mock inputs (`CMT_INPUTS`) when [testing on the host](/cmio/guide/testing).
 
 ## Usage
 

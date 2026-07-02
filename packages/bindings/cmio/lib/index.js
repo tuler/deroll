@@ -17,35 +17,35 @@
 'use strict';
 
 const path = require('node:path');
-const { AbiFunction, AbiParameters, Bytes, Hash } = require('ox');
+const { AbiFunction, AbiParameters } = require('ox');
 const binding = require('node-gyp-build')(path.join(__dirname, '..'));
 
 const ADDRESS_LENGTH = 20;
 const U256_LENGTH = 32;
 const EMPTY = Buffer.alloc(0);
 
-// EVM-ABI encoders/decoders for libcmt's output envelopes, expressed with ox so
-// the low-level word packing/padding stays battle-tested. The Output1/Output2
-// selectors ox derives from these signatures match libcmt's hardcoded funsels
-// (0xaed682a1 / 0x50b41f12).
-const OUTPUT1 = AbiFunction.from('function Output1(bytes32[1], bytes)');
-const OUTPUT2 = AbiFunction.from('function Output2(bytes32[2], bytes)');
+// EVM-ABI codecs for libcmt's wire formats, expressed with ox so the low-level
+// word packing/padding stays battle-tested. One AbiFunction per codec.h entry;
+// the selectors ox derives from these signatures match libcmt's hardcoded
+// funsels (codec.h stores them as little-endian uint32, so e.g. Notice's
+// 0xe5d658c2 there is wire bytes c2 58 d6 e5 = ox's 0xc258d6e5).
+const NOTICE = AbiFunction.from('function Notice(bytes payload)'); // 0xc258d6e5
+const CALL_VOUCHER = AbiFunction.from('function CallVoucher(address destination, uint256 value, bytes payload)'); // 0x4691c2bc
+const ERC20_TRANSFER = AbiFunction.from('function ERC20Transfer(address recipient, address token, uint256 value)'); // 0xe59fdd36
+const ERC721_TRANSFER = AbiFunction.from(
+    'function ERC721Transfer(address recipient, address token, uint256 tokenId, bytes data)',
+); // 0x2b0e47a0
+const ERC1155_SINGLE_TRANSFER = AbiFunction.from(
+    'function ERC1155SingleTransfer(address recipient, address token, uint256 tokenId, uint256 value, bytes data)',
+); // 0x8c76b598
+const ERC1155_BATCH_TRANSFER = AbiFunction.from(
+    'function ERC1155BatchTransfer(address recipient, address token, uint256[2][] tokenIdsAndValues, bytes data)',
+); // 0x2c38972f
 const EVM_ADVANCE = AbiFunction.from(
-    'function EvmAdvance(uint256 chainId, address appContract, address msgSender, ' +
-        'uint256 blockNumber, uint256 blockTimestamp, uint256 prevRandao, uint256 index, bytes payload)',
-);
+    'function EvmAdvance(uint64 chainId, address appContract, address msgSender, ' +
+        'uint64 blockNumber, uint64 blockTimestamp, uint256 prevRandao, uint64 index, bytes payload)',
+); // 0x233a0ebf
 const EVM_ADVANCE_SELECTOR = EVM_ADVANCE.hash.slice(0, 10); // 0x + 4 bytes
-// CALL voucher dynamic content: abi.encode(uint256 value, bytes payload)
-const CALL_VOUCHER_DATA = AbiParameters.from('uint256 value, bytes payload');
-
-// Each output kind is tagged with a domain-separated identifier:
-// keccak256("cartesi.output.v1.<kind>"). These are the same 32-byte constants
-// libcmt hardcodes in codec.c as CARTESI_OUTPUT_V1_*; we derive them so the
-// source-of-truth string is visible rather than an opaque hash.
-const outputTag = (kind) => Hash.keccak256(Bytes.fromString(`cartesi.output.v1.${kind}`), { as: 'Hex' });
-const TAG_NOTICE = outputTag('notice');
-const TAG_CALL_VOUCHER = outputTag('call-voucher');
-const TAG_DELEGATECALL_VOUCHER = outputTag('delegatecall-voucher');
 
 /**
  * Error thrown when a libcmt binding call fails. Carries the negative errno
@@ -112,36 +112,47 @@ function toAddress(value, name) {
     return bytes;
 }
 
-// Validate an unsigned 256-bit value and return it as a bigint for ox.
-function toU256(value, name) {
+// Validate an unsigned integer of `bits` width and return it as a bigint for
+// ox. 256-bit values also accept a 32-byte big-endian buffer/hex string.
+function toUint(value, name, bits) {
     let v;
     if (typeof value === 'bigint' || typeof value === 'number') {
         v = BigInt(value);
-    } else {
+    } else if (bits === 256) {
         const bytes = toBytes(value, name);
         if (bytes.length !== U256_LENGTH) {
             throw new TypeError(`${name} must be ${U256_LENGTH} bytes long`);
         }
         v = bytes.length === 0 ? 0n : BigInt(toHex(bytes));
+    } else {
+        throw new TypeError(`${name} must be a bigint or number`);
     }
-    if (v < 0n || v >= 1n << 256n) {
-        throw new RangeError(`${name} must fit in an unsigned 256-bit integer`);
+    if (v < 0n || v >= 1n << BigInt(bits)) {
+        throw new RangeError(`${name} must fit in an unsigned ${bits}-bit integer`);
     }
     return v;
 }
+
+const toU256 = (value, name) => toUint(value, name, 256);
+const toU64 = (value, name) => toUint(value, name, 64);
 
 function toHex(bytes) {
     return `0x${bytes.toString('hex')}`;
 }
 
-// Left-pad a validated 20-byte address into a 32-byte ABI word (0x-hex).
-function addressToWord(bytes) {
-    return `0x${bytes.toString('hex').padStart(2 * U256_LENGTH, '0')}`;
+// Validate a 20-byte address argument and return it as 0x-hex for ox.
+function toAddressHex(value, name) {
+    return toHex(toAddress(value, name));
+}
+
+// Encode a call to `fn` with `args` and return the calldata as a Buffer.
+function encodeData(fn, args) {
+    return Buffer.from(AbiFunction.encodeData(fn, args).slice(2), 'hex');
 }
 
 /**
  * Decode an `EvmAdvance` input (the raw payload of an advance request) into its
- * structured fields. Mirrors libcmt's `cmt_decode_advance_state`.
+ * structured fields. Mirrors libcmt's `cmt_evmadvance_decode`.
  */
 function decodeAdvance(input) {
     const bytes = toBytes(input, 'input');
@@ -165,32 +176,103 @@ function decodeAdvance(input) {
     };
 }
 
-/** Encode a notice into an `Output1(bytes32[1],bytes)` envelope. */
+/**
+ * Encode an `EvmAdvance` input from its structured fields, the inverse of
+ * {@link decodeAdvance}. Mirrors libcmt's `cmt_evmadvance_encode`; useful for
+ * crafting mock inputs (`CMT_INPUTS`) when testing on the host.
+ */
+function encodeAdvance({ chainId, appContract, msgSender, blockNumber, blockTimestamp, prevRandao, index, payload }) {
+    return encodeData(EVM_ADVANCE, [
+        toU64(chainId, 'chainId'),
+        toAddressHex(appContract, 'appContract'),
+        toAddressHex(msgSender, 'msgSender'),
+        toU64(blockNumber, 'blockNumber'),
+        toU64(blockTimestamp, 'blockTimestamp'),
+        toU256(prevRandao, 'prevRandao'),
+        toU64(index, 'index'),
+        toHex(toBytes(payload, 'payload')),
+    ]);
+}
+
+/** Encode a `Notice(bytes)` output. Mirrors libcmt's `cmt_notice_encode`. */
 function encodeNotice(payload) {
-    const data = toHex(toBytes(payload, 'payload'));
-    return Buffer.from(AbiFunction.encodeData(OUTPUT1, [[TAG_NOTICE], data]).slice(2), 'hex');
+    return encodeData(NOTICE, [toHex(toBytes(payload, 'payload'))]);
 }
 
 /**
- * Encode a CALL voucher into an `Output2(bytes32[2],bytes)` envelope, whose
- * dynamic content is `abi.encode(uint256 value, bytes payload)`.
+ * Encode a `CallVoucher(address,uint256,bytes)` output: an on-chain CALL to
+ * `destination` with `value` wei and `payload` calldata. Mirrors libcmt's
+ * `cmt_callvoucher_encode`.
  */
-function encodeVoucher({ destination, value = 0n, payload = EMPTY }) {
-    const dest = addressToWord(toAddress(destination, 'destination'));
-    const val = toU256(value, 'value');
-    const data = toHex(toBytes(payload, 'payload'));
-    const inner = AbiParameters.encode(CALL_VOUCHER_DATA, [val, data]);
-    return Buffer.from(AbiFunction.encodeData(OUTPUT2, [[TAG_CALL_VOUCHER, dest], inner]).slice(2), 'hex');
+function encodeCallVoucher({ destination, value = 0n, payload = EMPTY }) {
+    return encodeData(CALL_VOUCHER, [
+        toAddressHex(destination, 'destination'),
+        toU256(value, 'value'),
+        toHex(toBytes(payload, 'payload')),
+    ]);
 }
 
 /**
- * Encode a DELEGATECALL voucher into an `Output2(bytes32[2],bytes)` envelope.
- * There is no `value` — `DELEGATECALL` cannot transfer ether.
+ * Encode an `ERC20Transfer(address,address,uint256)` output: transfer `value`
+ * of `token` to `recipient`. Mirrors libcmt's `cmt_erc20transfer_encode`.
  */
-function encodeDelegateCallVoucher({ destination, payload = EMPTY }) {
-    const dest = addressToWord(toAddress(destination, 'destination'));
-    const data = toHex(toBytes(payload, 'payload'));
-    return Buffer.from(AbiFunction.encodeData(OUTPUT2, [[TAG_DELEGATECALL_VOUCHER, dest], data]).slice(2), 'hex');
+function encodeERC20Transfer({ recipient, token, value }) {
+    return encodeData(ERC20_TRANSFER, [
+        toAddressHex(recipient, 'recipient'),
+        toAddressHex(token, 'token'),
+        toU256(value, 'value'),
+    ]);
+}
+
+/**
+ * Encode an `ERC721Transfer(address,address,uint256,bytes)` output: transfer
+ * `tokenId` of `token` to `recipient`. Mirrors libcmt's `cmt_erc721transfer_encode`.
+ */
+function encodeERC721Transfer({ recipient, token, tokenId, data = EMPTY }) {
+    return encodeData(ERC721_TRANSFER, [
+        toAddressHex(recipient, 'recipient'),
+        toAddressHex(token, 'token'),
+        toU256(tokenId, 'tokenId'),
+        toHex(toBytes(data, 'data')),
+    ]);
+}
+
+/**
+ * Encode an `ERC1155SingleTransfer(address,address,uint256,uint256,bytes)`
+ * output: transfer `value` of `tokenId` of `token` to `recipient`. Mirrors
+ * libcmt's `cmt_erc1155singletransfer_encode`.
+ */
+function encodeERC1155SingleTransfer({ recipient, token, tokenId, value, data = EMPTY }) {
+    return encodeData(ERC1155_SINGLE_TRANSFER, [
+        toAddressHex(recipient, 'recipient'),
+        toAddressHex(token, 'token'),
+        toU256(tokenId, 'tokenId'),
+        toU256(value, 'value'),
+        toHex(toBytes(data, 'data')),
+    ]);
+}
+
+/**
+ * Encode an `ERC1155BatchTransfer(address,address,uint256[2][],bytes)` output:
+ * transfer several `[tokenId, value]` pairs of `token` to `recipient`. Mirrors
+ * libcmt's `cmt_erc1155batchtransfer_encode`.
+ */
+function encodeERC1155BatchTransfer({ recipient, token, tokenIdsAndValues, data = EMPTY }) {
+    if (!Array.isArray(tokenIdsAndValues)) {
+        throw new TypeError('tokenIdsAndValues must be an array of [tokenId, value] pairs');
+    }
+    const pairs = tokenIdsAndValues.map((pair, i) => {
+        if (!Array.isArray(pair) || pair.length !== 2) {
+            throw new TypeError(`tokenIdsAndValues[${i}] must be a [tokenId, value] pair`);
+        }
+        return [toU256(pair[0], `tokenIdsAndValues[${i}][0]`), toU256(pair[1], `tokenIdsAndValues[${i}][1]`)];
+    });
+    return encodeData(ERC1155_BATCH_TRANSFER, [
+        toAddressHex(recipient, 'recipient'),
+        toAddressHex(token, 'token'),
+        pairs,
+        toHex(toBytes(data, 'data')),
+    ]);
 }
 
 class Rollup {
@@ -261,9 +343,13 @@ module.exports = {
     Rollup,
     RollupError,
     decodeAdvance,
+    encodeAdvance,
     encodeNotice,
-    encodeVoucher,
-    encodeDelegateCallVoucher,
+    encodeCallVoucher,
+    encodeERC20Transfer,
+    encodeERC721Transfer,
+    encodeERC1155SingleTransfer,
+    encodeERC1155BatchTransfer,
     ADDRESS_LENGTH,
     U256_LENGTH,
 };

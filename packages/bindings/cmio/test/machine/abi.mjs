@@ -15,12 +15,12 @@
 //
 
 // Minimal EVM-ABI helpers shared by encode-inputs.mjs and verify-outputs.mjs,
-// enough to encode EvmAdvance inputs and decode Voucher/Notice outputs.
+// enough to encode EvmAdvance inputs and CallVoucher/Notice outputs.
 // Mirrors the encoder in test/rollup.test.mjs.
 
 export const SELECTOR = {
-    evmAdvance: '415bf363', // EvmAdvance(uint256,address,address,uint256,uint256,uint256,uint256,bytes)
-    voucher: '237a816f', // Voucher(address,uint256,bytes)
+    evmAdvance: '233a0ebf', // EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)
+    callVoucher: '4691c2bc', // CallVoucher(address,uint256,bytes)
     notice: 'c258d6e5', // Notice(bytes)
 };
 
@@ -62,9 +62,9 @@ export function encodeNotice(payload) {
     ]);
 }
 
-export function encodeVoucher({ destination, value, payload }) {
+export function encodeCallVoucher({ destination, value, payload }) {
     return Buffer.concat([
-        Buffer.from(SELECTOR.voucher, 'hex'),
+        Buffer.from(SELECTOR.callVoucher, 'hex'),
         addressWord(destination),
         word(value),
         word(3 * 32), // offset of the payload `bytes` field

@@ -23,7 +23,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { ADVANCES, QUERY, encodeNotice, encodeVoucher } from './abi.mjs';
+import { ADVANCES, QUERY, encodeCallVoucher, encodeNotice } from './abi.mjs';
 
 const dir = process.argv[2];
 if (!dir) {
@@ -38,7 +38,7 @@ ADVANCES.forEach((advance, i) => {
     assert.deepEqual(read(`input-${i}-output-0.bin`), encodeNotice(advance.payload), `input ${i}: notice mismatch`);
     assert.deepEqual(
         read(`input-${i}-output-1.bin`),
-        encodeVoucher({ destination: advance.msgSender, value: advance.index, payload: advance.payload }),
+        encodeCallVoucher({ destination: advance.msgSender, value: advance.index, payload: advance.payload }),
         `input ${i}: voucher mismatch`,
     );
     assert.equal(

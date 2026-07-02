@@ -1,19 +1,19 @@
-# encodeVoucher
+# encodeCallVoucher
 
-Encodes a **voucher** — a one-shot on-chain transaction authorized by the application: a destination, an ether value, and calldata. Once the epoch containing it settles, the voucher can be executed through the application contract, exactly once.
+Encodes a **call voucher** — a one-shot on-chain transaction authorized by the application: a destination, an ether value, and calldata. Once the epoch containing it settles, the voucher can be executed through the application contract, exactly once.
 
-`encodeVoucher` is a pure-JS helper that returns the EVM-ABI encoded bytes (a CALL voucher in an `Output2(bytes32[2],bytes)` envelope). Emit them with [`emitOutput`](/cmio/reference/emit-output) to add the voucher to the outputs merkle tree (provable).
+`encodeCallVoucher` is a pure-JS helper that returns the EVM-ABI encoded bytes (a `CallVoucher(address,uint256,bytes)` call, mirroring libcmt's `cmt_callvoucher_encode`). Emit them with [`emitOutput`](/cmio/reference/emit-output) to add the voucher to the outputs merkle tree (provable).
 
 ## Usage
 
 Plain value transfer:
 
 ```ts twoslash
-import { Rollup, encodeVoucher } from '@deroll/cmio';
+import { Rollup, encodeCallVoucher } from '@deroll/cmio';
 const rollup = new Rollup();
 // ---cut---
 const index = rollup.emitOutput(
-    encodeVoucher({
+    encodeCallVoucher({
         destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
         value: 1_000_000_000_000_000_000n, // 1 ETH in wei
     }),
@@ -23,12 +23,12 @@ const index = rollup.emitOutput(
 Contract call (calldata in `payload`):
 
 ```ts twoslash
-import { Rollup, encodeVoucher } from '@deroll/cmio';
+import { Rollup, encodeCallVoucher } from '@deroll/cmio';
 const rollup = new Rollup();
 declare const calldata: Uint8Array; // e.g. ERC-20 transfer(address,uint256)
 // ---cut---
 rollup.emitOutput(
-    encodeVoucher({
+    encodeCallVoucher({
         destination: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
         payload: calldata,
     }),

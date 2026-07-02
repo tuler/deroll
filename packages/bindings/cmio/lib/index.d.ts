@@ -28,6 +28,9 @@ export type AddressLike = Hex | Uint8Array;
 /** Unsigned 256-bit value: bigint, number, or 32 bytes (hex string/Uint8Array). */
 export type U256Like = bigint | number | Hex | Uint8Array;
 
+/** Unsigned 64-bit value: bigint or number. */
+export type U64Like = bigint | number;
+
 export const ADDRESS_LENGTH: 20;
 export const U256_LENGTH: 32;
 
@@ -65,8 +68,28 @@ export interface Advance {
     payload: Buffer;
 }
 
-/** Arguments for {@link encodeVoucher}. Encoded on-chain as a CALL voucher. */
-export interface Voucher {
+/** Arguments for {@link encodeAdvance}, the inverse of {@link decodeAdvance}. */
+export interface AdvanceArgs {
+    /** Network chain id. */
+    chainId: U64Like;
+    /** Application contract address (20 bytes). */
+    appContract: AddressLike;
+    /** Input sender address (20 bytes). */
+    msgSender: AddressLike;
+    /** Block number of this input. */
+    blockNumber: U64Like;
+    /** Block timestamp of this input (UNIX epoch seconds). */
+    blockTimestamp: U64Like;
+    /** RANDAO mix of the post beacon state of the previous block. */
+    prevRandao: U256Like;
+    /** Input index relative to all inputs ever sent to the application. */
+    index: U64Like;
+    /** Input payload. */
+    payload: BytesLike;
+}
+
+/** Arguments for {@link encodeCallVoucher}. Executed on-chain as a CALL. */
+export interface CallVoucher {
     /** Address the voucher executes against (20 bytes): an EOA for transfers, a contract for calls. */
     destination: AddressLike;
     /** Amount of wei sent with the execution. Default: `0n`. */
@@ -75,28 +98,84 @@ export interface Voucher {
     payload?: BytesLike;
 }
 
-/** Arguments for {@link encodeDelegateCallVoucher}. Encoded on-chain as a DELEGATECALL voucher. */
-export interface DelegateCallVoucher {
-    /** Contract whose code runs in the application contract's storage context (20 bytes). */
-    destination: AddressLike;
-    /** Calldata for the delegate call. Default: empty. There is no `value` — `DELEGATECALL` cannot transfer ether. */
-    payload?: BytesLike;
+/** Arguments for {@link encodeERC20Transfer}. */
+export interface ERC20Transfer {
+    /** Address receiving the tokens (20 bytes). */
+    recipient: AddressLike;
+    /** ERC-20 token contract address (20 bytes). */
+    token: AddressLike;
+    /** Amount of tokens to transfer. */
+    value: U256Like;
+}
+
+/** Arguments for {@link encodeERC721Transfer}. */
+export interface ERC721Transfer {
+    /** Address receiving the token (20 bytes). */
+    recipient: AddressLike;
+    /** ERC-721 token contract address (20 bytes). */
+    token: AddressLike;
+    /** Token id to transfer. */
+    tokenId: U256Like;
+    /** Extra data forwarded to the recipient. Default: empty. */
+    data?: BytesLike;
+}
+
+/** Arguments for {@link encodeERC1155SingleTransfer}. */
+export interface ERC1155SingleTransfer {
+    /** Address receiving the tokens (20 bytes). */
+    recipient: AddressLike;
+    /** ERC-1155 token contract address (20 bytes). */
+    token: AddressLike;
+    /** Token id to transfer. */
+    tokenId: U256Like;
+    /** Amount of tokens to transfer. */
+    value: U256Like;
+    /** Extra data forwarded to the recipient. Default: empty. */
+    data?: BytesLike;
+}
+
+/** Arguments for {@link encodeERC1155BatchTransfer}. */
+export interface ERC1155BatchTransfer {
+    /** Address receiving the tokens (20 bytes). */
+    recipient: AddressLike;
+    /** ERC-1155 token contract address (20 bytes). */
+    token: AddressLike;
+    /** `[tokenId, value]` pairs to transfer. */
+    tokenIdsAndValues: readonly (readonly [U256Like, U256Like])[];
+    /** Extra data forwarded to the recipient. Default: empty. */
+    data?: BytesLike;
 }
 
 /**
  * Decode an `EvmAdvance` input (the raw payload of an advance request) into its
- * structured fields. Mirrors libcmt's `cmt_decode_advance_state`.
+ * structured fields. Mirrors libcmt's `cmt_evmadvance_decode`.
  */
 export function decodeAdvance(input: BytesLike): Advance;
 
-/** Encode a notice into an `Output1(bytes32[1],bytes)` envelope. */
+/**
+ * Encode an `EvmAdvance` input from its structured fields, the inverse of
+ * {@link decodeAdvance}. Mirrors libcmt's `cmt_evmadvance_encode`; useful for
+ * crafting mock inputs (`CMT_INPUTS`) when testing on the host.
+ */
+export function encodeAdvance(advance: AdvanceArgs): Buffer;
+
+/** Encode a `Notice(bytes)` output. Mirrors libcmt's `cmt_notice_encode`. */
 export function encodeNotice(payload: BytesLike): Buffer;
 
-/** Encode a CALL voucher into an `Output2(bytes32[2],bytes)` envelope. */
-export function encodeVoucher(voucher: Voucher): Buffer;
+/** Encode a `CallVoucher(address,uint256,bytes)` output. Mirrors libcmt's `cmt_callvoucher_encode`. */
+export function encodeCallVoucher(voucher: CallVoucher): Buffer;
 
-/** Encode a DELEGATECALL voucher into an `Output2(bytes32[2],bytes)` envelope. */
-export function encodeDelegateCallVoucher(voucher: DelegateCallVoucher): Buffer;
+/** Encode an `ERC20Transfer(address,address,uint256)` output. Mirrors libcmt's `cmt_erc20transfer_encode`. */
+export function encodeERC20Transfer(transfer: ERC20Transfer): Buffer;
+
+/** Encode an `ERC721Transfer(address,address,uint256,bytes)` output. Mirrors libcmt's `cmt_erc721transfer_encode`. */
+export function encodeERC721Transfer(transfer: ERC721Transfer): Buffer;
+
+/** Encode an `ERC1155SingleTransfer(address,address,uint256,uint256,bytes)` output. Mirrors libcmt's `cmt_erc1155singletransfer_encode`. */
+export function encodeERC1155SingleTransfer(transfer: ERC1155SingleTransfer): Buffer;
+
+/** Encode an `ERC1155BatchTransfer(address,address,uint256[2][],bytes)` output. Mirrors libcmt's `cmt_erc1155batchtransfer_encode`. */
+export function encodeERC1155BatchTransfer(transfer: ERC1155BatchTransfer): Buffer;
 
 /**
  * Error thrown when a libcmt binding call fails (e.g. a too-large output, or

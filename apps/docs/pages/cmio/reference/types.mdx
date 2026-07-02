@@ -5,16 +5,21 @@ Everything the package exports besides the [`Rollup`](/cmio/reference/rollup) cl
 ```ts twoslash
 import type {
     Advance,
+    AdvanceArgs,
     AddressLike,
     AdvanceRequest,
     BytesLike,
-    DelegateCallVoucher,
+    CallVoucher,
+    ERC20Transfer,
+    ERC721Transfer,
+    ERC1155SingleTransfer,
+    ERC1155BatchTransfer,
     Hex,
     InspectRequest,
     RollupRequest,
     RunHandlers,
+    U64Like,
     U256Like,
-    Voucher,
 } from '@deroll/cmio';
 ```
 
@@ -25,26 +30,30 @@ Three "like" types describe what the binding accepts and converts automatically 
 | Type | Accepts | Used for |
 | --- | --- | --- |
 | `BytesLike` | `Hex`, `Buffer`, `Uint8Array` | output and report payloads |
-| `AddressLike` | `Hex`, `Buffer`, `Uint8Array` (20 bytes) | voucher destinations |
-| `U256Like` | `bigint`, `number`, `Hex`, `Uint8Array` (32 bytes) | voucher values |
+| `AddressLike` | `Hex`, `Buffer`, `Uint8Array` (20 bytes) | voucher destinations, transfer recipients and tokens |
+| `U256Like` | `bigint`, `number`, `Hex`, `Uint8Array` (32 bytes) | voucher values, token amounts and ids |
+| `U64Like` | `bigint`, `number` | `encodeAdvance` numeric fields |
 
 ## Encoder argument types
 
-The two voucher encoders take a named options object, importable for typing helpers that build outputs:
+The output encoders take a named options object, importable for typing helpers that build outputs:
 
-- `Voucher` — argument of [`encodeVoucher`](/cmio/reference/encode-voucher): `destination` (`AddressLike`), optional `value` (`U256Like`, default `0n`) and `payload` (`BytesLike`, default empty).
-- `DelegateCallVoucher` — argument of [`encodeDelegateCallVoucher`](/cmio/reference/encode-delegate-call-voucher): `destination` (`AddressLike`) and optional `payload` (`BytesLike`). No `value` — `DELEGATECALL` cannot transfer ether.
+- `CallVoucher` — argument of [`encodeCallVoucher`](/cmio/reference/encode-call-voucher): `destination` (`AddressLike`), optional `value` (`U256Like`, default `0n`) and `payload` (`BytesLike`, default empty).
+- `ERC20Transfer` / `ERC721Transfer` / `ERC1155SingleTransfer` / `ERC1155BatchTransfer` — arguments of the [asset transfer encoders](/cmio/reference/encode-asset-transfers).
+- `AdvanceArgs` — argument of `encodeAdvance` (see [`decodeAdvance`](/cmio/reference/decode-advance)): the same fields as `Advance` with "like" input types.
 
 ```ts twoslash
-import type { Voucher, DelegateCallVoucher } from '@deroll/cmio';
+import type { CallVoucher, ERC20Transfer } from '@deroll/cmio';
 
-const voucher: Voucher = {
+const voucher: CallVoucher = {
     destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
     value: 1_000_000_000_000_000_000n,
 };
 
-const delegateCall: DelegateCallVoucher = {
-    destination: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+const transfer: ERC20Transfer = {
+    recipient: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    token: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    value: 100n,
 };
 ```
 

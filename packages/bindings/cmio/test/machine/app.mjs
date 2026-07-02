@@ -15,21 +15,24 @@
 //
 
 // Echo dapp run inside the Cartesi Machine by test/machine/run.sh. For each
-// advance it emits a notice and a voucher echoing the payload plus a report;
-// for each inspect it reports the query payload back.
+// advance it emits a notice and a call voucher echoing the payload plus a
+// report; for each inspect it reports the query payload back.
 
-import { Rollup } from '@deroll/cmio';
+import { Rollup, decodeAdvance, encodeCallVoucher, encodeNotice } from '@deroll/cmio';
 
 const rollup = new Rollup();
 await rollup.run({
     advance(request, rollup) {
-        rollup.emitNotice(request.payload);
-        rollup.emitVoucher({
-            destination: request.msgSender,
-            value: request.index,
-            payload: request.payload,
-        });
-        rollup.emitReport(Buffer.from(`advance index=${request.index} chainId=${request.chainId}`));
+        const advance = decodeAdvance(request.payload);
+        rollup.emitOutput(encodeNotice(advance.payload));
+        rollup.emitOutput(
+            encodeCallVoucher({
+                destination: advance.msgSender,
+                value: advance.index,
+                payload: advance.payload,
+            }),
+        );
+        rollup.emitReport(Buffer.from(`advance index=${advance.index} chainId=${advance.chainId}`));
         return true;
     },
     inspect(request, rollup) {

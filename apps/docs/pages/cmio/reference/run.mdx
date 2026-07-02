@@ -21,7 +21,7 @@ await rollup.run({
 });
 ```
 
-Handlers receive the request with its **raw, undecoded payload**. For an advance, call [`decodeAdvance`](/cmio/reference/decode-advance) to read the input fields, and build provable outputs with [`encodeNotice`](/cmio/reference/encode-notice) / [`encodeVoucher`](/cmio/reference/encode-voucher) before passing them to [`emitOutput`](/cmio/reference/emit-output).
+Handlers receive the request with its **raw, undecoded payload**. For an advance, call [`decodeAdvance`](/cmio/reference/decode-advance) to read the input fields, and build provable outputs with [`encodeNotice`](/cmio/reference/encode-notice) / [`encodeCallVoucher`](/cmio/reference/encode-call-voucher) before passing them to [`emitOutput`](/cmio/reference/emit-output).
 
 ## Returns
 

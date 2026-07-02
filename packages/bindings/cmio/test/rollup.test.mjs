@@ -24,22 +24,29 @@ import {
     Rollup,
     RollupError,
     decodeAdvance,
+    encodeAdvance,
     encodeNotice,
-    encodeVoucher,
-    encodeDelegateCallVoucher,
+    encodeCallVoucher,
+    encodeERC20Transfer,
+    encodeERC721Transfer,
+    encodeERC1155SingleTransfer,
+    encodeERC1155BatchTransfer,
 } from '../lib/index.mjs';
 
 // keep the mock by-product files (advance.output-0.bin etc.) out of the repo
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'libcmt-node-'));
 process.chdir(tmp);
 
-// EVM-ABI function selectors / output type tags, mirroring libcmt's codec.c.
-const EVM_ADVANCE = '415bf363'; // EvmAdvance(uint256,address,address,...,bytes)
-const FUNSEL = { output1: 'aed682a1', output2: '50b41f12' };
-const TAG = {
-    notice: 'e4f5829fb698a59fba2cf6128b6bf1e8ce1dc09d271c55b787781bd415db8eed',
-    callVoucher: 'd515b20044ba3bb84cfce3004f8b64ee11fb8ca22f936e4bc25a65e4b2133120',
-    delegateCallVoucher: 'e166d466bf2d7d71d7f3f69e4c68f516330d8073b6ddb408c507548b64a1f3bb',
+// EVM-ABI function selectors, mirroring libcmt's codec.h funsels (which are
+// stored there as little-endian uint32, so the byte order here is reversed).
+const FUNSEL = {
+    evmAdvance: '233a0ebf', // EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)
+    notice: 'c258d6e5', // Notice(bytes)
+    callVoucher: '4691c2bc', // CallVoucher(address,uint256,bytes)
+    erc20Transfer: 'e59fdd36', // ERC20Transfer(address,address,uint256)
+    erc721Transfer: '2b0e47a0', // ERC721Transfer(address,address,uint256,bytes)
+    erc1155SingleTransfer: '8c76b598', // ERC1155SingleTransfer(address,address,uint256,uint256,bytes)
+    erc1155BatchTransfer: '2c38972f', // ERC1155BatchTransfer(address,address,uint256[2][],bytes)
 };
 
 function word(value) {
@@ -55,9 +62,12 @@ function word(value) {
 const addressWord = (hex) => Buffer.concat([Buffer.alloc(12), Buffer.from(hex.slice(2), 'hex')]);
 const pad32 = (bytes) => Buffer.concat([bytes, Buffer.alloc((32 - (bytes.length % 32)) % 32)]);
 
+// Hand-rolled EvmAdvance encoder, independent of the library's encodeAdvance
+// so the two implementations cross-check each other. All heads are 32-byte
+// words regardless of the field's declared width (uint64 fields included).
 function encodeEvmAdvance({ chainId, appContract, msgSender, blockNumber, blockTimestamp, prevRandao, index, payload }) {
     return Buffer.concat([
-        Buffer.from(EVM_ADVANCE, 'hex'),
+        Buffer.from(FUNSEL.evmAdvance, 'hex'),
         word(chainId),
         addressWord(appContract),
         addressWord(msgSender),
@@ -105,6 +115,9 @@ test('advance request, outputs and reports', async () => {
     const request = rollup.waitForInput();
     assert.equal(request.type, 'advance');
 
+    // the library encoder and the hand-rolled one above must agree
+    assert.deepEqual(encodeAdvance(ADVANCE), encodeEvmAdvance(ADVANCE));
+
     const advance = decodeAdvance(request.payload);
     assert.equal(advance.chainId, ADVANCE.chainId);
     assert.equal(advance.appContract, ADVANCE.appContract);
@@ -123,30 +136,26 @@ test('advance request, outputs and reports', async () => {
     // outputs are EVM-ABI encoded in JS and emitted as raw bytes; the index is
     // the position in the outputs merkle tree.
     assert.equal(rollup.emitOutput(encodeNotice(noticePayload)), 0);
-    assert.equal(rollup.emitOutput(encodeVoucher({ destination, value: 1000n, payload: voucherPayload })), 1);
+    assert.equal(rollup.emitOutput(encodeCallVoucher({ destination, value: 1000n, payload: voucherPayload })), 1);
     rollup.emitReport(reportPayload);
     rollup.progress(500);
 
-    // notice: Output1 envelope (funsel | NOTICE tag | offset | length | payload)
+    // notice: Notice(bytes) = funsel | offset | length | payload
     const notice = fs.readFileSync(path.join(dir, 'advance.output-0.bin'));
-    assert.equal(hex(notice.subarray(0, 4)), FUNSEL.output1);
-    assert.equal(hex(notice.subarray(4, 36)), TAG.notice);
-    assert.deepEqual(notice.subarray(36, 68), word(0x40));
-    assert.deepEqual(notice.subarray(68, 100), word(noticePayload.length));
-    assert.deepEqual(notice.subarray(100, 100 + noticePayload.length), noticePayload);
+    assert.equal(hex(notice.subarray(0, 4)), FUNSEL.notice);
+    assert.deepEqual(notice.subarray(4, 36), word(0x20));
+    assert.deepEqual(notice.subarray(36, 68), word(noticePayload.length));
+    assert.deepEqual(notice.subarray(68, 68 + noticePayload.length), noticePayload);
 
-    // call voucher: Output2 envelope; dynamic content is abi.encode(value, payload)
+    // call voucher: CallVoucher(address,uint256,bytes) =
+    //   funsel | destination | value | offset | length | payload
     const voucher = fs.readFileSync(path.join(dir, 'advance.output-1.bin'));
-    assert.equal(hex(voucher.subarray(0, 4)), FUNSEL.output2);
-    assert.equal(hex(voucher.subarray(4, 36)), TAG.callVoucher);
-    assert.deepEqual(voucher.subarray(36, 68), addressWord(destination));
+    assert.equal(hex(voucher.subarray(0, 4)), FUNSEL.callVoucher);
+    assert.deepEqual(voucher.subarray(4, 36), addressWord(destination));
+    assert.deepEqual(voucher.subarray(36, 68), word(1000n)); // value
     assert.deepEqual(voucher.subarray(68, 100), word(0x60));
-    const used = 96 + pad32(voucherPayload).length;
-    assert.deepEqual(voucher.subarray(100, 132), word(used));
-    assert.deepEqual(voucher.subarray(132, 164), word(1000n)); // value
-    assert.deepEqual(voucher.subarray(164, 196), word(0x40)); // inner offset
-    assert.deepEqual(voucher.subarray(196, 228), word(voucherPayload.length));
-    assert.deepEqual(voucher.subarray(228, 228 + voucherPayload.length), voucherPayload);
+    assert.deepEqual(voucher.subarray(100, 132), word(voucherPayload.length));
+    assert.deepEqual(voucher.subarray(132, 132 + voucherPayload.length), voucherPayload);
 
     // reports are raw
     assert.deepEqual(fs.readFileSync(path.join(dir, 'advance.report-0.bin')), reportPayload);
@@ -180,23 +189,68 @@ test('inspect request', async () => {
     rollup.close();
 });
 
-test('delegate call voucher', async () => {
-    const dir = writeInputs('dcv', [[0, 'advance.bin', encodeEvmAdvance(ADVANCE)]]);
+test('asset transfer outputs', async () => {
+    const dir = writeInputs('transfers', [[0, 'advance.bin', encodeEvmAdvance(ADVANCE)]]);
     const rollup = new Rollup();
     rollup.waitForInput();
 
-    const destination = `0x${'bb'.repeat(20)}`;
-    const payload = Buffer.from('delegate-payload');
-    assert.equal(rollup.emitOutput(encodeDelegateCallVoucher({ destination, payload })), 0);
+    const recipient = `0x${'bb'.repeat(20)}`;
+    const token = `0x${'cc'.repeat(20)}`;
+    const data = Buffer.from('transfer-data');
 
-    // Output2 envelope: funsel | DELEGATECALL tag | destination | offset | length | payload
-    const output = fs.readFileSync(path.join(dir, 'advance.output-0.bin'));
-    assert.equal(hex(output.subarray(0, 4)), FUNSEL.output2);
-    assert.equal(hex(output.subarray(4, 36)), TAG.delegateCallVoucher);
-    assert.deepEqual(output.subarray(36, 68), addressWord(destination));
-    assert.deepEqual(output.subarray(68, 100), word(0x60));
-    assert.deepEqual(output.subarray(100, 132), word(payload.length));
-    assert.deepEqual(output.subarray(132, 132 + payload.length), payload);
+    assert.equal(rollup.emitOutput(encodeERC20Transfer({ recipient, token, value: 1000n })), 0);
+    assert.equal(rollup.emitOutput(encodeERC721Transfer({ recipient, token, tokenId: 7n, data })), 1);
+    assert.equal(rollup.emitOutput(encodeERC1155SingleTransfer({ recipient, token, tokenId: 7n, value: 3n })), 2);
+    assert.equal(
+        rollup.emitOutput(
+            encodeERC1155BatchTransfer({
+                recipient,
+                token,
+                tokenIdsAndValues: [
+                    [1n, 2n],
+                    [3n, 4n],
+                ],
+            }),
+        ),
+        3,
+    );
+
+    // ERC20Transfer(address,address,uint256): static, funsel + 3 words
+    const erc20 = fs.readFileSync(path.join(dir, 'advance.output-0.bin'));
+    assert.equal(hex(erc20.subarray(0, 4)), FUNSEL.erc20Transfer);
+    assert.deepEqual(erc20.subarray(4, 36), addressWord(recipient));
+    assert.deepEqual(erc20.subarray(36, 68), addressWord(token));
+    assert.deepEqual(erc20.subarray(68, 100), word(1000n));
+    assert.equal(erc20.length, 100);
+
+    // ERC721Transfer(address,address,uint256,bytes) =
+    //   funsel | recipient | token | tokenId | offset | length | data
+    const erc721 = fs.readFileSync(path.join(dir, 'advance.output-1.bin'));
+    assert.equal(hex(erc721.subarray(0, 4)), FUNSEL.erc721Transfer);
+    assert.deepEqual(erc721.subarray(68, 100), word(7n));
+    assert.deepEqual(erc721.subarray(100, 132), word(0x80));
+    assert.deepEqual(erc721.subarray(132, 164), word(data.length));
+    assert.deepEqual(erc721.subarray(164, 164 + data.length), data);
+
+    // ERC1155SingleTransfer(address,address,uint256,uint256,bytes): empty data
+    const single = fs.readFileSync(path.join(dir, 'advance.output-2.bin'));
+    assert.equal(hex(single.subarray(0, 4)), FUNSEL.erc1155SingleTransfer);
+    assert.deepEqual(single.subarray(68, 100), word(7n)); // tokenId
+    assert.deepEqual(single.subarray(100, 132), word(3n)); // value
+    assert.deepEqual(single.subarray(132, 164), word(0xa0)); // data offset
+    assert.deepEqual(single.subarray(164, 196), word(0)); // data length
+
+    // ERC1155BatchTransfer(address,address,uint256[2][],bytes): pairs are
+    // encoded as a dynamic array of static [tokenId, value] tuples
+    const batch = fs.readFileSync(path.join(dir, 'advance.output-3.bin'));
+    assert.equal(hex(batch.subarray(0, 4)), FUNSEL.erc1155BatchTransfer);
+    assert.deepEqual(batch.subarray(68, 100), word(0x80)); // pairs offset
+    assert.deepEqual(batch.subarray(100, 132), word(0x120)); // data offset
+    assert.deepEqual(batch.subarray(132, 164), word(2)); // pair count
+    assert.deepEqual(batch.subarray(164, 196), word(1n));
+    assert.deepEqual(batch.subarray(196, 228), word(2n));
+    assert.deepEqual(batch.subarray(228, 260), word(3n));
+    assert.deepEqual(batch.subarray(260, 292), word(4n));
     rollup.close();
 });
 
@@ -253,9 +307,14 @@ test('input validation', async () => {
     const rollup = new Rollup();
     rollup.waitForInput();
 
-    assert.throws(() => encodeVoucher({ destination: '0x1234' }), /destination must be 20 bytes/);
-    assert.throws(() => encodeVoucher({ destination: 'not-hex' }), TypeError);
-    assert.throws(() => encodeVoucher({ destination: `0x${'aa'.repeat(20)}`, value: -1n }), RangeError);
+    assert.throws(() => encodeCallVoucher({ destination: '0x1234' }), /destination must be 20 bytes/);
+    assert.throws(() => encodeCallVoucher({ destination: 'not-hex' }), TypeError);
+    assert.throws(() => encodeCallVoucher({ destination: `0x${'aa'.repeat(20)}`, value: -1n }), RangeError);
+    assert.throws(() => encodeAdvance({ ...ADVANCE, chainId: 1n << 64n }), RangeError); // uint64 overflow
+    assert.throws(
+        () => encodeERC1155BatchTransfer({ recipient: `0x${'aa'.repeat(20)}`, token: `0x${'bb'.repeat(20)}`, tokenIdsAndValues: [[1n]] }),
+        TypeError,
+    );
     assert.throws(() => rollup.emitOutput(42), TypeError);
     assert.throws(() => decodeAdvance(Buffer.alloc(3)), RangeError); // shorter than a selector
     assert.throws(() => decodeAdvance(Buffer.alloc(300)), TypeError); // long enough, wrong selector

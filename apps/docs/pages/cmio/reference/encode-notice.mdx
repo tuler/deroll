@@ -2,7 +2,7 @@
 
 Encodes a **notice** — a verifiable statement of fact about the application state, with no on-chain action attached. Off-chain consumers can validate a notice against the application's settled output root instead of re-executing the machine.
 
-`encodeNotice` is a pure-JS helper that returns the EVM-ABI encoded bytes (an `Output1(bytes32[1],bytes)` envelope). Emit them with [`emitOutput`](/cmio/reference/emit-output) to add the notice to the outputs merkle tree (provable).
+`encodeNotice` is a pure-JS helper that returns the EVM-ABI encoded bytes (a `Notice(bytes)` call, mirroring libcmt's `cmt_notice_encode`). Emit them with [`emitOutput`](/cmio/reference/emit-output) to add the notice to the outputs merkle tree (provable).
 
 ## Usage
 
