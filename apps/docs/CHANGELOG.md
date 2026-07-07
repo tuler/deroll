@@ -1,5 +1,12 @@
 # @deroll/docs
 
+## 1.0.0-alpha.7
+
+### Patch Changes
+
+- Updated dependencies [4b80ab5]
+  - @deroll/app@2.0.0-alpha.9
+
 ## 1.0.0-alpha.6
 
 ### Patch Changes
