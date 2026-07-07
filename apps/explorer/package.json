@@ -1,7 +1,7 @@
 {
     "name": "@deroll/explorer",
     "private": true,
-    "version": "0.1.1-alpha.2",
+    "version": "0.2.0-alpha.3",
     "type": "module",
     "scripts": {
         "dev": "vite",
