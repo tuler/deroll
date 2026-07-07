@@ -170,7 +170,10 @@ jobs:
               id: changesets
               uses: changesets/action@v1
               with:
-                  # `release` builds the packages and calls `changeset publish`
+                  # `release` builds the packages, resolves workspace:/catalog:
+                  # protocols to concrete versions (npm publish, which changeset
+                  # publish shells out to, does not rewrite them), and calls
+                  # `changeset publish`
                   publish: bun run release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
