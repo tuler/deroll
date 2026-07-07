@@ -79,5 +79,5 @@ Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` curren
 
 - **Formatting & linting: Biome** (not ESLint/Prettier). Config in `biome.json`: 4-space indent, double quotes. Run `bun run lint`; Biome respects `.gitignore`. `organizeImports` is intentionally off.
 - **Public API shape**: each package exposes a `create*()` factory returning an interface (`App`, `WalletApp`, `Router`), with the implementing class kept internal. Follow this pattern when adding capabilities.
-- **Versioning/releases: Changesets.** Packages are at `2.0.0-alpha.x`. Add a changeset (`bun run changeset`) for any user-facing change; `bun run version-packages` bumps and `bun run release` builds + publishes.
+- **Versioning/releases: Changesets.** Packages are at `2.0.0-alpha.x`. Add a changeset (`bun run changeset`) for any user-facing change; `bun run version-packages` bumps and `bun run release` builds + publishes. The `release` script runs `scripts/resolve-workspace-deps.mjs` before `changeset publish` to rewrite `workspace:`/`catalog:` protocols to concrete versions in place — `changeset publish` shells out to `npm publish`, which (unlike bun/pnpm) does not resolve them. Keep `workspace:*` in the source package.jsons; the rewrite is a CI-only, uncommitted mutation.
 - Node 20+ (LTS); the docs app requires Node 22+.
