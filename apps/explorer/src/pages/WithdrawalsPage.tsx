@@ -1,14 +1,15 @@
 import { useWithdrawals } from '../api/hooks'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
+import { PayloadPreview } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
-import { Hex, Section } from '../components/ui'
+import { Section } from '../components/ui'
 import { decimalToHex, formatDate, formatUint, hexByteLength, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function WithdrawalsPage() {
   const { searchParams, limit, offset, descending, update } = useListControls()
   const account = searchParams.get('account') ?? ''
-  const { appParam } = useApp()
+  const { appParam, application } = useApp()
 
   const withdrawals = useWithdrawals(
     appParam,
@@ -38,7 +39,20 @@ export function WithdrawalsPage() {
       <DataTable
         columns={[
           { header: 'Account index', align: 'right', cell: (w) => formatUint(w.account_index) },
-          { header: 'Account', cell: (w) => <Hex value={w.account} /> },
+          {
+            header: 'Account',
+            truncate: true,
+            cell: (w) => (
+              <PayloadPreview
+                value={w.account}
+                decode={{
+                  application: application.iapplication_address,
+                  kind: 'withdrawal-account',
+                  record: w,
+                }}
+              />
+            ),
+          },
           {
             header: 'Output size',
             align: 'right',

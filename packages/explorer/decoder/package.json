@@ -24,5 +24,8 @@
     "scripts": {
         "build": "rm -rf dist && bun build src/index.ts --target=browser --format=esm --outdir dist",
         "prepublishOnly": "bun run build"
+    },
+    "dependencies": {
+        "@cartesi/rpc": "2.0.0-alpha.22"
     }
 }

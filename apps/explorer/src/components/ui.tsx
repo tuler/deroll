@@ -130,6 +130,33 @@ const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: BLUE,
 }
 
+/** Decoder tag colors → theme-aware pill styles (see TagColor in @deroll/decoder). */
+const PILL_COLORS: Record<string, string> = {
+  gray: GRAY,
+  blue: BLUE,
+  cyan: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/15 dark:text-cyan-300',
+  indigo: INDIGO,
+  violet: VIOLET,
+  pink: 'bg-pink-100 text-pink-800 dark:bg-pink-500/15 dark:text-pink-300',
+  green: GREEN,
+  amber: AMBER,
+  red: RED,
+}
+
+/** Small colored pill; unknown colors fall back to gray. */
+export function Pill({ label, color, title }: { label: string; color?: string; title?: string }) {
+  return (
+    <span
+      title={title}
+      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${
+        PILL_COLORS[color ?? 'gray'] ?? GRAY
+      }`}
+    >
+      {label}
+    </span>
+  )
+}
+
 export function StatusBadge({ status }: { status?: string | null }) {
   if (!status) return <span className="text-slate-400 dark:text-slate-500">—</span>
   const color = STATUS_COLORS[status] ?? GRAY

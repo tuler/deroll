@@ -12,27 +12,38 @@
 //     // …decode this application's own messages…
 //   }
 //
+// The API record types (Input, Output, Report, Withdrawal, …) are re-exported
+// from @cartesi/rpc, the typed client for the node's JSON-RPC API — that
+// package is the source of truth for everything the node serves.
+//
 // See README.md for the authoring and build/host workflow.
 
 export type {
+    // Decoder contract
     Decoder,
     DecodeContext,
     InputContext,
     OutputContext,
     ReportContext,
+    WithdrawalAccountContext,
+    WithdrawalOutputContext,
     DecodeResult,
     DecodeResultLike,
     PayloadKind,
+    Tag,
+    TagColor,
+    // API records (from @cartesi/rpc)
     Input,
     Output,
     Report,
-    EvmAdvance,
-    DecodedOutput,
-    HexUint,
+    Withdrawal,
+    Notice,
+    Voucher,
+    DelegateCallVoucher,
     Address,
     Hash,
-    ByteArray,
-    FunctionSelector,
+    Hex,
+    HexNumber,
 } from "./types";
 
 export {
@@ -49,6 +60,7 @@ export {
     PORTAL_ADDRESSES_V3,
     decodePortalInput,
     decodePortalDeposit,
+    portalDepositTags,
     summarizePortalDeposit,
 } from "./portals";
 export type {

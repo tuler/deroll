@@ -246,15 +246,19 @@ const inputs = Array.from({ length: 42 }, (_, i) => ({
   updated_at: now(500 - i * 10),
 }))
 
+// The node reports decoded_data.type by NAME; the selector prefixes raw_data
+// and is what the output_type list filter matches on the wire.
 const OUTPUT_SELECTORS = ['0xc258d6e5', '0x237a816f', '0x10321e8b']
+const OUTPUT_NAMES = ['Notice', 'Voucher', 'DelegateCallVoucher']
 
 const outputs = Array.from({ length: 30 }, (_, i) => {
   const selector = OUTPUT_SELECTORS[i % 3]
-  const decoded: Record<string, unknown> = { type: selector, payload: utf8(`output payload ${i}`) }
-  if (selector === '0x237a816f') {
+  const name = OUTPUT_NAMES[i % 3]
+  const decoded: Record<string, unknown> = { type: name, payload: utf8(`output payload ${i}`) }
+  if (name === 'Voucher') {
     decoded.destination = addr(60 + i)
-    decoded.value = String(BigInt(i) * 10n ** 17n)
-  } else if (selector === '0x10321e8b') {
+    decoded.value = hex(BigInt(i) * 10n ** 17n)
+  } else if (name === 'DelegateCallVoucher') {
     decoded.destination = addr(80 + i)
   }
   return {
@@ -278,6 +282,22 @@ const reports = Array.from({ length: 12 }, (_, i) => ({
   raw_data: i % 2 === 0 ? utf8(`error: insufficient balance for request ${i}`) : '0x' + 'ee'.repeat(32),
   created_at: now(3000 - i * 100),
   updated_at: now(300 - i * 10),
+}))
+
+// Withdrawals appear only after an application is foreclosed and its accounts
+// drive is proved. `account` and `output` are app-defined raw bytes, opaque to
+// the node — the mock uses a 20-byte address account and a Voucher-shaped
+// output blob, which an app decoder can decode via the withdrawal-account /
+// withdrawal-output payload kinds.
+const withdrawals = Array.from({ length: 6 }, (_, i) => ({
+  account_index: hex(i),
+  account: addr(90 + i),
+  output: '0x237a816f' + 'cd'.repeat(64),
+  block_number: hex(9000 + i * 3),
+  transaction_hash: hash(900 + i),
+  log_index: hex(i % 3),
+  created_at: now(1000 - i * 50),
+  updated_at: now(100 - i * 5),
 }))
 
 const tournaments = [
@@ -437,7 +457,7 @@ const methods: Record<string, (params: Params) => unknown> = {
         (o) =>
           (p.epoch_index == null || eq(o.epoch_index, p.epoch_index)) &&
           (p.input_index == null || eq(o.input_index, p.input_index)) &&
-          (p.output_type == null || eq(o.decoded_data.type as string, p.output_type)) &&
+          (p.output_type == null || o.raw_data.toLowerCase().startsWith(p.output_type.toLowerCase())) &&
           (p.voucher_address == null || eq(o.decoded_data.destination as string, p.voucher_address)),
       ),
       p,
@@ -465,6 +485,19 @@ const methods: Record<string, (params: Params) => unknown> = {
     const report = reports.find((r) => eq(r.index, p.report_index))
     if (!report) throw { code: -32001, message: 'report not found' }
     return { data: report }
+  },
+  cartesi_listWithdrawals: (p) => {
+    requireApp(p)
+    return paginate(
+      withdrawals.filter((w) => p.account_index == null || eq(w.account_index, p.account_index)),
+      p,
+    )
+  },
+  cartesi_getWithdrawal: (p) => {
+    requireApp(p)
+    const withdrawal = withdrawals.find((w) => eq(w.account_index, p.account_index))
+    if (!withdrawal) throw { code: -32001, message: 'withdrawal not found' }
+    return { data: withdrawal }
   },
   cartesi_listTournaments: (p) => {
     const app = requireApp(p)

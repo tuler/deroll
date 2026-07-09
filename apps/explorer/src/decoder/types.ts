@@ -8,6 +8,8 @@ export type {
   DecodeContext,
   DecodeResult,
   Decoder,
+  Tag,
+  TagColor,
   // Back-compat alias for the historical name used inside the explorer.
   Decoder as DecoderModule,
 } from '@deroll/decoder'

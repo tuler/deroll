@@ -2,12 +2,12 @@ import { useParams } from 'react-router-dom'
 import { useWithdrawal } from '../api/hooks'
 import { PayloadView } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
-import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner } from '../components/ui'
+import { Collapsible, Crumbs, ErrorBox, JsonView, KV, Section, Spinner } from '../components/ui'
 import { decimalToHex, formatDate, formatUint } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function WithdrawalPage() {
-  const { appParam } = useApp()
+  const { appParam, application } = useApp()
   const { accountIndex = '0' } = useParams()
   const withdrawal = useWithdrawal(appParam, decimalToHex(accountIndex))
 
@@ -29,7 +29,6 @@ export function WithdrawalPage() {
         <KV
           rows={[
             ['Account index', formatUint(w.account_index)],
-            ['Account', <Hex value={w.account} full />],
             ['Block', formatUint(w.block_number)],
             ['Transaction', <TxHash value={w.transaction_hash} full />],
             ['Log index', formatUint(w.log_index)],
@@ -39,8 +38,26 @@ export function WithdrawalPage() {
         />
       </Section>
 
+      <Section title="Account">
+        <PayloadView
+          value={w.account}
+          decode={{
+            application: application.iapplication_address,
+            kind: 'withdrawal-account',
+            record: w,
+          }}
+        />
+      </Section>
+
       <Section title="Output">
-        <PayloadView value={w.output} />
+        <PayloadView
+          value={w.output}
+          decode={{
+            application: application.iapplication_address,
+            kind: 'withdrawal-output',
+            record: w,
+          }}
+        />
       </Section>
 
       <Collapsible label="Raw JSON">
