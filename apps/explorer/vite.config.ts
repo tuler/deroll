@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
   // request time and intermittently fails doing so, taking every kit-using
   // decoder down with it. Bump the sha when packages/explorer/decoder changes.
   // Relocate or re-pin with VITE_KIT_URL.
-  const kitUrl = env.VITE_KIT_URL || `${esmBase}/gh/tuler/deroll@91f161c/packages/explorer/decoder/src/index.ts`
+  const kitUrl = env.VITE_KIT_URL || `${esmBase}/gh/tuler/deroll@86f5ee8/packages/explorer/decoder/src/index.ts`
   const importMap = JSON.stringify({ imports: { '@deroll/decoder': kitUrl } })
 
   return {
