@@ -1,3 +1,5 @@
+import { createClient, type CartesiClient } from '@cartesi/rpc'
+
 export class RpcError extends Error {
   code: number
   data?: unknown
@@ -10,45 +12,42 @@ export class RpcError extends Error {
   }
 }
 
-interface JsonRpcResponse<T> {
-  jsonrpc: '2.0'
-  id: number
-  result?: T
-  error?: { code: number; message: string; data?: unknown }
+// One @cartesi/rpc client per server URL, created lazily and kept for the
+// lifetime of the page (the client itself is stateless beyond a request id).
+const clients = new Map<string, CartesiClient>()
+
+export function getClient(server: string): CartesiClient {
+  let client = clients.get(server)
+  if (!client) {
+    client = createClient({ uri: server })
+    clients.set(server, client)
+  }
+  return client
 }
 
-let nextId = 0
-
 /**
- * Performs a JSON-RPC 2.0 call against the given server URL using named
- * (by-name) parameters. Keys with undefined values are omitted by
- * JSON.stringify, so optional filters can be passed as undefined.
+ * Runs a request against the server's typed @cartesi/rpc client, normalizing
+ * failures: JSON-RPC error responses become RpcError (code/message/data);
+ * anything else (network failure, CORS, non-200) becomes an Error with a hint
+ * about the usual cause.
  */
-export async function rpcCall<T>(
+export async function rpc<T>(
   server: string,
-  method: string,
-  params: Record<string, unknown> = {},
+  run: (client: CartesiClient) => PromiseLike<T>,
 ): Promise<T> {
-  let response: Response
   try {
-    response = await fetch(server, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: ++nextId, method, params }),
-    })
+    return await run(getClient(server))
   } catch (err) {
+    // json-rpc-2.0 rejects RPC error responses with a JSONRPCErrorException,
+    // recognizable by its numeric code.
+    if (err instanceof Error && typeof (err as { code?: unknown }).code === 'number') {
+      const e = err as Error & { code: number; data?: unknown }
+      throw new RpcError(e.code, e.message, e.data)
+    }
     throw new Error(
       `Cannot reach ${server} — check the server URL and that the node allows ` +
         `cross-origin requests (CARTESI_JSONRPC_API_CORS_ALLOWED_ORIGINS). ` +
         `(${err instanceof Error ? err.message : String(err)})`,
     )
   }
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status} ${response.statusText}`)
-  }
-  const body = (await response.json()) as JsonRpcResponse<T>
-  if (body.error) {
-    throw new RpcError(body.error.code, body.error.message, body.error.data)
-  }
-  return body.result as T
 }

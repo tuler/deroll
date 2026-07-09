@@ -7,7 +7,7 @@
 // with this module rather than reimplementing the layout per app.
 
 import { ByteReader, formatUnits, isHex, shortHex } from "./bytes";
-import type { DecodeContext, DecodeResult } from "./types";
+import type { DecodeContext, DecodeResult, Tag } from "./types";
 
 /** The Cartesi portal contracts that produce deposit inputs. */
 export type PortalKind =
@@ -168,6 +168,22 @@ export function decodePortalDeposit(
     }
 }
 
+const ASSET_LABELS: Record<PortalKind, string> = {
+    EtherPortal: "Ether",
+    ERC20Portal: "ERC-20",
+    ERC721Portal: "ERC-721",
+    ERC1155SinglePortal: "ERC-1155",
+    ERC1155BatchPortal: "ERC-1155 batch",
+};
+
+/** Build the tags/pills for a decoded deposit: `deposit` plus the asset kind. */
+export function portalDepositTags(d: PortalDeposit): Tag[] {
+    return [
+        { label: "deposit", color: "green" },
+        { label: ASSET_LABELS[d.portal], color: "blue", title: d.portal },
+    ];
+}
+
 /** Build a one-line summary for a decoded deposit. */
 export function summarizePortalDeposit(d: PortalDeposit): string {
     const from = `from ${shortHex(d.sender)}`;
@@ -206,5 +222,9 @@ export function decodePortalInput(
     if (!portal) return null;
     const deposit = decodePortalDeposit(payload, portal);
     if (!deposit) return null;
-    return { summary: summarizePortalDeposit(deposit), data: deposit };
+    return {
+        summary: summarizePortalDeposit(deposit),
+        tags: portalDepositTags(deposit),
+        data: deposit,
+    };
 }

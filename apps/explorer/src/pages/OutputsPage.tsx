@@ -1,15 +1,23 @@
 import { Link } from 'react-router-dom'
 import { useOutputs } from '../api/hooks'
-import { OUTPUT_TYPES } from '../api/types'
+import { OUTPUT_TYPE_SELECTORS } from '../api/types'
+import type { Output } from '../api/types'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Hex, Section } from '../components/ui'
 import { decimalToHex, formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
-export function outputTypeLabel(selector?: string | null): string {
-  if (!selector) return 'Unknown'
-  return OUTPUT_TYPES[selector.toLowerCase()] ?? selector
+/** The node reports the output type by name; older nodes sent the selector. */
+export function outputTypeLabel(type?: string | null): string {
+  if (!type) return 'Unknown'
+  if (type.startsWith('0x')) return OUTPUT_TYPE_SELECTORS[type.toLowerCase()] ?? type
+  return type
+}
+
+/** Voucher/DelegateCallVoucher destination; Notices have none. */
+export function outputDestination(decoded: Output['decoded_data']): string | undefined {
+  return decoded && 'destination' in decoded ? decoded.destination : undefined
 }
 
 export function OutputsPage() {
@@ -63,7 +71,7 @@ export function OutputsPage() {
               className={filterInputClass}
             >
               <option value="">All</option>
-              {Object.entries(OUTPUT_TYPES).map(([selector, label]) => (
+              {Object.entries(OUTPUT_TYPE_SELECTORS).map(([selector, label]) => (
                 <option key={selector} value={selector}>
                   {label}
                 </option>
@@ -120,7 +128,7 @@ export function OutputsPage() {
               </span>
             ),
           },
-          { header: 'Destination', cell: (o) => <Hex value={o.decoded_data?.destination} /> },
+          { header: 'Destination', cell: (o) => <Hex value={outputDestination(o.decoded_data)} /> },
           {
             header: 'Payload',
             truncate: true,

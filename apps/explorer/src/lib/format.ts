@@ -94,14 +94,14 @@ export function formatNanos(hex?: string | null): string {
   return `${ns / 1_000_000_000} s`
 }
 
-/** Formats a decimal wei string, appending the ether value when meaningful. */
+/** Formats a wei amount (hex or decimal string), appending the ether value when meaningful. */
 export function formatWei(value?: string | null): string {
   if (!value) return '—'
   try {
     const wei = BigInt(value)
     if (wei === 0n) return '0 wei'
     const ether = Number(wei) / 1e18
-    return ether >= 0.000001 ? `${value} wei (${ether} ETH)` : `${value} wei`
+    return ether >= 0.000001 ? `${wei} wei (${ether} ETH)` : `${wei} wei`
   } catch {
     return value
   }

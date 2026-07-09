@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useDecodedPayload, type DecodeProps } from '../decoder/useDecodedPayload'
-import type { DecodeResult } from '../decoder/types'
+import type { DecodeResult, Tag } from '../decoder/types'
 import { hexByteLength, hexToUtf8 } from '../lib/format'
-import { Hex, JsonView, linkClass } from './ui'
+import { Hex, JsonView, linkClass, Pill } from './ui'
 
 type Mode = 'decoded' | 'utf8' | 'hex'
 
@@ -13,6 +13,25 @@ function decodedToText(result: DecodeResult, indent?: number): string {
   if (typeof result.data === 'string') return result.data
   if (result.data !== undefined) return JSON.stringify(result.data, null, indent)
   return result.summary ?? ''
+}
+
+/** Tags as returned by a decoder → validated Tag objects (bare strings are gray tags). */
+function normalizeTags(tags?: DecodeResult['tags']): Tag[] {
+  if (!Array.isArray(tags)) return []
+  return tags
+    .map((t) => (typeof t === 'string' ? { label: t } : t))
+    .filter((t): t is Tag => !!t && typeof t.label === 'string' && t.label !== '')
+}
+
+function TagPills({ tags }: { tags: Tag[] }) {
+  if (tags.length === 0) return null
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {tags.map((t, i) => (
+        <Pill key={i} label={t.label} color={t.color} title={t.title} />
+      ))}
+    </span>
+  )
 }
 
 /** Displays a hex byte array with a decoded/UTF-8/hex toggle and byte size. */
@@ -29,6 +48,7 @@ export function PayloadView({ value, decode }: { value?: string | null; decode?:
   }
 
   const result = decoded.status === 'decoded' ? decoded.result : undefined
+  const tags = normalizeTags(result?.tags)
   const modes: Mode[] = ['hex']
   if (utf8 !== null) modes.unshift('utf8')
   if (result) modes.unshift('decoded')
@@ -70,8 +90,11 @@ export function PayloadView({ value, decode }: { value?: string | null; decode?:
         )}
         <Copy value={text} />
       </div>
-      {mode === 'decoded' && result?.summary && result.data !== undefined && (
-        <div className="text-xs text-slate-600 dark:text-slate-300">{result.summary}</div>
+      {mode === 'decoded' && result && (tags.length > 0 || (result.summary && result.data !== undefined)) && (
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+          <TagPills tags={tags} />
+          {result.summary && result.data !== undefined && <span>{result.summary}</span>}
+        </div>
       )}
       {json !== undefined ? (
         <div className="max-h-64 overflow-auto">
@@ -112,11 +135,17 @@ export function PayloadPreview({ value, decode }: { value?: string | null; decod
   const decoded = useDecodedPayload(value, decode)
   if (!value || value === '0x') return <span className="text-slate-400 dark:text-slate-500">—</span>
   if (decoded.status === 'decoded' && decoded.result) {
+    const tags = normalizeTags(decoded.result.tags)
     const full = decoded.result.summary ?? decodedToText(decoded.result)
-    if (full) {
+    if (full || tags.length > 0) {
       return (
-        <span className="text-slate-700 dark:text-slate-300" title={full}>
-          {full}
+        <span className="inline-flex max-w-full items-center gap-1.5">
+          <TagPills tags={tags} />
+          {full && (
+            <span className="truncate text-slate-700 dark:text-slate-300" title={full}>
+              {full}
+            </span>
+          )}
         </span>
       )
     }

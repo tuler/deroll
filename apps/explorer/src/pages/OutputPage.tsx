@@ -71,11 +71,11 @@ export function OutputPage() {
         <Section title={`Decoded ${typeLabel}`}>
           <KV
             rows={[
-              ['Type selector', <Hex value={decoded.type} full />],
-              decoded.destination !== undefined
+              ['Type', typeLabel],
+              'destination' in decoded
                 ? ['Destination', <Hex value={decoded.destination} full />]
                 : null,
-              decoded.value !== undefined ? ['Value', formatWei(decoded.value)] : null,
+              'value' in decoded ? ['Value', formatWei(decoded.value)] : null,
               [
                 'Payload',
                 <PayloadView
