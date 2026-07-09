@@ -3,7 +3,7 @@
 // source of truth for everything the node serves. This module only re-exports
 // them and adds UI-side constants.
 
-import type { EpochStatus } from '@cartesi/rpc'
+import type { EpochStatus, Output } from '@cartesi/rpc'
 
 export type * from '@cartesi/rpc'
 
@@ -29,4 +29,21 @@ export const OUTPUT_TYPE_SELECTORS: Record<string, string> = {
   '0xc258d6e5': 'Notice',
   '0x237a816f': 'Voucher',
   '0x10321e8b': 'DelegateCallVoucher',
+}
+
+/** The node reports the output type by name; older nodes sent the selector. */
+export function outputTypeLabel(type?: string | null): string {
+  if (!type) return 'Unknown'
+  if (type.startsWith('0x')) return OUTPUT_TYPE_SELECTORS[type.toLowerCase()] ?? type
+  return type
+}
+
+/** Voucher/DelegateCallVoucher destination; Notices have none. */
+export function outputDestination(decoded: Output['decoded_data']): string | undefined {
+  return decoded && 'destination' in decoded ? decoded.destination : undefined
+}
+
+/** Voucher value (wei); other output types have none. */
+export function outputValue(decoded: Output['decoded_data']): string | undefined {
+  return decoded && 'value' in decoded ? decoded.value : undefined
 }

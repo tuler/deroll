@@ -11,9 +11,10 @@
 //   'withdrawal-account'  → withdrawal.account (app-defined account encoding)
 //   'withdrawal-output'   → withdrawal.output (app-defined output blob)
 //
-// Interface (version 1):
+// Interface:
 //
-//   export const version = 1   // required
+//   export const version = 2   // required; version 1 decoders predate the
+//                              // withdrawal kinds and are never called for them
 //   export const name = '…'    // optional, shown in the UI
 //   export function decode(payload, context)
 //
@@ -42,7 +43,7 @@
 // (mock-server/server.ts): JSON inputs like {"action":"transfer","amount":120}
 // and the plain-text output and report payloads.
 
-export const version = 1
+export const version = 2
 export const name = 'Example JSON decoder'
 
 /** @param {string} payload @returns {string | null} */

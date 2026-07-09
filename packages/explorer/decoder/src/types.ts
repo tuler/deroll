@@ -13,7 +13,7 @@
 // type-only, so importing from it adds nothing to your bundle. See ./portals
 // and ./bytes for runtime helpers, and ./index for a convenient barrel.
 
-import type { Input, Output, Report, Withdrawal } from "@cartesi/rpc";
+import type { Hex, HexNumber, Input, Output, Report, Withdrawal } from "@cartesi/rpc";
 
 // ---- API records (from @cartesi/rpc, re-exported for convenience) ----
 
@@ -30,6 +30,19 @@ export type {
     Voucher,
     Withdrawal,
 } from "@cartesi/rpc";
+
+// Aliases kept for decoders written against the pre-@cartesi/rpc names.
+
+/** @deprecated Use `Input["decoded_data"]` (non-null) instead. */
+export type EvmAdvance = NonNullable<Input["decoded_data"]>;
+/** @deprecated Use the `Notice | Voucher | DelegateCallVoucher` union from @cartesi/rpc instead. */
+export type DecodedOutput = NonNullable<Output["decoded_data"]>;
+/** @deprecated Use `HexNumber` from @cartesi/rpc instead. */
+export type HexUint = HexNumber;
+/** @deprecated Use `Hex` from @cartesi/rpc instead. */
+export type ByteArray = Hex;
+/** @deprecated Use `Hex` from @cartesi/rpc instead. */
+export type FunctionSelector = Hex;
 
 // ---- Payload sources ----
 //
@@ -167,18 +180,21 @@ export type DecodeResultLike = DecodeResult | null | undefined;
  * A payload decoder module. Export `version`, optionally `name`, and `decode`
  * as named exports (a default-exported object also works).
  *
- *   export const version = 1
+ *   export const version = 2
  *   export const name = 'My decoder'
  *   export const decode: Decoder['decode'] = (payload, context) => { … }
  */
 export interface Decoder {
     /**
-     * Interface version; this explorer supports version 1. The contract
-     * evolves additively within a version: new payload kinds and new
-     * DecodeResult fields may appear, so return null for kinds you do not
+     * Interface version. Version 1 decoders are only called for the "input",
+     * "output" and "report" kinds; declare version 2 to also receive the
+     * withdrawal payload kinds (decoders written before those kinds existed
+     * often have a catch-all branch that would mis-decode them). DecodeResult
+     * (including tags) is shared by both versions, and the contract evolves
+     * additively within a version — return null for anything you do not
      * recognize instead of assuming the full set.
      */
-    version: 1;
+    version: 1 | 2;
     /** Display name shown in the registration UI. */
     name?: string;
     /**

@@ -34,12 +34,16 @@ The `@cartesi/rpc` dependency is **type-only**: the built module stays dependenc
 
 Return `null`/`undefined` (or throw) when a payload isn't recognized — the explorer falls back to its hex/UTF-8 view.
 
+## Interface versions
+
+Declare `version = 2` for new decoders. Version 1 predates the withdrawal payload kinds, so the explorer never calls a version-1 decoder for them (a catch-all branch written for reports would mis-decode withdrawal bytes); everything else, including tags, works the same for both versions. Within a version the contract evolves additively — return `null` for anything you do not recognize instead of assuming the full set of kinds.
+
 ## Writing a decoder
 
 ```ts
 import { type Decoder, decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
 
-export const version = 1
+export const version = 2
 export const name = 'My decoder'
 
 export const decode: Decoder['decode'] = (payload, context) => {

@@ -39,8 +39,10 @@ export function validateDecoderModule(mod: unknown): DecoderModule {
   if (typeof candidate?.decode !== 'function') {
     throw new Error('The module does not export a decode() function.')
   }
-  if (candidate.version !== 1) {
-    throw new Error(`Unsupported decoder version ${String(candidate.version)} (expected 1).`)
+  // Version 1 predates the withdrawal payload kinds; those are only sent to
+  // version 2 decoders (see useDecodedPayload).
+  if (candidate.version !== 1 && candidate.version !== 2) {
+    throw new Error(`Unsupported decoder version ${String(candidate.version)} (expected 1 or 2).`)
   }
   return candidate
 }

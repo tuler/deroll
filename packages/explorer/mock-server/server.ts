@@ -248,12 +248,14 @@ const inputs = Array.from({ length: 42 }, (_, i) => ({
 
 // The node reports decoded_data.type by NAME; the selector prefixes raw_data
 // and is what the output_type list filter matches on the wire.
-const OUTPUT_SELECTORS = ['0xc258d6e5', '0x237a816f', '0x10321e8b']
-const OUTPUT_NAMES = ['Notice', 'Voucher', 'DelegateCallVoucher']
+const OUTPUT_TYPES = [
+  { selector: '0xc258d6e5', name: 'Notice' },
+  { selector: '0x237a816f', name: 'Voucher' },
+  { selector: '0x10321e8b', name: 'DelegateCallVoucher' },
+]
 
 const outputs = Array.from({ length: 30 }, (_, i) => {
-  const selector = OUTPUT_SELECTORS[i % 3]
-  const name = OUTPUT_NAMES[i % 3]
+  const { selector, name } = OUTPUT_TYPES[i % OUTPUT_TYPES.length]
   const decoded: Record<string, unknown> = { type: name, payload: utf8(`output payload ${i}`) }
   if (name === 'Voucher') {
     decoded.destination = addr(60 + i)
@@ -457,7 +459,7 @@ const methods: Record<string, (params: Params) => unknown> = {
         (o) =>
           (p.epoch_index == null || eq(o.epoch_index, p.epoch_index)) &&
           (p.input_index == null || eq(o.input_index, p.input_index)) &&
-          (p.output_type == null || o.raw_data.toLowerCase().startsWith(p.output_type.toLowerCase())) &&
+          (p.output_type == null || eq(o.raw_data.slice(0, 10), p.output_type)) &&
           (p.voucher_address == null || eq(o.decoded_data.destination as string, p.voucher_address)),
       ),
       p,

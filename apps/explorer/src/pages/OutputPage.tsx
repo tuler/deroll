@@ -4,8 +4,8 @@ import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner } from '../components/ui'
 import { TxHash } from '../components/TxHash'
 import { decimalToHex, formatDate, formatUint, formatWei, uintToDecimal } from '../lib/format'
+import { outputDestination, outputTypeLabel, outputValue } from '../api/types'
 import { useApp } from './AppLayout'
-import { outputTypeLabel } from './OutputsPage'
 
 export function OutputPage() {
   const { appParam, application } = useApp()
@@ -72,10 +72,12 @@ export function OutputPage() {
           <KV
             rows={[
               ['Type', typeLabel],
-              'destination' in decoded
-                ? ['Destination', <Hex value={decoded.destination} full />]
+              outputDestination(decoded) !== undefined
+                ? ['Destination', <Hex value={outputDestination(decoded)} full />]
                 : null,
-              'value' in decoded ? ['Value', formatWei(decoded.value)] : null,
+              outputValue(decoded) !== undefined
+                ? ['Value', formatWei(outputValue(decoded))]
+                : null,
               [
                 'Payload',
                 <PayloadView
