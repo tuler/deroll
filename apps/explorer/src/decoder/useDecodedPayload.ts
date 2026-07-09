@@ -32,6 +32,10 @@ export function useDecodedPayload(payload?: string | null, props?: DecodeProps):
     queryKey: ['decode', url, props?.kind, payload],
     queryFn: async () => {
       const decoder = await loadDecoder(url!)
+      // Withdrawal kinds postdate version 1; a v1 decoder's catch-all branch
+      // (common for report handling) would mis-decode them, so fall back to
+      // the hex/UTF-8 view instead of calling it.
+      if (props!.kind.startsWith('withdrawal-') && decoder.version < 2) return null
       // Cast: kind is a runtime value and record is unknown here, so the
       // discriminated DecodeContext can't be proven, though the shape is correct.
       const context = {

@@ -11,6 +11,7 @@
     "dependencies": {
         "@cartesi/rpc": "2.0.0-alpha.22",
         "@tanstack/react-query": "^5.101.0",
+        "json-rpc-2.0": "^1.7.1",
         "@deroll/decoder": "workspace:*",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",

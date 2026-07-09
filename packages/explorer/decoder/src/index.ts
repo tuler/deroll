@@ -4,7 +4,7 @@
 //   import type { Decoder } from '@deroll/decoder'
 //   import { decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
 //
-//   export const version = 1
+//   export const version = 2
 //   export const name = 'My decoder'
 //   export const decode: Decoder['decode'] = (payload, context) => {
 //     const deposit = decodePortalInput(payload, context) // standard, shared
@@ -44,6 +44,12 @@ export type {
     Hash,
     Hex,
     HexNumber,
+    // Deprecated aliases of the pre-@cartesi/rpc names
+    EvmAdvance,
+    DecodedOutput,
+    HexUint,
+    ByteArray,
+    FunctionSelector,
 } from "./types";
 
 export {

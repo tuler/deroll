@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import type { TagColor } from '../decoder/types'
 import { shortHex } from '../lib/format'
 
 export const linkClass = 'text-sky-700 hover:underline dark:text-sky-400'
@@ -130,8 +131,8 @@ const STATUS_COLORS: Record<string, string> = {
   IN_PROGRESS: BLUE,
 }
 
-/** Decoder tag colors → theme-aware pill styles (see TagColor in @deroll/decoder). */
-const PILL_COLORS: Record<string, string> = {
+/** Decoder tag colors → theme-aware pill styles; keyed by TagColor so the compiler flags drift. */
+const PILL_COLORS: Record<TagColor, string> = {
   gray: GRAY,
   blue: BLUE,
   cyan: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-500/15 dark:text-cyan-300',
@@ -143,14 +144,14 @@ const PILL_COLORS: Record<string, string> = {
   red: RED,
 }
 
-/** Small colored pill; unknown colors fall back to gray. */
+/** Small colored pill; unknown colors (decoders are untrusted input) fall back to gray. */
 export function Pill({ label, color, title }: { label: string; color?: string; title?: string }) {
+  const colorClass =
+    color && Object.hasOwn(PILL_COLORS, color) ? PILL_COLORS[color as TagColor] : GRAY
   return (
     <span
       title={title}
-      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${
-        PILL_COLORS[color ?? 'gray'] ?? GRAY
-      }`}
+      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${colorClass}`}
     >
       {label}
     </span>
