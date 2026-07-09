@@ -103,7 +103,7 @@ export function AppOverview() {
             <KV
               rows={[
                 ['Foreclosed at block', formatUint(app.foreclose_block)],
-                ['Foreclose transaction', <TxHash value={app.foreclose_transaction} full />],
+                ['Foreclose transaction', <TxHash value={app.foreclose_transaction} />],
                 [
                   'Accounts drive proved at block',
                   isZeroHex(app.accounts_drive_proved_block)
@@ -112,9 +112,9 @@ export function AppOverview() {
                 ],
                 [
                   'Accounts drive proved transaction',
-                  <TxHash value={app.accounts_drive_proved_transaction} full />,
+                  <TxHash value={app.accounts_drive_proved_transaction} />,
                 ],
-                ['Accounts drive merkle root', <Hex value={app.accounts_drive_merkle_root} full />],
+                ['Accounts drive merkle root', <Hex value={app.accounts_drive_merkle_root} />],
               ]}
             />
           )}
