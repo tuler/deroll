@@ -148,9 +148,12 @@ jobs:
                   registry-url: https://registry.npmjs.org
 
             # Trusted publishing (OIDC) requires npm >= 11.5.1; node 24 bundles
-            # npm 10. `changeset publish` shells out to this npm.
+            # npm 10. `changeset publish` shells out to this npm. Pinned to 11:
+            # the npm@12.0.0 tarball ships libnpmpublish without a resolvable
+            # sigstore dependency, so provenance publishing fails with
+            # MODULE_NOT_FOUND "Cannot find module 'sigstore'".
             - name: Update npm for trusted publishing
-              run: npm install -g npm@latest
+              run: npm install -g npm@11
 
             - name: Install Dependencies
               run: bun install --frozen-lockfile
