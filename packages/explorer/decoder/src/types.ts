@@ -15,6 +15,7 @@
 // and ./bytes for runtime helpers, and ./index for a convenient barrel.
 
 import type { Input, Output, Report, Withdrawal } from "@cartesi/rpc";
+import type { PortalDeposit } from "./portals";
 
 // ---- API records (from @cartesi/rpc, re-exported for convenience) ----
 
@@ -39,29 +40,36 @@ export type {
 // to make readable. A decoder exports one method per field it understands
 // (all optional; the explorer falls back to its hex/UTF-8 view for the rest):
 //
-//   method               record       bytes decoded
-//   ───────────────────  ───────────  ────────────────────────────────────────
-//   input                Input        input.decoded_data.payload — the
-//                                     advance payload sent by the user (for
-//                                     deposits, the portal message; see
-//                                     ./portals).
-//   output               Output       output.decoded_data.payload — the
-//                                     payload of a Notice, Voucher or
-//                                     DelegateCallVoucher.
-//   report               Report       report.raw_data — the full report body
-//                                     (e.g. inspect responses, error
-//                                     messages).
-//   withdrawalAccount    Withdrawal   withdrawal.account — the account
-//                                     encoding produced by the app's
-//                                     WithdrawalOutputBuilder (opaque to the
-//                                     node).
-//   withdrawalOutput     Withdrawal   withdrawal.output — the raw output blob
-//                                     emitted for that account by the app's
-//                                     WithdrawalOutputBuilder.
+//   method               record         bytes decoded
+//   ───────────────────  ─────────────  ──────────────────────────────────────
+//   input                Input          input.decoded_data.payload — the
+//                                       advance payload sent by the user.
+//                                       Never called for portal deposits: the
+//                                       explorer decodes those by itself.
+//   deposit              PortalDeposit  the app-specific data attached to a
+//                                       portal deposit (execLayerData /
+//                                       baseLayerData). The deposit envelope
+//                                       (asset, amounts, sender) arrives
+//                                       already decoded.
+//   output               Output         output.decoded_data.payload — the
+//                                       payload of a Notice, Voucher or
+//                                       DelegateCallVoucher.
+//   report               Report         report.raw_data — the full report body
+//                                       (e.g. inspect responses, error
+//                                       messages).
+//   withdrawalAccount    Withdrawal     withdrawal.account — the account
+//                                       encoding produced by the app's
+//                                       WithdrawalOutputBuilder (opaque to the
+//                                       node).
+//   withdrawalOutput     Withdrawal     withdrawal.output — the raw output
+//                                       blob emitted for that account by the
+//                                       app's WithdrawalOutputBuilder.
 //
 // Everything else the node serves (hashes, indices, proofs, tournament data,
 // …) is protocol-defined and rendered by the explorer itself — decoders are
-// never called for those.
+// never called for those. That includes the portal deposit envelope: the
+// explorer recognizes deposits by sender, decodes and renders them natively,
+// and only hands your `deposit` method the app-specific bytes riding inside.
 
 /** Context passed to every decode method. */
 export interface DecodeContext {
@@ -128,8 +136,19 @@ type DecodeMethod<R> = (
     context: DecodeContext,
 ) => DecodeResultLike | Promise<DecodeResultLike>;
 
-/** Decodes `input.decoded_data.payload` — the advance payload sent by the user. */
+/**
+ * Decodes `input.decoded_data.payload` — the advance payload sent by the user.
+ * Never called for portal deposits; those are decoded by the explorer itself
+ * (see DepositDecoder for their app-specific attachment).
+ */
 export type InputDecoder = DecodeMethod<Input>;
+/**
+ * Decodes the app-specific data attached to a portal deposit — execLayerData
+ * (and baseLayerData on the NFT portals). The deposit envelope arrives
+ * already decoded as a PortalDeposit; the explorer renders the deposit itself
+ * and shows this method's result alongside it.
+ */
+export type DepositDecoder = DecodeMethod<PortalDeposit>;
 /** Decodes `output.decoded_data.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
 export type OutputDecoder = DecodeMethod<Output>;
 /** Decodes `report.raw_data` — the full report body. */
@@ -159,6 +178,7 @@ export interface Decoder {
     /** Display name shown in the registration UI. */
     name?: string;
     input?: InputDecoder;
+    deposit?: DepositDecoder;
     output?: OutputDecoder;
     report?: ReportDecoder;
     withdrawalAccount?: WithdrawalAccountDecoder;
