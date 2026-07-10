@@ -47,7 +47,7 @@ export function WithdrawalsPage() {
                 value={w.account}
                 decode={{
                   application: application.iapplication_address,
-                  kind: 'withdrawal-account',
+                  kind: 'withdrawalAccount',
                   record: w,
                 }}
               />

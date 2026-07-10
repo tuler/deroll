@@ -6,13 +6,16 @@
 //
 //   export const version = 2
 //   export const name = 'My decoder'
-//   export const decode: Decoder['decode'] = (payload, context) => {
-//     const deposit = decodePortalInput(payload, context) // standard, shared
+//   export const input: Decoder['input'] = (input, context) => {
+//     const deposit = decodePortalInput(input) // standard, shared
 //     if (deposit) return deposit
 //     // …decode this application's own messages…
 //   }
+//   export const report: Decoder['report'] = (report) => { … }
 //
-// The API record types (Input, Output, Report, Withdrawal, …) are re-exported
+// A decoder exports one method per payload source it understands (input,
+// output, report, withdrawalAccount, withdrawalOutput) — all optional. The
+// API record types (Input, Output, Report, Withdrawal, …) are re-exported
 // from @cartesi/rpc, the typed client for the node's JSON-RPC API — that
 // package is the source of truth for everything the node serves.
 //
@@ -21,17 +24,17 @@
 export type {
     // Decoder contract
     Decoder,
+    DecodeMethod,
     DecodeContext,
-    InputContext,
-    OutputContext,
-    ReportContext,
-    WithdrawalAccountContext,
-    WithdrawalOutputContext,
     DecodeResult,
     DecodeResultLike,
     PayloadKind,
     Tag,
     TagColor,
+    // Version 1 (legacy) contract
+    AnyDecoder,
+    LegacyDecoder,
+    LegacyDecodeContext,
     // API records (from @cartesi/rpc)
     Input,
     Output,

@@ -7,7 +7,7 @@
 // with this module rather than reimplementing the layout per app.
 
 import { ByteReader, formatUnits, isHex, shortHex } from "./bytes";
-import type { DecodeContext, DecodeResult, Tag } from "./types";
+import type { DecodeResult, Input, LegacyDecodeContext, Tag } from "./types";
 
 /** The Cartesi portal contracts that produce deposit inputs. */
 export type PortalKind =
@@ -205,20 +205,39 @@ export function summarizePortalDeposit(d: PortalDeposit): string {
  * If this input was sent by a known Cartesi portal, decode it as a deposit and
  * return a ready-to-use DecodeResult; otherwise return null so the caller can
  * try application-specific decoding. This is the standard, app-independent
- * branch every decoder can reuse:
+ * branch every input method can reuse:
  *
- *   const deposit = decodePortalInput(payload, context)
- *   if (deposit) return deposit
- *   // …decode application messages…
+ *   export const input: Decoder['input'] = (input, context) => {
+ *     const deposit = decodePortalInput(input)
+ *     if (deposit) return deposit
+ *     // …decode application messages…
+ *   }
  */
+export function decodePortalInput(input: Input): DecodeResult | null;
+/** @deprecated Version-1 call shape; pass the Input record instead. */
 export function decodePortalInput(
     payload: string,
-    context: DecodeContext,
+    context: LegacyDecodeContext,
+): DecodeResult | null;
+export function decodePortalInput(
+    inputOrPayload: Input | string,
+    context?: LegacyDecodeContext,
 ): DecodeResult | null {
-    if (context.kind !== "input") return null;
-    const sender = context.record?.decoded_data?.sender?.toLowerCase();
-    if (!sender) return null;
-    const portal = PORTAL_ADDRESSES_V2[sender] || PORTAL_ADDRESSES_V3[sender];
+    let sender: string | undefined;
+    let payload: string | undefined;
+    if (typeof inputOrPayload === "string") {
+        // Legacy (version 1) call shape: (payload, context).
+        if (context?.kind !== "input") return null;
+        sender = context.record?.decoded_data?.sender;
+        payload = inputOrPayload;
+    } else {
+        sender = inputOrPayload.decoded_data?.sender;
+        payload = inputOrPayload.decoded_data?.payload;
+    }
+    if (!sender || !payload) return null;
+    const portal =
+        PORTAL_ADDRESSES_V2[sender.toLowerCase()] ||
+        PORTAL_ADDRESSES_V3[sender.toLowerCase()];
     if (!portal) return null;
     const deposit = decodePortalDeposit(payload, portal);
     if (!deposit) return null;

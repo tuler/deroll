@@ -289,8 +289,8 @@ const reports = Array.from({ length: 12 }, (_, i) => ({
 // Withdrawals appear only after an application is foreclosed and its accounts
 // drive is proved. `account` and `output` are app-defined raw bytes, opaque to
 // the node — the mock uses a 20-byte address account and a Voucher-shaped
-// output blob, which an app decoder can decode via the withdrawal-account /
-// withdrawal-output payload kinds.
+// output blob, which an app decoder can decode via its withdrawalAccount /
+// withdrawalOutput methods.
 const withdrawals = Array.from({ length: 6 }, (_, i) => ({
   account_index: hex(i),
   account: addr(90 + i),

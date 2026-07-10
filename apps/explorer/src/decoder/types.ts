@@ -1,15 +1,19 @@
 // The contract implemented by payload decoder modules. Defined canonically in
 // the @deroll/decoder package (which is also what decoder authors write
 // against), and re-exported here so the explorer and authors share one source
-// of truth. See packages/decoder-kit and the example decoder packages.
+// of truth. See packages/explorer/decoder and the example decoder packages.
 
 export type {
   PayloadKind,
   DecodeContext,
   DecodeResult,
+  DecodeMethod,
   Decoder,
+  LegacyDecoder,
+  LegacyDecodeContext,
+  AnyDecoder,
   Tag,
   TagColor,
   // Back-compat alias for the historical name used inside the explorer.
-  Decoder as DecoderModule,
+  AnyDecoder as DecoderModule,
 } from '@deroll/decoder'
