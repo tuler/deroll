@@ -83,4 +83,4 @@ This kit itself is published to npm as [`@deroll/decoder`](https://www.npmjs.com
 
 ## Portal addresses
 
-`PORTAL_ADDRESSES_V2`/`PORTAL_ADDRESSES_V3` are the deterministic Cartesi Rollups **v2**/**v3** deployments (identical across chains for a given Rollups version), sourced from `@cartesi/viem` and the rollups-node address book. Apps on the older v1 (sunodo) deployment used different portal addresses.
+`PORTAL_ADDRESSES` is the deterministic Cartesi portal deployment (identical across chains for a given Rollups version), sourced from `@cartesi/viem` and the rollups-node address book. Apps on older deployments used different portal addresses.
