@@ -58,8 +58,7 @@ export {
 } from "./bytes";
 
 export {
-    PORTAL_ADDRESSES_V2,
-    PORTAL_ADDRESSES_V3,
+    PORTAL_ADDRESSES,
     decodePortalInput,
     decodePortalDeposit,
     portalDepositTags,

@@ -18,20 +18,12 @@ export type PortalKind =
     | "ERC1155BatchPortal";
 
 /**
- * Deterministic Cartesi Rollups v2 portal addresses (lowercase), as published
- * by @cartesi/viem and the rollups-node address book. Identical across chains
- * for a given Rollups version. Map an input's lowercase sender through this to
- * decide whether it is a deposit.
+ * Deterministic Cartesi portal addresses (lowercase), as published by
+ * @cartesi/viem and the rollups-node address book. Identical across chains
+ * for a given Rollups version. Map an input's lowercase sender through this
+ * to decide whether it is a deposit.
  */
-export const PORTAL_ADDRESSES_V2: Readonly<Record<string, PortalKind>> = {
-    "0xa632c5c05812c6a6149b7af5c56117d1d2603828": "EtherPortal",
-    "0xaca6586a0cf05bd831f2501e7b4aea550da6562d": "ERC20Portal",
-    "0x9e8851dadb2b77103928518846c4678d48b5e371": "ERC721Portal",
-    "0x18558398dd1a8ce20956287a4da7b76ae7a96662": "ERC1155SinglePortal",
-    "0xe246abb974b307490d9c6932f48ebe79de72338a": "ERC1155BatchPortal",
-};
-
-export const PORTAL_ADDRESSES_V3: Readonly<Record<string, PortalKind>> = {
+export const PORTAL_ADDRESSES: Readonly<Record<string, PortalKind>> = {
     "0x8b53327575ac999bdfa8003f4b5134dff9027516": "EtherPortal",
     "0x22e57511c30cce6cdaa742e13ce3b774fdc663b1": "ERC20Portal",
     "0xca3a0a47915c12f020cf70b938acc8e744414cb8": "ERC721Portal",
@@ -217,7 +209,7 @@ export function decodePortalInput(input: Input): DecodeResult | null {
     const sender = input.decoded_data?.sender?.toLowerCase();
     const payload = input.decoded_data?.payload;
     if (!sender || !payload) return null;
-    const portal = PORTAL_ADDRESSES_V2[sender] || PORTAL_ADDRESSES_V3[sender];
+    const portal = PORTAL_ADDRESSES[sender];
     if (!portal) return null;
     const deposit = decodePortalDeposit(payload, portal);
     if (!deposit) return null;
