@@ -32,7 +32,6 @@ export type {
     DecodeContext,
     DecodeResult,
     DecodeResultLike,
-    PayloadKind,
     Tag,
     TagColor,
     // API records (from @cartesi/rpc)
