@@ -5,17 +5,22 @@
 
 import type { Decoder } from '@deroll/decoder'
 
+/** The names of Decoder's optional decode methods, derived so they cannot drift. */
+export type DecodeMethodName = Exclude<keyof Decoder, 'version' | 'name'>
+
 /**
- * The payload sources a decoder can handle — the names of Decoder's optional
- * decode methods, derived so it cannot drift from the contract.
+ * The payload sources pages hand to useDecodedPayload. `deposit` is not one:
+ * portal deposits are detected and decoded inside the `input` flow, where the
+ * decoder's deposit method only decorates the native result.
  */
-export type PayloadKind = Exclude<keyof Decoder, 'version' | 'name'>
+export type PayloadKind = Exclude<DecodeMethodName, 'deposit'>
 
 export type {
   DecodeContext,
   DecodeResult,
   Decoder,
   InputDecoder,
+  DepositDecoder,
   OutputDecoder,
   ReportDecoder,
   WithdrawalAccountDecoder,

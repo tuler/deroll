@@ -1,8 +1,9 @@
 import { resolveDecoderImportUrl } from './github'
-import type { Decoder, DecoderModule, PayloadKind } from './types'
+import type { Decoder, DecodeMethodName, DecoderModule } from './types'
 
-const DECODE_METHODS: PayloadKind[] = [
+const DECODE_METHODS: DecodeMethodName[] = [
   'input',
+  'deposit',
   'output',
   'report',
   'withdrawalAccount',

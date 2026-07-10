@@ -8,7 +8,8 @@ The rollups node serves several **raw-bytes fields whose encoding is defined by 
 
 | method | record | bytes decoded |
 | --- | --- | --- |
-| `input` | `Input` | `input.decoded_data.payload` — the advance payload sent by the user (for deposits, the portal message) |
+| `input` | `Input` | `input.decoded_data.payload` — the advance payload sent by the user. Never called for portal deposits: the explorer decodes those itself |
+| `deposit` | `PortalDeposit` | the app-specific data attached to a portal deposit (`execLayerData`, and `baseLayerData` on the NFT portals). The deposit envelope — asset, amounts, sender — arrives already decoded |
 | `output` | `Output` | `output.decoded_data.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
 | `report` | `Report` | `report.raw_data` — the full report body (inspect responses, error messages, …) |
 | `withdrawalAccount` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
@@ -16,12 +17,12 @@ The rollups node serves several **raw-bytes fields whose encoding is defined by 
 
 An exported method is also the capability signal: the explorer only calls what you export and falls back to its hex/UTF-8 view for everything else, so new payload sources added to the contract later are simply methods you don't have yet.
 
-Everything else the node serves (hashes, indices, proofs, tournament data, …) is protocol-defined and rendered by the explorer itself; decoders are never called for those.
+Everything else the node serves (hashes, indices, proofs, tournament data, …) is protocol-defined and rendered by the explorer itself; decoders are never called for those. **That includes the portal deposit envelope**: deposits are identical across every application (`InputEncoding.sol` in rollups-contracts), so the explorer recognizes them by sender and renders summary, tags and the structured deposit natively — with or without a registered decoder. Your `deposit` method only decodes the app-specific bytes riding inside, and its result is shown alongside the native deposit view.
 
 ## What the kit gives you
 
 - **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
-- **Standard portal decoding** — [`src/portals.ts`](src/portals.ts) decodes the canonical Cartesi portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). Asset deposits are identical across every application, so you call `decodePortalInput(input)` instead of reimplementing the layout.
+- **Standard portal decoding** — [`src/portals.ts`](src/portals.ts) decodes the canonical Cartesi portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). The explorer uses it to render deposits natively; it is exported for advanced use, but decoders normally only see its output — the `PortalDeposit` handed to their `deposit` method.
 - **Byte helpers** — [`src/bytes.ts`](src/bytes.ts) provides a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for reading packed payloads.
 
 The `@cartesi/rpc` dependency is **type-only**: the built module stays dependency-free and adds nothing to your bundle.
@@ -39,18 +40,14 @@ Return `null`/`undefined` (or throw) when a payload isn't recognized — the exp
 ## Writing a decoder
 
 ```ts
-import { type InputDecoder, type ReportDecoder, decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
+import { type DepositDecoder, type InputDecoder, ByteReader, formatUnits } from '@deroll/decoder'
 
 export const version = 1
 export const name = 'My decoder'
 
 export const input: InputDecoder = (input, context) => {
-  // Standard, shared across every app: a deposit from a known portal sender.
-  // Comes back with summary, deposit/asset tags, and the structured deposit.
-  const deposit = decodePortalInput(input)
-  if (deposit) return deposit
-
-  // Your application's own messages.
+  // Your application's own messages. Portal deposits never reach this
+  // method — the explorer decodes those itself.
   const r = new ByteReader(input.decoded_data?.payload ?? '0x')
   const action = r.u8()
   if (action === 1) {
@@ -63,13 +60,17 @@ export const input: InputDecoder = (input, context) => {
   return null // not recognized → explorer shows hex/UTF-8
 }
 
-export const report: ReportDecoder = (report) => {
-  // …decode report.raw_data…
+export const deposit: DepositDecoder = (deposit, context) => {
+  // Only the app-specific data attached to a deposit; the envelope (asset,
+  // amounts, sender) is already decoded and rendered by the explorer.
+  if (!deposit.execLayerData) return null
+  const r = new ByteReader(deposit.execLayerData)
+  // …decode it; the result is shown alongside the native deposit view…
   return null
 }
 ```
 
-Each method has a named type — `InputDecoder`, `OutputDecoder`, `ReportDecoder`, `WithdrawalAccountDecoder`, `WithdrawalOutputDecoder` — and the `Decoder` interface types a whole module.
+Each method has a named type — `InputDecoder`, `DepositDecoder`, `OutputDecoder`, `ReportDecoder`, `WithdrawalAccountDecoder`, `WithdrawalOutputDecoder` — and the `Decoder` interface types a whole module.
 
 ## Loading from GitHub source (no publish)
 

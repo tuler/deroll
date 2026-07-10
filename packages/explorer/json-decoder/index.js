@@ -6,6 +6,12 @@
 // for the payload sources it understands (all optional):
 //
 //   input(input, context)                → decodes input.decoded_data.payload
+//                                          (never called for portal deposits —
+//                                          the explorer decodes those itself)
+//   deposit(deposit, context)            → decodes the app-specific data
+//                                          attached to a portal deposit
+//                                          (deposit.execLayerData & co); the
+//                                          deposit envelope arrives decoded
 //   output(output, context)              → decodes output.decoded_data.payload
 //   report(report, context)              → decodes report.raw_data
 //   withdrawalAccount(withdrawal, context) → decodes withdrawal.account

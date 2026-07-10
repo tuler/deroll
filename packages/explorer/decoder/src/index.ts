@@ -1,23 +1,24 @@
 // @deroll/decoder — the typed toolkit for writing Cartesi Node Explorer
 // payload decoders in TypeScript.
 //
-//   import type { InputDecoder, ReportDecoder } from '@deroll/decoder'
-//   import { decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
+//   import type { InputDecoder, DepositDecoder } from '@deroll/decoder'
+//   import { ByteReader, formatUnits } from '@deroll/decoder'
 //
 //   export const version = 1
 //   export const name = 'My decoder'
 //   export const input: InputDecoder = (input, context) => {
-//     const deposit = decodePortalInput(input) // standard, shared
-//     if (deposit) return deposit
 //     // …decode this application's own messages…
+//     // (portal deposits never reach here — the explorer decodes those itself)
 //   }
-//   export const report: ReportDecoder = (report) => { … }
+//   export const deposit: DepositDecoder = (deposit, context) => {
+//     // …decode deposit.execLayerData, the app-specific attachment…
+//   }
 //
 // A decoder exports one method per payload source it understands (input,
-// output, report, withdrawalAccount, withdrawalOutput) — all optional. The
-// API record types (Input, Output, Report, Withdrawal, …) are re-exported
-// from @cartesi/rpc, the typed client for the node's JSON-RPC API — that
-// package is the source of truth for everything the node serves.
+// deposit, output, report, withdrawalAccount, withdrawalOutput) — all
+// optional. The API record types (Input, Output, Report, Withdrawal, …) are
+// re-exported from @cartesi/rpc, the typed client for the node's JSON-RPC
+// API — that package is the source of truth for everything the node serves.
 //
 // See README.md for the authoring and build/host workflow.
 
@@ -25,6 +26,7 @@ export type {
     // Decoder contract
     Decoder,
     InputDecoder,
+    DepositDecoder,
     OutputDecoder,
     ReportDecoder,
     WithdrawalAccountDecoder,
@@ -61,6 +63,7 @@ export {
     PORTAL_ADDRESSES,
     decodePortalInput,
     decodePortalDeposit,
+    hasDepositAppData,
     portalDepositTags,
     summarizePortalDeposit,
 } from "./portals";
