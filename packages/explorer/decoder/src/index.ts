@@ -1,17 +1,17 @@
 // @deroll/decoder — the typed toolkit for writing Cartesi Node Explorer
 // payload decoders in TypeScript.
 //
-//   import type { Decoder } from '@deroll/decoder'
+//   import type { InputDecoder, ReportDecoder } from '@deroll/decoder'
 //   import { decodePortalInput, ByteReader, formatUnits } from '@deroll/decoder'
 //
-//   export const version = 2
+//   export const version = 1
 //   export const name = 'My decoder'
-//   export const input: Decoder['input'] = (input, context) => {
+//   export const input: InputDecoder = (input, context) => {
 //     const deposit = decodePortalInput(input) // standard, shared
 //     if (deposit) return deposit
 //     // …decode this application's own messages…
 //   }
-//   export const report: Decoder['report'] = (report) => { … }
+//   export const report: ReportDecoder = (report) => { … }
 //
 // A decoder exports one method per payload source it understands (input,
 // output, report, withdrawalAccount, withdrawalOutput) — all optional. The
@@ -24,17 +24,17 @@
 export type {
     // Decoder contract
     Decoder,
-    DecodeMethod,
+    InputDecoder,
+    OutputDecoder,
+    ReportDecoder,
+    WithdrawalAccountDecoder,
+    WithdrawalOutputDecoder,
     DecodeContext,
     DecodeResult,
     DecodeResultLike,
     PayloadKind,
     Tag,
     TagColor,
-    // Version 1 (legacy) contract
-    AnyDecoder,
-    LegacyDecoder,
-    LegacyDecodeContext,
     // API records (from @cartesi/rpc)
     Input,
     Output,
@@ -47,12 +47,6 @@ export type {
     Hash,
     Hex,
     HexNumber,
-    // Deprecated aliases of the pre-@cartesi/rpc names
-    EvmAdvance,
-    DecodedOutput,
-    HexUint,
-    ByteArray,
-    FunctionSelector,
 } from "./types";
 
 export {

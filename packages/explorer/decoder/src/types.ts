@@ -14,7 +14,7 @@
 // type-only, so importing from it adds nothing to your bundle. See ./portals
 // and ./bytes for runtime helpers, and ./index for a convenient barrel.
 
-import type { Hex, HexNumber, Input, Output, Report, Withdrawal } from "@cartesi/rpc";
+import type { Input, Output, Report, Withdrawal } from "@cartesi/rpc";
 
 // ---- API records (from @cartesi/rpc, re-exported for convenience) ----
 
@@ -31,19 +31,6 @@ export type {
     Voucher,
     Withdrawal,
 } from "@cartesi/rpc";
-
-// Aliases kept for decoders written against the pre-@cartesi/rpc names.
-
-/** @deprecated Use `Input["decoded_data"]` (non-null) instead. */
-export type EvmAdvance = NonNullable<Input["decoded_data"]>;
-/** @deprecated Use the `Notice | Voucher | DelegateCallVoucher` union from @cartesi/rpc instead. */
-export type DecodedOutput = NonNullable<Output["decoded_data"]>;
-/** @deprecated Use `HexNumber` from @cartesi/rpc instead. */
-export type HexUint = HexNumber;
-/** @deprecated Use `Hex` from @cartesi/rpc instead. */
-export type ByteArray = Hex;
-/** @deprecated Use `Hex` from @cartesi/rpc instead. */
-export type FunctionSelector = Hex;
 
 // ---- Payload sources ----
 //
@@ -136,73 +123,52 @@ export interface DecodeResult {
 /** What a decode method may return; null/undefined means "not recognized". */
 export type DecodeResultLike = DecodeResult | null | undefined;
 
-/**
- * A decode method: receives the full API record (the raw bytes are a field of
- * it — see the payload-sources table above) and returns a DecodeResult, or
- * null/undefined when the payload is not recognized — the explorer then falls
- * back to its hex/UTF-8 view. Throwing is treated the same, plus an
- * unobtrusive error hint. May be async.
- */
-export type DecodeMethod<R> = (
+// ---- Decode methods ----
+//
+// A decode method receives the full API record (the raw bytes are a field of
+// it — see the payload-sources table above) and returns a DecodeResult, or
+// null/undefined when the payload is not recognized — the explorer then falls
+// back to its hex/UTF-8 view. Throwing is treated the same, plus an
+// unobtrusive error hint. Methods may be async.
+
+type DecodeMethod<R> = (
     record: R,
     context: DecodeContext,
 ) => DecodeResultLike | Promise<DecodeResultLike>;
 
+/** Decodes `input.decoded_data.payload` — the advance payload sent by the user. */
+export type InputDecoder = DecodeMethod<Input>;
+/** Decodes `output.decoded_data.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
+export type OutputDecoder = DecodeMethod<Output>;
+/** Decodes `report.raw_data` — the full report body. */
+export type ReportDecoder = DecodeMethod<Report>;
+/** Decodes `withdrawal.account` — the app-defined account encoding. */
+export type WithdrawalAccountDecoder = DecodeMethod<Withdrawal>;
+/** Decodes `withdrawal.output` — the app-defined withdrawal output blob. */
+export type WithdrawalOutputDecoder = DecodeMethod<Withdrawal>;
+
 /**
- * A payload decoder module (interface version 2). Export `version`,
- * optionally `name`, and one method per payload source you understand — all
- * methods optional, as named exports (a default-exported object also works):
+ * A payload decoder module. Export `version`, optionally `name`, and one
+ * method per payload source you understand — all methods optional, as named
+ * exports (a default-exported object also works):
  *
- *   export const version = 2
+ *   export const version = 1
  *   export const name = 'My decoder'
- *   export const input: Decoder['input'] = (input, context) => { … }
- *   export const report: Decoder['report'] = (report) => { … }
+ *   export const input: InputDecoder = (input, context) => { … }
+ *   export const report: ReportDecoder = (report) => { … }
  *
  * An exported method is also the capability signal: the explorer only calls
  * what you export, so new payload sources added to the contract later are
  * simply methods you don't have yet.
  */
 export interface Decoder {
-    /** Interface version; per-kind methods are version 2. */
-    version: 2;
+    /** Interface version; this contract is version 1. */
+    version: 1;
     /** Display name shown in the registration UI. */
     name?: string;
-    /** Decodes `input.decoded_data.payload` — the advance payload sent by the user. */
-    input?: DecodeMethod<Input>;
-    /** Decodes `output.decoded_data.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
-    output?: DecodeMethod<Output>;
-    /** Decodes `report.raw_data` — the full report body. */
-    report?: DecodeMethod<Report>;
-    /** Decodes `withdrawal.account` — the app-defined account encoding. */
-    withdrawalAccount?: DecodeMethod<Withdrawal>;
-    /** Decodes `withdrawal.output` — the app-defined withdrawal output blob. */
-    withdrawalOutput?: DecodeMethod<Withdrawal>;
+    input?: InputDecoder;
+    output?: OutputDecoder;
+    report?: ReportDecoder;
+    withdrawalAccount?: WithdrawalAccountDecoder;
+    withdrawalOutput?: WithdrawalOutputDecoder;
 }
-
-// ---- Version 1 (legacy) ----
-
-/** @deprecated Context of the version-1 `decode()` contract. */
-export type LegacyDecodeContext = DecodeContext &
-    (
-        | { kind: "input"; record?: Input }
-        | { kind: "output"; record?: Output }
-        | { kind: "report"; record?: Report }
-    );
-
-/**
- * @deprecated The version-1 contract: a single `decode(payload, context)`
- * discriminated by `context.kind`. Still loaded by the explorer, but only for
- * the input/output/report payloads it predates. Write new decoders as
- * version 2 with per-kind methods.
- */
-export interface LegacyDecoder {
-    version: 1;
-    name?: string;
-    decode(
-        payload: string,
-        context: LegacyDecodeContext,
-    ): DecodeResultLike | Promise<DecodeResultLike>;
-}
-
-/** Any decoder module the explorer accepts. */
-export type AnyDecoder = Decoder | LegacyDecoder;

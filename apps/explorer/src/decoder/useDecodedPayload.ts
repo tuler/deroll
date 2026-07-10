@@ -3,13 +3,13 @@ import { useChainId } from '../api/hooks'
 import { hexToBigInt } from '../lib/format'
 import { loadDecoder } from './loader'
 import { useDecoderUrl } from './registry'
-import type { DecodeResult, LegacyDecodeContext, PayloadKind } from './types'
+import type { DecodeResult, PayloadKind } from './types'
 
 /** Identifies a payload for decoding; passed through to the registered decoder. */
 export interface DecodeProps {
   /** Application contract address (not the route param, which may be a name). */
   application: string
-  /** Payload source — also the name of the version-2 decoder method to call. */
+  /** Payload source — also the name of the decoder method to call. */
   kind: PayloadKind
   /** Full API record (Input, Output, Report or Withdrawal) the bytes belong to. */
   record: unknown
@@ -38,25 +38,14 @@ export function useDecodedPayload(payload?: string | null, props?: DecodeProps):
         application: application.toLowerCase(),
         chainId: chainId === null ? undefined : Number(chainId),
       }
-      if (decoder.version === 2) {
-        // An exported method is the capability signal: only call what the
-        // decoder declares, and fall back to the hex/UTF-8 view otherwise.
-        const method = decoder[kind]
-        if (!method) return null
-        // Cast: kind is a runtime value and record is unknown here, so the
-        // per-method record type can't be proven, though the shape is correct.
-        const result = await (method as (r: unknown, c: typeof context) => unknown)(
-          record,
-          context,
-        )
-        return (result ?? null) as DecodeResult | null
-      }
-      // Version 1 (legacy): a single decode(payload, context) that predates
-      // the withdrawal kinds — never call it for them, since its catch-all
-      // branches (common for report handling) would mis-decode those bytes.
-      if (kind !== 'input' && kind !== 'output' && kind !== 'report') return null
-      const result = await decoder.decode(payload!, { kind, record, ...context } as LegacyDecodeContext)
-      return result ?? null
+      // An exported method is the capability signal: only call what the
+      // decoder declares, and fall back to the hex/UTF-8 view otherwise.
+      const method = decoder[kind]
+      if (!method) return null
+      // Cast: kind is a runtime value and record is unknown here, so the
+      // per-method record type can't be proven, though the shape is correct.
+      const result = await (method as (r: unknown, c: typeof context) => unknown)(record, context)
+      return (result ?? null) as DecodeResult | null
     },
     enabled,
     retry: false,

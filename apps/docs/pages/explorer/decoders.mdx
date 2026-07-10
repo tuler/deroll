@@ -60,22 +60,15 @@ and returns a `DecodeResult`, every field optional:
 Return `null`/`undefined` (or throw) when a payload isn't recognized — the explorer
 falls back to its hex/UTF-8 view.
 
-## Interface versions
-
-Declare `version = 2` — the per-method contract described here. Version 1 is the
-legacy contract (a single `decode(payload, context)` discriminated by `context.kind`):
-the explorer still loads it, but only for the input/output/report payloads it
-predates.
-
 ## A minimal decoder
 
 ```ts
-import { type Decoder, decodePortalInput, ByteReader, formatUnits } from "@deroll/decoder";
+import { type InputDecoder, type ReportDecoder, decodePortalInput, ByteReader, formatUnits } from "@deroll/decoder";
 
-export const version = 2;
+export const version = 1;
 export const name = "My decoder";
 
-export const input: Decoder["input"] = (input, context) => {
+export const input: InputDecoder = (input, context) => {
     // Standard, shared across every app: a deposit from a known portal sender.
     // Comes back with summary, deposit/asset tags, and the structured deposit.
     const deposit = decodePortalInput(input);
@@ -94,11 +87,15 @@ export const input: Decoder["input"] = (input, context) => {
     return null; // not recognized → explorer shows hex/UTF-8
 };
 
-export const report: Decoder["report"] = (report) => {
+export const report: ReportDecoder = (report) => {
     // …decode report.raw_data…
     return null;
 };
 ```
+
+Each method has a named type — `InputDecoder`, `OutputDecoder`, `ReportDecoder`,
+`WithdrawalAccountDecoder`, `WithdrawalOutputDecoder` — and the `Decoder` interface
+types a whole module.
 
 ## Loading from a GitHub source (no publish)
 
