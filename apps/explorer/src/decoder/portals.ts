@@ -7,17 +7,9 @@
 // attached to it (execLayerData / baseLayerData) via the PortalDeposit types
 // from @deroll/decoder.
 
-import {
-  ByteReader,
-  formatUnits,
-  isHex,
-  shortHex,
-  type DecodeResult,
-  type Input,
-  type PortalDeposit,
-  type PortalKind,
-  type Tag,
-} from '@deroll/decoder'
+import type { DecodeResult, Input, PortalDeposit, PortalKind, Tag } from '@deroll/decoder'
+import { decodeAbiParameters, formatEther, hexToBigInt, isHex, size, slice, type Hex } from 'viem'
+import { shortHex } from '../lib/format'
 
 /**
  * Deterministic Cartesi portal addresses (lowercase), as published by
@@ -33,53 +25,23 @@ export const PORTAL_ADDRESSES: Readonly<Record<string, PortalKind>> = {
   '0x3649c5e2de91c69a7bb80d864f0039da5e511096': 'ERC1155BatchPortal',
 }
 
-const ETHER_DECIMALS = 18 // wei → ETH is a protocol constant, safe to format
+const address = (payload: Hex, start: number) =>
+  slice(payload, start, start + 20).toLowerCase() as Hex
+const uint256 = (payload: Hex, start: number) => hexToBigInt(slice(payload, start, start + 32))
+/** The payload tail from `start`, or undefined when nothing is left. */
+const tail = (payload: Hex, start: number): Hex | undefined =>
+  size(payload) > start ? slice(payload, start) : undefined
 
-// ---- Minimal abi.decode for the portals' trailing data blobs ----
+/** Empty bytes → undefined, so optional app-data fields disappear when absent. */
+const orUndefined = (data: Hex): Hex | undefined => (data === '0x' ? undefined : data)
 
-/** Reads the 32-byte big-endian word at `offset`, or null when out of bounds. */
-function word(bytes: Uint8Array, offset: number): bigint | null {
-  if (offset < 0 || offset + 32 > bytes.length) return null
-  let value = 0n
-  for (let i = 0; i < 32; i++) value = (value << 8n) | BigInt(bytes[offset + i])
-  return value
-}
-
-function hexSlice(bytes: Uint8Array, start: number, length: number): string {
-  let out = '0x'
-  for (let i = 0; i < length; i++) out += bytes[start + i].toString(16).padStart(2, '0')
-  return out
-}
-
-/** Reads a dynamic `bytes` field whose offset word sits at head+slot*32; empty → undefined. */
-function abiBytes(bytes: Uint8Array, head: number, slot: number): string | undefined | null {
-  const offset = word(bytes, head + slot * 32)
-  if (offset === null) return null
-  const at = head + Number(offset)
-  const length = word(bytes, at)
-  if (length === null) return null
-  const n = Number(length)
-  if (at + 32 + n > bytes.length) return null
-  return n === 0 ? undefined : hexSlice(bytes, at + 32, n)
-}
-
-/** Reads a dynamic `uint256[]` field whose offset word sits at head+slot*32. */
-function abiUintArray(bytes: Uint8Array, head: number, slot: number): string[] | null {
-  const offset = word(bytes, head + slot * 32)
-  if (offset === null) return null
-  const at = head + Number(offset)
-  const length = word(bytes, at)
-  if (length === null) return null
-  const n = Number(length)
-  if (at + 32 + n * 32 > bytes.length) return null
-  const out: string[] = []
-  for (let i = 0; i < n; i++) {
-    const item = word(bytes, at + 32 + i * 32)
-    if (item === null) return null
-    out.push(item.toString())
-  }
-  return out
-}
+const BYTES_PAIR = [{ type: 'bytes' }, { type: 'bytes' }] as const
+const BATCH_DATA = [
+  { type: 'uint256[]' },
+  { type: 'uint256[]' },
+  { type: 'bytes' },
+  { type: 'bytes' },
+] as const
 
 /**
  * Decode a payload as a deposit from the given portal, following the canonical
@@ -89,74 +51,80 @@ function abiUintArray(bytes: Uint8Array, head: number, slot: number): string[] |
  * a blob is malformed it is kept raw under `data` instead.
  */
 export function decodePortalDeposit(payload: string, portal: PortalKind): PortalDeposit | null {
-  if (!isHex(payload)) return null
-  const r = new ByteReader(payload)
-  const len = r.bytes.length
+  if (!isHex(payload) || payload.length % 2 !== 0) return null
+  const len = size(payload)
   switch (portal) {
     case 'EtherPortal': {
       if (len < 52) return null // sender(20) + value(32)
-      const sender = r.address()
-      const wei = r.u256()
+      const wei = uint256(payload, 20)
       return {
         portal,
-        sender,
-        ether: formatUnits(wei, ETHER_DECIMALS),
+        sender: address(payload, 0),
+        ether: formatEther(wei),
         wei: wei.toString(),
-        execLayerData: r.rest(),
+        execLayerData: tail(payload, 52),
       }
     }
     case 'ERC20Portal': {
       if (len < 72) return null // token(20) + sender(20) + value(32)
-      const token = r.address()
-      const sender = r.address()
       return {
         portal,
-        token,
-        sender,
-        amount: r.u256().toString(),
-        execLayerData: r.rest(),
+        token: address(payload, 0),
+        sender: address(payload, 20),
+        amount: uint256(payload, 40).toString(),
+        execLayerData: tail(payload, 72),
       }
     }
     case 'ERC721Portal': {
       if (len < 72) return null // token(20) + sender(20) + tokenId(32) + abi.encode(base, exec)
-      const token = r.address()
-      const sender = r.address()
-      const tokenId = r.u256().toString()
-      const head = r.pos
-      const baseLayerData = abiBytes(r.bytes, head, 0)
-      const execLayerData = abiBytes(r.bytes, head, 1)
-      if (baseLayerData === null || execLayerData === null) {
-        return { portal, token, sender, tokenId, data: r.rest() }
+      const common = {
+        portal,
+        token: address(payload, 0),
+        sender: address(payload, 20),
+        tokenId: uint256(payload, 40).toString(),
       }
-      return { portal, token, sender, tokenId, baseLayerData, execLayerData }
+      try {
+        const [base, exec] = decodeAbiParameters(BYTES_PAIR, tail(payload, 72) ?? '0x')
+        return { ...common, baseLayerData: orUndefined(base), execLayerData: orUndefined(exec) }
+      } catch {
+        return { ...common, data: tail(payload, 72) }
+      }
     }
     case 'ERC1155SinglePortal': {
       if (len < 104) return null // token(20) + sender(20) + tokenId(32) + value(32) + abi.encode(base, exec)
-      const token = r.address()
-      const sender = r.address()
-      const tokenId = r.u256().toString()
-      const value = r.u256().toString()
-      const head = r.pos
-      const baseLayerData = abiBytes(r.bytes, head, 0)
-      const execLayerData = abiBytes(r.bytes, head, 1)
-      if (baseLayerData === null || execLayerData === null) {
-        return { portal, token, sender, tokenId, value, data: r.rest() }
+      const common = {
+        portal,
+        token: address(payload, 0),
+        sender: address(payload, 20),
+        tokenId: uint256(payload, 40).toString(),
+        value: uint256(payload, 72).toString(),
       }
-      return { portal, token, sender, tokenId, value, baseLayerData, execLayerData }
+      try {
+        const [base, exec] = decodeAbiParameters(BYTES_PAIR, tail(payload, 104) ?? '0x')
+        return { ...common, baseLayerData: orUndefined(base), execLayerData: orUndefined(exec) }
+      } catch {
+        return { ...common, data: tail(payload, 104) }
+      }
     }
     case 'ERC1155BatchPortal': {
       if (len < 40) return null // token(20) + sender(20) + abi.encode(ids, values, base, exec)
-      const token = r.address()
-      const sender = r.address()
-      const head = r.pos
-      const tokenIds = abiUintArray(r.bytes, head, 0)
-      const values = abiUintArray(r.bytes, head, 1)
-      const baseLayerData = abiBytes(r.bytes, head, 2)
-      const execLayerData = abiBytes(r.bytes, head, 3)
-      if (tokenIds === null || values === null || baseLayerData === null || execLayerData === null) {
-        return { portal, token, sender, data: r.rest() }
+      const common = {
+        portal,
+        token: address(payload, 0),
+        sender: address(payload, 20),
       }
-      return { portal, token, sender, tokenIds, values, baseLayerData, execLayerData }
+      try {
+        const [ids, values, base, exec] = decodeAbiParameters(BATCH_DATA, tail(payload, 40) ?? '0x')
+        return {
+          ...common,
+          tokenIds: ids.map(String),
+          values: values.map(String),
+          baseLayerData: orUndefined(base),
+          execLayerData: orUndefined(exec),
+        }
+      } catch {
+        return { ...common, data: tail(payload, 40) }
+      }
     }
   }
 }

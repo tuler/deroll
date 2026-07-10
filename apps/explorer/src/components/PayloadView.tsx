@@ -8,10 +8,14 @@ type Mode = 'decoded' | 'utf8' | 'hex'
 
 const MODE_LABELS: Record<Mode, string> = { decoded: 'Decoded', utf8: 'UTF-8', hex: 'Hex' }
 
+/** JSON.stringify replacer tolerating the bigints viem-based decoders return. */
+const bigintSafe = (_key: string, value: unknown) =>
+  typeof value === 'bigint' ? value.toString() : value
+
 /** Text representation of a decode result, for copying and plain display. */
 function decodedToText(result: DecodeResult, indent?: number): string {
   if (typeof result.data === 'string') return result.data
-  if (result.data !== undefined) return JSON.stringify(result.data, null, indent)
+  if (result.data !== undefined) return JSON.stringify(result.data, bigintSafe, indent)
   return result.summary ?? ''
 }
 

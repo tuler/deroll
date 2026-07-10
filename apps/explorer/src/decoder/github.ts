@@ -29,24 +29,25 @@ function splitRefAndPath(rest: string): { ref: string; path: string } | null {
   return m ? { ref: m[1], path: m[2] } : null
 }
 
-// The kit is provided by the explorer through an import map (see vite.config.ts),
-// so esm.sh is told to leave the bare `@deroll/decoder` import alone rather
-// than resolve it from npm. That import map points it at the kit's own GitHub
-// source — which is what lets a kit-using decoder load from a repo with nothing
-// published to a registry.
-const KIT_SPECIFIER = '@deroll/decoder'
+// Imports the explorer provides to every decoder through its import map (see
+// vite.config.ts): the contract kit, mapped at the kit's own GitHub source so
+// a kit-using decoder loads from a repo with nothing published to a registry,
+// and the blessed byte/ABI library viem, pinned to the version the explorer
+// itself uses so decoders import it without bundling it. esm.sh is told to
+// leave these bare imports alone rather than resolve them from npm.
+const BLESSED_IMPORTS = ['@deroll/decoder', 'viem']
 
-function withKitExternal(url: string): string {
-  return `${url}${url.includes('?') ? '&' : '?'}external=${KIT_SPECIFIER}`
+function withBlessedExternals(url: string): string {
+  return `${url}${url.includes('?') ? '&' : '?'}external=${BLESSED_IMPORTS.join(',')}`
 }
 
 function ghUrl(base: string, owner: string, repo: string, ref: string, path: string): string {
-  return withKitExternal(`${base}/gh/${owner}/${repo}@${ref}/${path.replace(/^\/+/, '')}`)
+  return withBlessedExternals(`${base}/gh/${owner}/${repo}@${ref}/${path.replace(/^\/+/, '')}`)
 }
 
 function gistUrl(base: string, id: string, rev: string | undefined, path: string): string {
   const ref = rev ? `@${rev}` : ''
-  return withKitExternal(`${base}/gh/gist/${id}${ref}/${path.replace(/^\/+/, '')}`)
+  return withBlessedExternals(`${base}/gh/gist/${id}${ref}/${path.replace(/^\/+/, '')}`)
 }
 
 /** A gist page's per-file anchor (`#file-my-decoder-ts`) for a filename. */
@@ -128,7 +129,7 @@ export async function resolveDecoderImportUrl(input: string, esmBase: string = E
   // Shorthand — already esm.sh's own gh syntax (owner/repo@ref/path), just
   // needs the host prepended.
   const short = /^(?:gh|github):\/*(.+)$/i.exec(ref)
-  if (short) return withKitExternal(`${esmBase}/gh/${short[1].replace(/^\/+/, '')}`)
+  if (short) return withBlessedExternals(`${esmBase}/gh/${short[1].replace(/^\/+/, '')}`)
 
   // Gist shorthand — gist:<id>[@rev]/<file>, tolerating an <owner>/ prefix
   // (the id alone identifies a gist).
@@ -181,7 +182,7 @@ export async function resolveDecoderImportUrl(input: string, esmBase: string = E
   // to, not the kit the explorer pins. Keep the kit external here too, unless
   // the URL already manages its own externals.
   if (ref.startsWith(`${esmBase}/`) && !url.searchParams.has('external')) {
-    return withKitExternal(ref)
+    return withBlessedExternals(ref)
   }
 
   return ref

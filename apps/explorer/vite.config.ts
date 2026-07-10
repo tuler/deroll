@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -19,7 +20,19 @@ export default defineConfig(({ mode }) => {
   // decoder down with it. Bump the sha when packages/explorer/decoder changes.
   // Relocate or re-pin with VITE_KIT_URL.
   const kitUrl = env.VITE_KIT_URL || `${esmBase}/gh/tuler/deroll@159feb0/packages/explorer/decoder/src/index.ts`
-  const importMap = JSON.stringify({ imports: { '@deroll/decoder': kitUrl } })
+
+  // viem is the blessed byte/ABI library for decoders: they import it bare
+  // (esm.sh leaves it external, see src/decoder/github.ts) and this import map
+  // resolves it — pinned to the version the explorer itself depends on, so
+  // authors bundle nothing and every decoder shares one vetted copy.
+  const viemVersion = pkg.dependencies.viem.replace(/^[^\d]*/, '')
+  const importMap = JSON.stringify({
+    imports: {
+      '@deroll/decoder': kitUrl,
+      viem: `${esmBase}/viem@${viemVersion}`,
+      'viem/': `${esmBase}/viem@${viemVersion}/`,
+    },
+  })
 
   return {
     // BASE_PATH is set by the GitHub Pages workflow (e.g. /luke/); defaults to / for local dev.

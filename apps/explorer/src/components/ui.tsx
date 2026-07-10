@@ -233,7 +233,7 @@ export function Collapsible({
 export function JsonView({ value }: { value: unknown }) {
   return (
     <pre className="overflow-x-auto rounded-md bg-slate-900 p-3 text-xs leading-relaxed text-slate-100 dark:bg-slate-950 dark:ring-1 dark:ring-slate-800">
-      {JSON.stringify(value, null, 2)}
+      {JSON.stringify(value, (_k, v) => (typeof v === 'bigint' ? v.toString() : v), 2)}
     </pre>
   )
 }
