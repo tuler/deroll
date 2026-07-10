@@ -11,11 +11,9 @@
 //   withdrawalAccount(withdrawal, context) → decodes withdrawal.account
 //   withdrawalOutput(withdrawal, context)  → decodes withdrawal.output
 //
-// Interface (version 2):
+// Interface (version 1):
 //
-//   export const version = 2   // required (version 1 is the legacy single-
-//                              // decode() contract, still loaded but only for
-//                              // input/output/report payloads)
+//   export const version = 1   // required
 //   export const name = '…'    // optional, shown in the UI
 //   export const input = (input, context) => { … }   // and friends
 //
@@ -42,7 +40,7 @@
 // (mock-server/server.ts): JSON inputs like {"action":"transfer","amount":120}
 // and the plain-text output and report payloads.
 
-export const version = 2
+export const version = 1
 export const name = 'Example JSON decoder'
 
 /** @param {string | undefined} payload @returns {string | null} */

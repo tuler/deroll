@@ -1,7 +1,7 @@
 import { resolveDecoderImportUrl } from './github'
 import type { Decoder, DecoderModule } from './types'
 
-const V2_METHODS: Array<keyof Decoder> = [
+const DECODE_METHODS: Array<keyof Decoder> = [
   'input',
   'output',
   'report',
@@ -44,25 +44,15 @@ async function importDecoder(url: string): Promise<DecoderModule> {
 
 export function validateDecoderModule(mod: unknown): DecoderModule {
   const candidate = mod as
-    | (Partial<Record<keyof Decoder, unknown>> & { version?: number; decode?: unknown })
+    | (Partial<Record<keyof Decoder, unknown>> & { version?: number })
     | null
     | undefined
-  if (candidate?.version === 1) {
-    // Legacy contract: a single decode() discriminated by context.kind.
-    if (typeof candidate.decode !== 'function') {
-      throw new Error('The module does not export a decode() function (required by version 1).')
-    }
-    return candidate as DecoderModule
+  if (candidate?.version !== 1) {
+    throw new Error(`Unsupported decoder version ${String(candidate?.version)} (expected 1).`)
   }
-  if (candidate?.version === 2) {
-    // Per-kind methods, all optional — but a decoder with none is a mistake.
-    const methods = V2_METHODS.filter((m) => typeof candidate[m] === 'function')
-    if (methods.length === 0) {
-      throw new Error(
-        `The module exports none of the decode methods (${V2_METHODS.join(', ')}).`,
-      )
-    }
-    return candidate as DecoderModule
+  // Decode methods are all optional — but a decoder exporting none is a mistake.
+  if (!DECODE_METHODS.some((m) => typeof candidate[m] === 'function')) {
+    throw new Error(`The module exports none of the decode methods (${DECODE_METHODS.join(', ')}).`)
   }
-  throw new Error(`Unsupported decoder version ${String(candidate?.version)} (expected 1 or 2).`)
+  return candidate as DecoderModule
 }
