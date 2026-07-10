@@ -1,30 +1,29 @@
 // Example payload decoder for the Cartesi Node Explorer.
 //
 // A decoder is an ES module registered per application on the app's Overview
-// page. The explorer imports it at runtime and calls decode() for every
-// application-specific raw-bytes payload of that application. Each call names
-// the exact bytes being decoded via context.kind:
+// page. The explorer imports it at runtime and calls one method per
+// application-specific raw-bytes payload — a decoder exports only the methods
+// for the payload sources it understands (all optional):
 //
-//   'input'               → input.decoded_data.payload (the advance payload)
-//   'output'              → output.decoded_data.payload (Notice/Voucher/… payload)
-//   'report'              → report.raw_data (the full report body)
-//   'withdrawal-account'  → withdrawal.account (app-defined account encoding)
-//   'withdrawal-output'   → withdrawal.output (app-defined output blob)
+//   input(input, context)                → decodes input.decoded_data.payload
+//   output(output, context)              → decodes output.decoded_data.payload
+//   report(report, context)              → decodes report.raw_data
+//   withdrawalAccount(withdrawal, context) → decodes withdrawal.account
+//   withdrawalOutput(withdrawal, context)  → decodes withdrawal.output
 //
-// Interface:
+// Interface (version 2):
 //
-//   export const version = 2   // required; version 1 decoders predate the
-//                              // withdrawal kinds and are never called for them
+//   export const version = 2   // required (version 1 is the legacy single-
+//                              // decode() contract, still loaded but only for
+//                              // input/output/report payloads)
 //   export const name = '…'    // optional, shown in the UI
-//   export function decode(payload, context)
+//   export const input = (input, context) => { … }   // and friends
 //
-//     payload: hex byte string, e.g. "0x7b22…"
-//     context: {
-//       kind: 'input' | 'output' | 'report' | 'withdrawal-account' | 'withdrawal-output',
-//       application: string,   // application contract address (lowercase)
-//       chainId?: number,      // chain id of the connected node
-//       record?: object,       // full API record the payload belongs to
-//     }
+//     each method receives the full API record and:
+//       context: {
+//         application: string,   // application contract address (lowercase)
+//         chainId?: number,      // chain id of the connected node
+//       }
 //
 //     returns (sync or async):
 //       { summary?: string, tags?: Array<string | Tag>, data?: unknown }
@@ -46,8 +45,9 @@
 export const version = 2
 export const name = 'Example JSON decoder'
 
-/** @param {string} payload @returns {string | null} */
+/** @param {string | undefined} payload @returns {string | null} */
 function toUtf8(payload) {
+  if (!payload) return null
   const bytes = new Uint8Array((payload.length - 2) / 2)
   for (let i = 0; i < bytes.length; i++) {
     bytes[i] = parseInt(payload.slice(2 + i * 2, 4 + i * 2), 16)
@@ -59,16 +59,18 @@ function toUtf8(payload) {
   }
 }
 
-/**
- * @param {string} payload
- * @param {{ kind: string }} context
- */
-export function decode(payload, context) {
-  const text = toUtf8(payload)
-  if (text === null) return null // not text → let the explorer show hex
+/** Plain-text payloads (the mock's outputs and reports are sentences). */
+function text(payload) {
+  const value = toUtf8(payload)
+  if (value === null) return null // not text → let the explorer show hex
+  return { summary: value, tags: [{ label: 'text', color: 'gray' }], data: value }
+}
 
+export const input = (input) => {
+  const value = toUtf8(input.decoded_data?.payload)
+  if (value === null) return null
   try {
-    const data = JSON.parse(text)
+    const data = JSON.parse(value)
     if (data && typeof data === 'object' && 'action' in data) {
       return {
         summary: `${data.action} · amount ${data.amount}`,
@@ -79,12 +81,10 @@ export function decode(payload, context) {
     }
     return { data }
   } catch {
-    // not JSON
+    return null // not JSON
   }
-
-  // The mock's output and report payloads are plain-text sentences.
-  if (context.kind !== 'input') {
-    return { summary: text, tags: [{ label: 'text', color: 'gray' }], data: text }
-  }
-  return null
 }
+
+export const output = (output) => text(output.decoded_data?.payload)
+
+export const report = (report) => text(report.raw_data)

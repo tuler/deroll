@@ -4,29 +4,31 @@ A small TypeScript toolkit for writing [Cartesi Node Explorer](https://explorer.
 
 ## What a decoder decodes
 
-The rollups node serves several **raw-bytes fields whose encoding is defined by the application**, not by the protocol. The explorer cannot render those beyond hex/UTF-8 on its own — a decoder registered for the application turns them into a readable summary, colored tags and structured data. Each decode call names exactly one such field via `context.kind`:
+The rollups node serves several **raw-bytes fields whose encoding is defined by the application**, not by the protocol. The explorer cannot render those beyond hex/UTF-8 on its own — a decoder registered for the application turns them into a readable summary, colored tags and structured data. A decoder exports **one method per payload source it understands** (all optional); each method receives the full API record:
 
-| `context.kind` | `context.record` | bytes decoded |
+| method | record | bytes decoded |
 | --- | --- | --- |
 | `input` | `Input` | `input.decoded_data.payload` — the advance payload sent by the user (for deposits, the portal message) |
 | `output` | `Output` | `output.decoded_data.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
 | `report` | `Report` | `report.raw_data` — the full report body (inspect responses, error messages, …) |
-| `withdrawal-account` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
-| `withdrawal-output` | `Withdrawal` | `withdrawal.output` — the raw output blob emitted for that account |
+| `withdrawalAccount` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
+| `withdrawalOutput` | `Withdrawal` | `withdrawal.output` — the raw output blob emitted for that account |
+
+An exported method is also the capability signal: the explorer only calls what you export and falls back to its hex/UTF-8 view for everything else, so new payload sources added to the contract later are simply methods you don't have yet.
 
 Everything else the node serves (hashes, indices, proofs, tournament data, …) is protocol-defined and rendered by the explorer itself; decoders are never called for those.
 
 ## What the kit gives you
 
-- **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder`, `DecodeContext` and `DecodeResult`. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the `context.record` your decoder receives is exactly the API record you see. `DecodeContext` is discriminated by `kind`, so narrowing on `context.kind` narrows `context.record` to the matching record type.
-- **Standard portal decoding** — [`src/portals.ts`](src/portals.ts) decodes the canonical Cartesi portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). Asset deposits are identical across every application, so you call `decodePortalInput()` instead of reimplementing the layout.
+- **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
+- **Standard portal decoding** — [`src/portals.ts`](src/portals.ts) decodes the canonical Cartesi portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). Asset deposits are identical across every application, so you call `decodePortalInput(input)` instead of reimplementing the layout.
 - **Byte helpers** — [`src/bytes.ts`](src/bytes.ts) provides a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for reading packed payloads.
 
 The `@cartesi/rpc` dependency is **type-only**: the built module stays dependency-free and adds nothing to your bundle.
 
-## What a decoder returns
+## What a decode method returns
 
-`decode()` returns a `DecodeResult` — every field optional:
+Each method receives `(record, context)` — `context` is `{ application, chainId? }` — and returns a `DecodeResult`, every field optional:
 
 - `summary` — one human-readable line, shown in table cells.
 - `tags` — colored tags/pills shown alongside the summary, in tables and the detail view. Each tag is `{ label, color?, title? }` (or a bare string for a gray tag); `color` is one of `gray | blue | cyan | indigo | violet | pink | green | amber | red`, mapped by the explorer to theme-aware styles. Use tags for short categorical facts: the message kind (`transfer`), the asset (`ERC-20`), a severity (`error`).
@@ -36,7 +38,7 @@ Return `null`/`undefined` (or throw) when a payload isn't recognized — the exp
 
 ## Interface versions
 
-Declare `version = 2` for new decoders. Version 1 predates the withdrawal payload kinds, so the explorer never calls a version-1 decoder for them (a catch-all branch written for reports would mis-decode withdrawal bytes); everything else, including tags, works the same for both versions. Within a version the contract evolves additively — return `null` for anything you do not recognize instead of assuming the full set of kinds.
+Declare `version = 2` — the per-method contract described here. Version 1 is the legacy contract (a single `decode(payload, context)` discriminated by `context.kind`): the explorer still loads it, but only for the input/output/report payloads it predates. The `LegacyDecoder` type documents it.
 
 ## Writing a decoder
 
@@ -46,16 +48,14 @@ import { type Decoder, decodePortalInput, ByteReader, formatUnits } from '@derol
 export const version = 2
 export const name = 'My decoder'
 
-export const decode: Decoder['decode'] = (payload, context) => {
-  if (context.kind !== 'input') return null
-
+export const input: Decoder['input'] = (input, context) => {
   // Standard, shared across every app: a deposit from a known portal sender.
   // Comes back with summary, deposit/asset tags, and the structured deposit.
-  const deposit = decodePortalInput(payload, context)
+  const deposit = decodePortalInput(input)
   if (deposit) return deposit
 
   // Your application's own messages.
-  const r = new ByteReader(payload)
+  const r = new ByteReader(input.decoded_data?.payload ?? '0x')
   const action = r.u8()
   if (action === 1) {
     return {
@@ -65,6 +65,11 @@ export const decode: Decoder['decode'] = (payload, context) => {
     }
   }
   return null // not recognized → explorer shows hex/UTF-8
+}
+
+export const report: Decoder['report'] = (report) => {
+  // …decode report.raw_data…
+  return null
 }
 ```
 

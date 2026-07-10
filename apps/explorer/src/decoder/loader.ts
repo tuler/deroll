@@ -1,5 +1,13 @@
 import { resolveDecoderImportUrl } from './github'
-import type { DecoderModule } from './types'
+import type { Decoder, DecoderModule } from './types'
+
+const V2_METHODS: Array<keyof Decoder> = [
+  'input',
+  'output',
+  'report',
+  'withdrawalAccount',
+  'withdrawalOutput',
+]
 
 // One in-flight or resolved import per URL; failed loads are forgotten so a
 // retry after fixing the URL or its CORS setup works.
@@ -31,18 +39,30 @@ async function importDecoder(url: string): Promise<DecoderModule> {
     )
   }
   // Named exports are the documented form; a default-exported object also works.
-  return validateDecoderModule(typeof mod.decode === 'function' ? mod : mod.default)
+  return validateDecoderModule(typeof mod.version === 'number' ? mod : mod.default)
 }
 
 export function validateDecoderModule(mod: unknown): DecoderModule {
-  const candidate = mod as DecoderModule | null | undefined
-  if (typeof candidate?.decode !== 'function') {
-    throw new Error('The module does not export a decode() function.')
+  const candidate = mod as
+    | (Partial<Record<keyof Decoder, unknown>> & { version?: number; decode?: unknown })
+    | null
+    | undefined
+  if (candidate?.version === 1) {
+    // Legacy contract: a single decode() discriminated by context.kind.
+    if (typeof candidate.decode !== 'function') {
+      throw new Error('The module does not export a decode() function (required by version 1).')
+    }
+    return candidate as DecoderModule
   }
-  // Version 1 predates the withdrawal payload kinds; those are only sent to
-  // version 2 decoders (see useDecodedPayload).
-  if (candidate.version !== 1 && candidate.version !== 2) {
-    throw new Error(`Unsupported decoder version ${String(candidate.version)} (expected 1 or 2).`)
+  if (candidate?.version === 2) {
+    // Per-kind methods, all optional — but a decoder with none is a mistake.
+    const methods = V2_METHODS.filter((m) => typeof candidate[m] === 'function')
+    if (methods.length === 0) {
+      throw new Error(
+        `The module exports none of the decode methods (${V2_METHODS.join(', ')}).`,
+      )
+    }
+    return candidate as DecoderModule
   }
-  return candidate
+  throw new Error(`Unsupported decoder version ${String(candidate?.version)} (expected 1 or 2).`)
 }
