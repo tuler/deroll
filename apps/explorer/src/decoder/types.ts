@@ -3,8 +3,15 @@
 // against), and re-exported here so the explorer and authors share one source
 // of truth. See packages/explorer/decoder and the example decoder packages.
 
+import type { Decoder } from '@deroll/decoder'
+
+/**
+ * The payload sources a decoder can handle — the names of Decoder's optional
+ * decode methods, derived so it cannot drift from the contract.
+ */
+export type PayloadKind = Exclude<keyof Decoder, 'version' | 'name'>
+
 export type {
-  PayloadKind,
   DecodeContext,
   DecodeResult,
   Decoder,

@@ -1,7 +1,7 @@
 import { resolveDecoderImportUrl } from './github'
-import type { Decoder, DecoderModule } from './types'
+import type { Decoder, DecoderModule, PayloadKind } from './types'
 
-const DECODE_METHODS: Array<keyof Decoder> = [
+const DECODE_METHODS: PayloadKind[] = [
   'input',
   'output',
   'report',

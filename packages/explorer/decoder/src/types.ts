@@ -63,14 +63,6 @@ export type {
 // …) is protocol-defined and rendered by the explorer itself — decoders are
 // never called for those.
 
-/** The payload sources a decoder can handle; each is an optional Decoder method. */
-export type PayloadKind =
-    | "input"
-    | "output"
-    | "report"
-    | "withdrawalAccount"
-    | "withdrawalOutput";
-
 /** Context passed to every decode method. */
 export interface DecodeContext {
     /** Application contract address, lowercase "0x…" hex. */
