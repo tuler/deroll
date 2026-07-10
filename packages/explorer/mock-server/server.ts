@@ -68,8 +68,8 @@ const placeOrder = (
   be(reduceOnly, 1)
 const cancelOrder = (orderId: number) => '0x04' + be(orderId, 8)
 
-// Deterministic Cartesi portal addresses (deposits arrive from these);
-// must match PORTAL_ADDRESSES in @deroll/decoder for deposit decoding to kick in.
+// Deterministic Cartesi portal addresses (deposits arrive from these); must
+// match the explorer's PORTAL_ADDRESSES for deposit decoding to kick in.
 const erc20Portal = '0x22E57511C30CcE6CDaa742E13CE3b774fDC663b1'
 const etherPortal = '0x8b53327575ac999bdfa8003f4b5134DFF9027516'
 const collateralToken = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC (perp-dex collateral)

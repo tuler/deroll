@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { decodePortalInput, hasDepositAppData, type Input, type PortalDeposit } from '@deroll/decoder'
+import type { Input, PortalDeposit } from '@deroll/decoder'
 import { useChainId } from '../api/hooks'
 import { hexToBigInt } from '../lib/format'
 import { loadDecoder } from './loader'
+import { decodePortalInput, hasDepositAppData } from './portals'
 import { useDecoderUrl } from './registry'
 import type { DecodeContext, DecodeResult, PayloadKind } from './types'
 
