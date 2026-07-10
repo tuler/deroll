@@ -1,5 +1,8 @@
 // @deroll/decoder — the typed toolkit for writing Cartesi Node Explorer
-// payload decoders in TypeScript.
+// payload decoders in TypeScript. It contains exactly two things: the decoder
+// contract (types only) and byte helpers for reading app-specific payloads.
+// Protocol-defined data (the portal deposit envelope, hashes, proofs, …) is
+// decoded by the explorer itself, never by a decoder.
 //
 //   import type { InputDecoder, DepositDecoder } from '@deroll/decoder'
 //   import { ByteReader, formatUnits } from '@deroll/decoder'
@@ -36,6 +39,14 @@ export type {
     DecodeResultLike,
     Tag,
     TagColor,
+    // Portal deposit records (what the deposit method receives)
+    PortalKind,
+    PortalDeposit,
+    EtherDeposit,
+    ERC20Deposit,
+    ERC721Deposit,
+    ERC1155SingleDeposit,
+    ERC1155BatchDeposit,
     // API records (from @cartesi/rpc)
     Input,
     Output,
@@ -58,21 +69,3 @@ export {
     formatUnits,
     shortHex,
 } from "./bytes";
-
-export {
-    PORTAL_ADDRESSES,
-    decodePortalInput,
-    decodePortalDeposit,
-    hasDepositAppData,
-    portalDepositTags,
-    summarizePortalDeposit,
-} from "./portals";
-export type {
-    PortalKind,
-    PortalDeposit,
-    EtherDeposit,
-    ERC20Deposit,
-    ERC721Deposit,
-    ERC1155SingleDeposit,
-    ERC1155BatchDeposit,
-} from "./portals";

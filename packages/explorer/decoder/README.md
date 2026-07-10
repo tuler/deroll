@@ -21,11 +21,12 @@ Everything else the node serves (hashes, indices, proofs, tournament data, …) 
 
 ## What the kit gives you
 
-- **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
-- **Standard portal decoding** — [`src/portals.ts`](src/portals.ts) decodes the canonical Cartesi portal deposit messages (Ether, ERC-20, ERC-721, ERC-1155). The explorer uses it to render deposits natively; it is exported for advanced use, but decoders normally only see its output — the `PortalDeposit` handed to their `deposit` method.
+The kit contains exactly two things — it is deliberately small, because decoders only ever decode app-specific data:
+
+- **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
 - **Byte helpers** — [`src/bytes.ts`](src/bytes.ts) provides a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for reading packed payloads.
 
-The `@cartesi/rpc` dependency is **type-only**: the built module stays dependency-free and adds nothing to your bundle.
+All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here. The `@cartesi/rpc` dependency is **type-only**: the built module stays dependency-free and adds nothing to your bundle.
 
 ## What a decode method returns
 
@@ -81,7 +82,3 @@ The simplest way to share a decoder is to skip packaging and point the explorer 
 To ship a decoder as a versioned package instead of from source, publish it to npm (or any registry) and serve it through a public [esm.sh](https://esm.sh)-style CDN — esm.sh resolves and bundles its dependencies (including `@deroll/decoder`) on the fly. Register the resulting URL on the application's **Overview** page; esm.sh serves it with CORS enabled. Alternatively, bundle the decoder to a single self-contained `.js` (`bun build my-decoder.ts --target=browser --format=esm --outfile=my-decoder.js`) and host that file directly.
 
 This kit itself is published to npm as [`@deroll/decoder`](https://www.npmjs.com/package/@deroll/decoder).
-
-## Portal addresses
-
-`PORTAL_ADDRESSES` is the deterministic Cartesi portal deployment (identical across chains for a given Rollups version), sourced from `@cartesi/viem` and the rollups-node address book. Apps on older deployments used different portal addresses.

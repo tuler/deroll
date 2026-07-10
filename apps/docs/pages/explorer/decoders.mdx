@@ -34,20 +34,22 @@ shown alongside the native deposit view.
 
 ## What the kit gives you
 
-- **A fully typed contract** — `Decoder` (the per-method interface), `DecodeContext`
-  and `DecodeResult`. The API record types (`Input`, `Output`, `Report`, `Withdrawal`,
-  …) are re-exported verbatim from
-  [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the
+The kit contains exactly two things — it is deliberately small, because decoders only
+ever decode app-specific data:
+
+- **A fully typed contract** — `Decoder` (the per-method interface), `DecodeContext`,
+  `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API
+  record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim
+  from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the
   node's JSON-RPC API — the source of truth for everything the node serves. The
   explorer re-exports these same types internally, so the record your method receives
   is exactly the API record you see. The dependency is type-only: the built module
   stays dependency-free.
-- **Standard portal decoding** — the kit decodes the canonical Cartesi portal deposit
-  messages (Ether, ERC-20, ERC-721, ERC-1155). The explorer uses it to render deposits
-  natively; decoders normally only see its output — the `PortalDeposit` handed to
-  their `deposit` method.
 - **Byte helpers** — a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for
   reading packed payloads.
+
+All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the
+explorer, not in the kit.
 
 ## What a decode method returns
 
@@ -130,6 +132,7 @@ that file directly.
 
 ## Portal addresses
 
-`PORTAL_ADDRESSES` is the deterministic Cartesi portal deployment (identical across
-chains for a given Rollups version), sourced from `@cartesi/viem` and the rollups-node
-address book. Apps on older deployments used different portal addresses.
+The explorer recognizes deposits by their sender: the deterministic Cartesi portal
+deployment (identical across chains for a given Rollups version), sourced from
+`@cartesi/viem` and the rollups-node address book. Apps on older deployments used
+different portal addresses, which the explorer does not decode.
