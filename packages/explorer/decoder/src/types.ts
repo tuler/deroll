@@ -10,11 +10,11 @@
 // specific: one optional method per application-defined raw-bytes field, and
 // what those methods may return (DecodeResult).
 //
-// It is type-only (no runtime code) and all @cartesi/rpc imports are
-// type-only, so importing from it adds nothing to your bundle. See ./portals
-// and ./bytes for runtime helpers, and ./index for a convenient barrel.
+// The whole package is type-only (no runtime code), so importing from it adds
+// nothing to your bundle. For the byte/ABI work itself use viem — the blessed
+// library the explorer provides to every decoder through its import map.
 
-import type { Input, Output, Report, Withdrawal } from "@cartesi/rpc";
+import type { Hex, Input, Output, Report, Withdrawal } from "@cartesi/rpc";
 
 // ---- API records (from @cartesi/rpc, re-exported for convenience) ----
 
@@ -90,7 +90,7 @@ export type PortalKind =
 interface PortalDepositBase {
     portal: PortalKind;
     /** The depositing account (encoded in the payload, distinct from the input sender). */
-    sender: string;
+    sender: Hex;
 }
 
 export interface EtherDeposit extends PortalDepositBase {
@@ -100,56 +100,56 @@ export interface EtherDeposit extends PortalDepositBase {
     /** Deposited amount in wei (decimal string). */
     wei: string;
     /** App-specific data attached to the deposit. */
-    execLayerData?: string;
+    execLayerData?: Hex;
 }
 
 export interface ERC20Deposit extends PortalDepositBase {
     portal: "ERC20Portal";
-    token: string;
+    token: Hex;
     /** Raw on-chain token amount (decimal string); the portal carries no token decimals. */
     amount: string;
     /** App-specific data attached to the deposit. */
-    execLayerData?: string;
+    execLayerData?: Hex;
 }
 
 export interface ERC721Deposit extends PortalDepositBase {
     portal: "ERC721Portal";
-    token: string;
+    token: Hex;
     tokenId: string;
     /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: string;
+    baseLayerData?: Hex;
     /** App-specific data attached for the execution layer. */
-    execLayerData?: string;
+    execLayerData?: Hex;
     /** Raw abi.encode(baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: string;
+    data?: Hex;
 }
 
 export interface ERC1155SingleDeposit extends PortalDepositBase {
     portal: "ERC1155SinglePortal";
-    token: string;
+    token: Hex;
     tokenId: string;
     value: string;
     /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: string;
+    baseLayerData?: Hex;
     /** App-specific data attached for the execution layer. */
-    execLayerData?: string;
+    execLayerData?: Hex;
     /** Raw abi.encode(baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: string;
+    data?: Hex;
 }
 
 export interface ERC1155BatchDeposit extends PortalDepositBase {
     portal: "ERC1155BatchPortal";
-    token: string;
+    token: Hex;
     /** Deposited token ids (decimal strings). */
     tokenIds?: string[];
     /** Deposited amount per token id (decimal strings). */
     values?: string[];
     /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: string;
+    baseLayerData?: Hex;
     /** App-specific data attached for the execution layer. */
-    execLayerData?: string;
+    execLayerData?: Hex;
     /** Raw abi.encode(tokenIds, values, baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: string;
+    data?: Hex;
 }
 
 export type PortalDeposit =

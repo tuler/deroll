@@ -21,12 +21,19 @@ Everything else the node serves (hashes, indices, proofs, tournament data, …) 
 
 ## What the kit gives you
 
-The kit contains exactly two things — it is deliberately small, because decoders only ever decode app-specific data:
+This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
 
-- **A fully typed contract** — [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
-- **Byte helpers** — [`src/bytes.ts`](src/bytes.ts) provides a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for reading packed payloads.
+All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here. Being types-only, importing the kit adds nothing to a decoder's bundle.
 
-All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here. The `@cartesi/rpc` dependency is **type-only**: the built module stays dependency-free and adds nothing to your bundle.
+## Batteries: viem
+
+For the byte/ABI work itself, use [viem](https://viem.sh) — the blessed library for decoders. Import it bare and **don't bundle it**: the explorer serves viem to every decoder through its import map, pinned to the version the explorer itself uses (and leaves the import external when transpiling GitHub-hosted sources through esm.sh), so every decoder shares one vetted copy.
+
+```ts
+import { decodeAbiParameters, hexToString, formatUnits, slice } from 'viem'
+```
+
+If you bundle a decoder into a single self-contained `.js` yourself, mark `viem` (and `@deroll/decoder`) as external — or bundle viem in if you prefer; both work, the import map only applies to bare imports.
 
 ## What a decode method returns
 
@@ -41,7 +48,8 @@ Return `null`/`undefined` (or throw) when a payload isn't recognized — the exp
 ## Writing a decoder
 
 ```ts
-import { type DepositDecoder, type InputDecoder, ByteReader, formatUnits } from '@deroll/decoder'
+import type { DepositDecoder, InputDecoder } from '@deroll/decoder'
+import { decodeAbiParameters, formatUnits, hexToString } from 'viem'
 
 export const version = 1
 export const name = 'My decoder'
@@ -49,25 +57,26 @@ export const name = 'My decoder'
 export const input: InputDecoder = (input, context) => {
   // Your application's own messages. Portal deposits never reach this
   // method — the explorer decodes those itself.
-  const r = new ByteReader(input.decoded_data?.payload ?? '0x')
-  const action = r.u8()
-  if (action === 1) {
-    return {
-      summary: `transfer ${formatUnits(r.u256(), 18)} to ${r.address()}`,
-      tags: [{ label: 'transfer', color: 'blue' }],
-      data: { action: 'transfer' /* … */ },
-    }
+  if (!input.decoded_data) return null
+  const [action, amount] = decodeAbiParameters(
+    [{ type: 'string' }, { type: 'uint256' }],
+    input.decoded_data.payload,
+  )
+  return {
+    summary: `${action} · ${formatUnits(amount, 18)}`,
+    tags: [{ label: action, color: 'blue' }],
+    data: { action, amount },
   }
-  return null // not recognized → explorer shows hex/UTF-8
 }
 
 export const deposit: DepositDecoder = (deposit, context) => {
   // Only the app-specific data attached to a deposit; the envelope (asset,
   // amounts, sender) is already decoded and rendered by the explorer.
   if (!deposit.execLayerData) return null
-  const r = new ByteReader(deposit.execLayerData)
-  // …decode it; the result is shown alongside the native deposit view…
-  return null
+  return {
+    summary: hexToString(deposit.execLayerData),
+    data: deposit.execLayerData,
+  }
 }
 ```
 

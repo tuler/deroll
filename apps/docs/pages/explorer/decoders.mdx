@@ -34,22 +34,31 @@ shown alongside the native deposit view.
 
 ## What the kit gives you
 
-The kit contains exactly two things — it is deliberately small, because decoders only
-ever decode app-specific data:
-
-- **A fully typed contract** — `Decoder` (the per-method interface), `DecodeContext`,
-  `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API
-  record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim
-  from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the
-  node's JSON-RPC API — the source of truth for everything the node serves. The
-  explorer re-exports these same types internally, so the record your method receives
-  is exactly the API record you see. The dependency is type-only: the built module
-  stays dependency-free.
-- **Byte helpers** — a big-endian `ByteReader`, `formatUnits`, `toUtf8` and friends for
-  reading packed payloads.
+The [`@deroll/decoder`](https://www.npmjs.com/package/@deroll/decoder) package is
+**types-only** — the decoder contract and nothing else: `Decoder` (the per-method
+interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the
+`deposit` method receives. The API record types (`Input`, `Output`, `Report`,
+`Withdrawal`, …) are re-exported verbatim from
+[`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the
+node's JSON-RPC API — the source of truth for everything the node serves. The explorer
+re-exports these same types internally, so the record your method receives is exactly
+the API record you see. Being types-only, importing the kit adds nothing to a
+decoder's bundle.
 
 All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the
 explorer, not in the kit.
+
+## Batteries: viem
+
+For the byte/ABI work itself, use [viem](https://viem.sh) — the blessed library for
+decoders. Import it bare and **don't bundle it**: the explorer serves viem to every
+decoder through its import map, pinned to the version the explorer itself uses (and
+leaves the import external when transpiling GitHub-hosted sources through esm.sh), so
+every decoder shares one vetted copy.
+
+```ts
+import { decodeAbiParameters, hexToString, formatUnits, slice } from "viem";
+```
 
 ## What a decode method returns
 
@@ -71,7 +80,8 @@ falls back to its hex/UTF-8 view.
 ## A minimal decoder
 
 ```ts
-import { type DepositDecoder, type InputDecoder, ByteReader, formatUnits } from "@deroll/decoder";
+import type { DepositDecoder, InputDecoder } from "@deroll/decoder";
+import { decodeAbiParameters, formatUnits, hexToString } from "viem";
 
 export const version = 1;
 export const name = "My decoder";
@@ -79,25 +89,26 @@ export const name = "My decoder";
 export const input: InputDecoder = (input, context) => {
     // Your application's own messages. Portal deposits never reach this
     // method — the explorer decodes those itself.
-    const r = new ByteReader(input.decoded_data?.payload ?? "0x");
-    const action = r.u8();
-    if (action === 1) {
-        return {
-            summary: `transfer ${formatUnits(r.u256(), 18)}`,
-            tags: [{ label: "transfer", color: "blue" }],
-            data: { action: "transfer" /* … */ },
-        };
-    }
-    return null; // not recognized → explorer shows hex/UTF-8
+    if (!input.decoded_data) return null;
+    const [action, amount] = decodeAbiParameters(
+        [{ type: "string" }, { type: "uint256" }],
+        input.decoded_data.payload,
+    );
+    return {
+        summary: `${action} · ${formatUnits(amount, 18)}`,
+        tags: [{ label: action, color: "blue" }],
+        data: { action, amount },
+    };
 };
 
 export const deposit: DepositDecoder = (deposit, context) => {
     // Only the app-specific data attached to a deposit; the envelope (asset,
     // amounts, sender) is already decoded and rendered by the explorer.
     if (!deposit.execLayerData) return null;
-    const r = new ByteReader(deposit.execLayerData);
-    // …decode it; the result is shown alongside the native deposit view…
-    return null;
+    return {
+        summary: hexToString(deposit.execLayerData),
+        data: deposit.execLayerData,
+    };
 };
 ```
 

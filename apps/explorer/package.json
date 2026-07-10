@@ -15,7 +15,8 @@
         "@deroll/decoder": "workspace:*",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
-        "react-router-dom": "^7.18.1"
+        "react-router-dom": "^7.18.1",
+        "viem": "^2.52.2"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.2",

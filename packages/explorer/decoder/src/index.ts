@@ -1,11 +1,10 @@
-// @deroll/decoder — the typed toolkit for writing Cartesi Node Explorer
-// payload decoders in TypeScript. It contains exactly two things: the decoder
-// contract (types only) and byte helpers for reading app-specific payloads.
-// Protocol-defined data (the portal deposit envelope, hashes, proofs, …) is
-// decoded by the explorer itself, never by a decoder.
+// @deroll/decoder — the typed contract for writing Cartesi Node Explorer
+// payload decoders in TypeScript. This package is types-only: it defines what
+// a decoder module looks like and what its methods receive and return —
+// nothing else.
 //
 //   import type { InputDecoder, DepositDecoder } from '@deroll/decoder'
-//   import { ByteReader, formatUnits } from '@deroll/decoder'
+//   import { decodeAbiParameters, hexToString } from 'viem'
 //
 //   export const version = 1
 //   export const name = 'My decoder'
@@ -16,6 +15,10 @@
 //   export const deposit: DepositDecoder = (deposit, context) => {
 //     // …decode deposit.execLayerData, the app-specific attachment…
 //   }
+//
+// For the byte/ABI work itself, import viem: the explorer provides it to
+// every decoder through its import map (pinned to the version the explorer
+// uses), so `import { … } from 'viem'` just works — nothing to bundle.
 //
 // A decoder exports one method per payload source it understands (input,
 // deposit, output, report, withdrawalAccount, withdrawalOutput) — all
@@ -60,12 +63,3 @@ export type {
     Hex,
     HexNumber,
 } from "./types";
-
-export {
-    ByteReader,
-    toBytes,
-    isHex,
-    toUtf8,
-    formatUnits,
-    shortHex,
-} from "./bytes";
