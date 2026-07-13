@@ -4,9 +4,15 @@ Node.js bindings for the [Cartesi Machine](https://github.com/cartesi/machine-em
 
 The package is a native N-API addon: `libcartesi` (and the JSON-RPC client, `libcartesi_jsonrpc`) are compiled from the `machine-emulator` sources vendored as a git submodule at `deps/machine-emulator`, so no system-wide emulator installation is required. The build also produces the `cartesi-jsonrpc-machine` server executable, which `spawn()` uses automatically (override with the `CARTESI_JSONRPC_MACHINE` environment variable).
 
+## Prebuilt platform packages
+
+Published releases ship prebuilt binaries as per-platform packages (`@deroll/cm-linux-x64`, `@deroll/cm-linux-arm64`, `@deroll/cm-darwin-x64`, `@deroll/cm-darwin-arm64`), declared as `optionalDependencies` so the package manager installs only the one matching the host. Each contains the N-API addon **and** the `cartesi-jsonrpc-machine` server executable, so `spawn()` works without any toolchain. Resolution order at runtime: a local source build (`build/Release`) wins, then the platform package, and the server binary falls back to the `PATH`.
+
+The `optionalDependencies` are injected at publish time (`scripts/inject-platform-deps.mjs`); the platform packages are assembled per-platform in CI (`scripts/package-platform.mjs`) and published by `scripts/publish-platform-packages.mjs` right before `@deroll/cm` itself.
+
 ## Build requirements
 
-Compiling from source (done automatically on `install` when no prebuild is available) requires:
+On platforms without a prebuilt package, the install script compiles from source, which requires:
 
 - a C++20 compiler (gcc 12+ or clang 15+)
 - Boost headers (`libboost-dev` on Debian/Ubuntu, `brew install boost` on macOS; the usage is header-only, nothing is linked). Set `BOOST_INC` if they live in a non-standard location.
@@ -43,9 +49,9 @@ const { outputs, reports } = machine.advance(input, { collect: true });
 ## Scripts
 
 ```shell
-bun run build          # bundle the TypeScript layer (tsup)
-bun run build:native   # rebuild the native addon (node-gyp rebuild)
-bun run prebuildify    # produce a prebuild for the current platform
+bun run build             # bundle the TypeScript layer (tsup)
+bun run build:native      # rebuild the native addon (node-gyp rebuild)
+bun run package:platform  # assemble npm/<platform>-<arch> prebuilt package
 bun run test:integration
 ```
 

@@ -44,7 +44,11 @@ jobs:
                   node-version: 24
 
             # ubuntu-latest already ships gcc/g++/make/python3, which node-gyp
-            # needs to compile cmio's addon on install.
+            # needs to compile the cmio/cm addons on install. cm additionally
+            # needs boost headers (header-only usage) to compile libcartesi.
+            - name: Install boost
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
@@ -80,6 +84,11 @@ jobs:
             - uses: docker/setup-qemu-action@v3
               with:
                   platforms: riscv64
+
+            # boost headers: cm's addon compiles from the machine-emulator
+            # submodule during `bun install`
+            - name: Install boost
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
 
             # bun (not npm) — the workspace uses bun's `catalog:` protocol.
             - run: bun install --frozen-lockfile
