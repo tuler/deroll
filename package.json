@@ -28,7 +28,6 @@
         "bufferutil",
         "es5-ext",
         "esbuild",
-        "koffi",
         "node-gyp-build",
         "sharp",
         "utf-8-validate",

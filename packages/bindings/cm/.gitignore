@@ -8,3 +8,4 @@ test/snapshot
 linux.bin
 rootfs.ext2
 /snapshots
+/prebuilds

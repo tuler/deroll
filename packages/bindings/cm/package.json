@@ -23,8 +23,11 @@
         }
     },
     "scripts": {
+        "install": "node-gyp-build",
         "build": "tsup",
-        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "build:native": "node-gyp rebuild",
+        "prebuildify": "prebuildify --napi --strip",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf build",
         "lint": "biome check",
         "lint:ci": "biome ci",
         "test:integration": "vitest",
@@ -38,13 +41,16 @@
     "author": "Danilo Tuler",
     "license": "Apache-2.0",
     "dependencies": {
-        "koffi": "^3.1.0"
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
+        "node-gyp": "^13.0.0",
         "npm-run-all": "^4.1.5",
+        "prebuildify": "^6.0.1",
         "tsup": "^8.5.0",
         "tsx": "^4.20.3",
         "typescript": "^6.0.3",
@@ -52,8 +58,22 @@
         "vitest": "^4.1.9"
     },
     "files": [
-        "dist"
+        "dist",
+        "binding.gyp",
+        "src/addon.cc",
+        "gen/",
+        "prebuilds/",
+        "deps/machine-emulator/src/",
+        "deps/machine-emulator/third-party/tiny_sha3/",
+        "deps/machine-emulator/third-party/nlohmann-json/",
+        "deps/machine-emulator/third-party/llvm-flang-uint128/",
+        "deps/machine-emulator/COPYING"
     ],
+    "binary": {
+        "napi_versions": [
+            8
+        ]
+    },
     "publishConfig": {
         "access": "public"
     }
