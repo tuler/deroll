@@ -1,7 +1,7 @@
-# withdrawERC721
+# withdrawErc721
 
-Withdraw ERC-721 token from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+Withdraw an ERC-721 token from one user, returning an `Erc721Transfer` that transfers the token to the user on L1.
+Emit it with [createErc721Transfer](/app/create-erc721-transfer).
 
 ## Usage
 
@@ -20,21 +20,20 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const dapp = metadata.appContract;
-    const hasOne = wallet.erc721Has(token, user, 1n);
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const hasOne = wallet.erc721Has(token, msgSender, 1n);
     if (hasOne) {
-        const voucher = wallet.withdrawERC721(dapp, token, user, 1n); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createErc721Transfer(wallet.withdrawErc721(token, msgSender, 1n)); // [!code focus]
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `Voucher`
+Type: `Erc721Transfer`
+
+The transfer fields (`recipient`, `token`, `tokenId`), ready for [createErc721Transfer](/app/create-erc721-transfer).
 
 ## Parameters
 
@@ -42,10 +41,10 @@ Type: `Address`
 
 Address of ERC-721 token.
 
-Type: `string`
+Type: `Address`
 
-User to withdraw from.
+User to withdraw from (and L1 recipient).
 
 Type: `bigint`
 
-Amount to withdraw.
+Id of the token.

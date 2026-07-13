@@ -1,0 +1,77 @@
+# rollup.waitForInput
+
+Accepts or rejects the previous request, yields the machine, and blocks until the next request arrives. This is the low-level request cycle primitive — [`run`](/rollup/reference/run) calls it for you.
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+
+const rollup = new Rollup();
+
+const request = rollup.waitForInput({ accept: true });
+
+if (request.type === 'advance') {
+    request;
+    // ^?
+} else {
+    request;
+    // ^?
+}
+```
+
+The returned payload is **raw and undecoded**. For an advance request, parse it with [`decodeAdvance`](/codec/decode-advance) to get the input metadata and inner payload:
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { decodeAdvance } from '@deroll/codec';
+import { Hex } from 'ox';
+const rollup = new Rollup();
+// ---cut---
+const request = rollup.waitForInput();
+if (request.type === 'advance') {
+    const advance = decodeAdvance(Hex.fromBytes(request.payload));
+    advance.msgSender;
+    //      ^?
+}
+```
+
+## Returns
+
+`RollupRequest` — a discriminated union, narrowed by `type`:
+
+```ts twoslash
+type AdvanceRequest = {
+    type: 'advance';
+    /** Raw, undecoded EvmAdvance input. Parse it with decodeAdvance. */
+    payload: Buffer;
+};
+
+type InspectRequest = {
+    type: 'inspect';
+    /** Raw inspect query payload. */
+    payload: Buffer;
+};
+```
+
+Both request types carry only `{ type, payload }`. The advance metadata (`chainId`, `msgSender`, `index`, …) lives inside the raw payload — call [`decodeAdvance`](/codec/decode-advance) to read it.
+
+## Parameters
+
+### options.accept
+
+- Type: `boolean`
+- Default: `true`
+
+Whether to accept the request handled since the previous `waitForInput` call. Inside the machine, rejecting reverts the application state to before that request and discards its outputs.
+
+## Behavior
+
+The call is **synchronous and blocking on purpose**: yielding pauses the entire guest — including Node's event loop — until the next request, so nothing could run concurrently anyway. On the host mock it returns immediately with the next configured input.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| No more inputs (mock) | `RollupError` with the negative errno in `errno` and `syscall: 'cmt_rollup_wait_for_input'` |
+| Device closed | `Error` (`close()` was called) |

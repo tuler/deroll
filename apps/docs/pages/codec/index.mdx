@@ -1,0 +1,44 @@
+# @deroll/codec
+
+EVM-ABI codecs for Cartesi rollup **inputs and outputs**. Each function mirrors one entry of [libcmt](https://github.com/cartesi/machine-guest-tools/tree/main/sys-utils/libcmt)'s codec module and produces/consumes the exact same bytes — verified against libcmt's own golden vectors.
+
+The package is **pure JavaScript** (dual ESM + CommonJS) with no Node.js APIs — the only dependencies are [ox](https://oxlib.sh) and [abitype](https://abitype.dev) (types only) — so the same code runs:
+
+- **inside the Cartesi Machine**, paired with [`@deroll/rollup`](/rollup)'s raw I/O — `rollup.emitOutput(encodeNotice(payload))`;
+- **on the host**, crafting mock inputs for [testing](/rollup/guide/testing) with `encodeAdvance`;
+- **in browsers and indexers**, decoding inputs or encoding expected outputs with no native code at all.
+
+The codecs speak [ox](https://oxlib.sh)'s native types — bytes and addresses are 0x-hex strings (structurally compatible with [viem](https://viem.sh)'s `Hex`/`Address`), numbers are `bigint` — and invalid values raise ox's own errors. Callers convert at the boundary with ox's `Hex.fromBytes`/`Hex.fromString` (viem's `toHex` works too).
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { decodeAdvance, encodeCallVoucher, encodeNotice } from '@deroll/codec';
+import { Hex } from 'ox';
+
+const rollup = new Rollup();
+await rollup.run({
+    advance(request, rollup) {
+        const advance = decodeAdvance(Hex.fromBytes(request.payload));
+        rollup.emitOutput(encodeNotice({ payload: advance.payload }));
+        rollup.emitOutput(
+            encodeCallVoucher({
+                destination: advance.msgSender,
+                value: 0n,
+                payload: '0xdeadbeef',
+            }),
+        );
+        return true;
+    },
+});
+```
+
+## Functions
+
+| Function | Wire format |
+| --- | --- |
+| [`decodeAdvance` / `encodeAdvance`](/codec/decode-advance) | `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` |
+| [`encodeNotice`](/codec/encode-notice) | `Notice(bytes32,bytes)` |
+| [`encodeCallVoucher`](/codec/encode-call-voucher) | `CallVoucher(bytes32,address,uint256,bytes)` |
+| [Asset transfer encoders](/codec/encode-asset-transfers) | `Erc20Transfer`, `Erc721Transfer`, `Erc1155Transfer`, `Erc1155BatchTransfer` |
+
+Every output carries `appContext`, a free-form `bytes32` applications use to tag outputs (recipients can filter by it); it is optional and defaults to the zero hash. The full `abi` (one entry per wire format) is also exported for direct use with viem/ox. See [Types](/codec/types) for the exact input shapes.

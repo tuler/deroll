@@ -1,0 +1,64 @@
+# rollup.run
+
+Convenience request loop: repeatedly [`waitForInput`](/rollup/reference/wait-for-input)s for the next request — accepting or rejecting the previous one — and dispatches it to your handlers.
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { decodeAdvance, encodeNotice } from '@deroll/codec';
+import { Hex } from 'ox';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        const advance = decodeAdvance(Hex.fromBytes(request.payload));
+        rollup.emitOutput(encodeNotice({ payload: advance.payload }));
+        return true;
+    },
+    inspect(request, rollup) {
+        rollup.emitReport(request.payload);
+    },
+});
+```
+
+Handlers receive the request with its **raw, undecoded payload**. For an advance, call [`decodeAdvance`](/codec/decode-advance) to read the input fields, and build provable outputs with [`encodeNotice`](/codec/encode-notice) / [`encodeCallVoucher`](/codec/encode-call-voucher) before passing them to [`emitOutput`](/rollup/reference/emit-output).
+
+## Returns
+
+`Promise<never>` — the loop runs until `waitForInput` fails (inputs exhausted on the mock, or device closed), and the promise rejects with that error. It never resolves.
+
+## Parameters
+
+### handlers
+
+- Type: `RunHandlers`
+
+An object with an optional handler per request type. Both receive `(request, rollup)` and may be synchronous or `async`:
+
+```ts twoslash
+import type { AdvanceRequest, InspectRequest, Rollup } from '@deroll/rollup';
+// ---cut---
+type RunHandlers = {
+    advance?: (
+        request: AdvanceRequest,
+        rollup: Rollup,
+    ) => boolean | void | Promise<boolean | void>;
+    inspect?: (
+        request: InspectRequest,
+        rollup: Rollup,
+    ) => boolean | void | Promise<boolean | void>;
+};
+```
+
+The handler's result decides the request's fate:
+
+| Handler outcome | Effect |
+| --- | --- |
+| returns `true` or `undefined` | request **accepted** |
+| returns `false` | request **rejected** |
+| throws | error emitted as a [report](/rollup/reference/emit-report), request **rejected** |
+| no handler for the request type | request **rejected** |
+
+See [Handling Requests](/rollup/guide/handling-requests) for the semantics of accept/reject.

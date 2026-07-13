@@ -19,15 +19,15 @@ env:
     LINUX_VERSION: 6.5.13-ctsi-1
 
 jobs:
-    # Build cmio prebuilds only when @deroll/cmio is actually about to be
+    # Build rollup-binding prebuilds only when @deroll/rollup is actually about to be
     # published — i.e. its package.json version is not yet on npm. This is the
     # only reason the prebuild matrix needs to run, and it's correct in every
-    # case: false on Version-PR runs (cmio not bumped yet) and on already-
+    # case: false on Version-PR runs (@deroll/rollup not bumped yet) and on already-
     # published versions. (Counting .changeset/*.md does NOT work: in changesets
     # pre mode the .md files persist after `changeset version`, so they can't
     # signal whether this push publishes.)
     detect:
-        name: Detect cmio publish
+        name: Detect rollup binding publish
         runs-on: ubuntu-latest
         outputs:
             publish: ${{ steps.check.outputs.publish }}
@@ -38,20 +38,20 @@ jobs:
                   node-version: 24
             - id: check
               run: |
-                  LOCAL=$(node -p "require('./packages/bindings/cmio/package.json').version")
-                  if npm view "@deroll/cmio@${LOCAL}" version >/dev/null 2>&1; then
+                  LOCAL=$(node -p "require('./packages/bindings/rollup/package.json').version")
+                  if npm view "@deroll/rollup@${LOCAL}" version >/dev/null 2>&1; then
                       echo "publish=false" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cmio@${LOCAL} already on npm -> skip prebuilds."
+                      echo "@deroll/rollup@${LOCAL} already on npm -> skip prebuilds."
                   else
                       echo "publish=true" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cmio@${LOCAL} not yet published -> build prebuilds."
+                      echo "@deroll/rollup@${LOCAL} not yet published -> build prebuilds."
                   fi
 
-    # @deroll/cmio native prebuilds, built from the exact commit being published
+    # @deroll/rollup native prebuilds, built from the exact commit being published
     # (linux-x64/arm64, darwin-x64/arm64). Each job uploads a prebuilds-<os>
     # artifact the release job collects. riscv64 validation lives in ci.yml.
     prebuild:
-        name: cmio prebuild ${{ matrix.os }}
+        name: rollup prebuild ${{ matrix.os }}
         needs: detect
         if: needs.detect.outputs.publish == 'true'
         strategy:
@@ -71,19 +71,19 @@ jobs:
               with:
                   node-version: 24
             # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
-            # npm can't resolve. Install at the repo root, then prebuild in cmio.
+            # npm can't resolve. Install at the repo root, then prebuild in the rollup package.
             - run: bun install --frozen-lockfile
             - name: Build prebuild
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               run: bun run prebuild
             - uses: actions/upload-artifact@v7
               with:
                   name: prebuilds-${{ matrix.os }}
                   if-no-files-found: error
-                  path: packages/bindings/cmio/prebuilds/
+                  path: packages/bindings/rollup/prebuilds/
 
     prebuild-riscv64:
-        name: cmio prebuild linux-riscv64 (cross)
+        name: rollup prebuild linux-riscv64 (cross)
         needs: detect
         if: needs.detect.outputs.publish == 'true'
         runs-on: ubuntu-latest
@@ -104,26 +104,26 @@ jobs:
                     "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb"
                   sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
             - name: Cross-build libcmt (real IO driver)
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
             - name: Prebuild riscv64 addon
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               env:
                   CC: riscv64-linux-gnu-gcc
                   CXX: riscv64-linux-gnu-g++
-                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/rollup/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
               run: bun run prebuild -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
             - uses: actions/upload-artifact@v7
               with:
                   name: prebuilds-riscv64
                   if-no-files-found: error
-                  path: packages/bindings/cmio/prebuilds/
+                  path: packages/bindings/rollup/prebuilds/
 
     release:
         name: Release
         needs: [detect, prebuild, prebuild-riscv64]
         # Run when creating the Version PR (publish=false, prebuilds skipped), or
-        # when publishing AND every prebuild succeeded. Never publish cmio without
+        # when publishing AND every prebuild succeeded. Never publish @deroll/rollup without
         # its prebuilds: a prebuild failure blocks the release (re-runnable).
         if: >-
             always() && needs.detect.result == 'success' &&
@@ -134,7 +134,7 @@ jobs:
             - name: Checkout Repo
               uses: actions/checkout@v6
               with:
-                  # cmio's native addon compiles from the machine-guest-tools
+                  # the rollup binding's native addon compiles from the machine-guest-tools
                   # submodule (deps/machine-guest-tools) during `bun install`.
                   submodules: recursive
 
@@ -158,16 +158,16 @@ jobs:
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
-            # Collect all platform prebuilds into the cmio package so
-            # `changeset publish` packs @deroll/cmio with them instead of forcing
+            # Collect all platform prebuilds into the rollup package so
+            # `changeset publish` packs @deroll/rollup with them instead of forcing
             # consumers to compile from source. Only present when publishing.
-            - name: Collect cmio prebuilds
+            - name: Collect rollup prebuilds
               if: needs.detect.outputs.publish == 'true'
               uses: actions/download-artifact@v8
               with:
                   pattern: prebuilds-*
                   merge-multiple: true
-                  path: packages/bindings/cmio/prebuilds
+                  path: packages/bindings/rollup/prebuilds
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets

@@ -1,15 +1,12 @@
-import type { AdvanceRequestData, Voucher } from "@deroll/core";
+import type { Advance } from "@deroll/core";
 import type { Address, Hex } from "viem";
 import {
     decodeAbiParameters,
-    encodeFunctionData,
-    erc20Abi,
-    erc721Abi,
     getAddress,
     hexToBigInt,
     parseAbi,
     parseAbiParameters,
-    toHex,
+    slice,
 } from "viem";
 
 import {
@@ -19,7 +16,6 @@ import {
     erc721PortalAddress,
     etherPortalAddress,
 } from "@cartesi/viem/abi";
-import { erc1155Abi } from "./abi/index.js";
 import { type WalletApp, WalletAppImpl } from "./wallet.js";
 
 export type { WalletApp } from "./wallet.js";
@@ -27,10 +23,10 @@ export type { WalletApp } from "./wallet.js";
 // wallet ABI
 export const WalletABI = parseAbi([
     "function withdrawEther(uint256 value)",
-    "function withdrawERC20(address token, uint256 amount)",
-    "function withdrawERC721(address token, uint256 tokenId)",
-    "function withdrawERC1155(address token, uint256 tokenId, uint256 value)",
-    "function withdrawERC1155Batch(address token, uint256[] tokenIds, uint256[] values)",
+    "function withdrawErc20(address token, uint256 amount)",
+    "function withdrawErc721(address token, uint256 tokenId)",
+    "function withdrawErc1155(address token, uint256 tokenId, uint256 value)",
+    "function withdrawErc1155Batch(address token, uint256[] tokenIds, uint256[] values)",
 ]);
 
 export const createWallet = (): WalletApp => {
@@ -42,26 +38,26 @@ export type EtherDeposit = {
     value: bigint;
 };
 
-export type ERC20Deposit = {
+export type Erc20Deposit = {
     token: Address;
     sender: Address;
     amount: bigint;
 };
 
-export type ERC721Deposit = {
+export type Erc721Deposit = {
     token: Address;
     sender: Address;
     tokenId: bigint;
 };
 
-export type ERC1155SingleDeposit = {
+export type Erc1155SingleDeposit = {
     token: Address;
     sender: Address;
     tokenId: bigint;
     value: bigint;
 };
 
-export type ERC1155BatchDeposit = {
+export type Erc1155BatchDeposit = {
     token: Address;
     sender: Address;
     tokenIds: readonly bigint[];
@@ -73,10 +69,10 @@ export type ERC1155BatchDeposit = {
  * @param payload input payload
  * @returns
  */
-export const parseEtherDeposit = (payload: Buffer): EtherDeposit => {
+export const parseEtherDeposit = (payload: Hex): EtherDeposit => {
     // normalize address, for safety
-    const sender = getAddress(toHex(payload.subarray(0, 20))); // 20 bytes for address
-    const value = hexToBigInt(toHex(payload.subarray(20, 52)), { size: 32 }); // 32 bytes for uint256
+    const sender = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const value = hexToBigInt(slice(payload, 20, 52), { size: 32 }); // 32 bytes for uint256
     return { sender, value };
 };
 
@@ -85,11 +81,11 @@ export const parseEtherDeposit = (payload: Buffer): EtherDeposit => {
  * @param payload input payload
  * @returns
  */
-export const parseERC20Deposit = (payload: Buffer): ERC20Deposit => {
+export const parseErc20Deposit = (payload: Hex): Erc20Deposit => {
     // normalize addresses, for safety
-    const token = getAddress(toHex(payload.subarray(0, 20))); // 20 bytes for address
-    const sender = getAddress(toHex(payload.subarray(20, 40))); // 20 bytes for address
-    const amount = hexToBigInt(toHex(payload.subarray(40, 72)), { size: 32 }); // 32 bytes for uint256
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const amount = hexToBigInt(slice(payload, 40, 72), { size: 32 }); // 32 bytes for uint256
     return { token, sender, amount };
 };
 
@@ -98,10 +94,10 @@ export const parseERC20Deposit = (payload: Buffer): ERC20Deposit => {
  * @param payload input payload
  * @returns
  */
-export const parseERC721Deposit = (payload: Buffer): ERC721Deposit => {
-    const token = getAddress(toHex(payload.subarray(0, 20))); // 20 bytes for address
-    const sender = getAddress(toHex(payload.subarray(20, 40))); // 20 bytes for address
-    const tokenId = hexToBigInt(toHex(payload.subarray(40, 72)), { size: 32 });
+export const parseErc721Deposit = (payload: Hex): Erc721Deposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const tokenId = hexToBigInt(slice(payload, 40, 72), { size: 32 });
 
     return {
         token,
@@ -115,13 +111,13 @@ export const parseERC721Deposit = (payload: Buffer): ERC721Deposit => {
  * @param payload input payload
  * @returns
  */
-export const parseERC1155SingleDeposit = (
-    payload: Buffer,
-): ERC1155SingleDeposit => {
-    const token = getAddress(toHex(payload.subarray(0, 20))); // 20 bytes for address
-    const sender = getAddress(toHex(payload.subarray(20, 40))); // 20 bytes for address
-    const tokenId = hexToBigInt(toHex(payload.subarray(40, 72)), { size: 32 });
-    const value = hexToBigInt(toHex(payload.subarray(72, 104)), { size: 32 });
+export const parseErc1155SingleDeposit = (
+    payload: Hex,
+): Erc1155SingleDeposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const tokenId = hexToBigInt(slice(payload, 40, 72), { size: 32 });
+    const value = hexToBigInt(slice(payload, 72, 104), { size: 32 });
 
     return {
         token,
@@ -136,12 +132,10 @@ export const parseERC1155SingleDeposit = (
  * @param payload input payload
  * @returns
  */
-export const parseERC1155BatchDeposit = (
-    payload: Buffer,
-): ERC1155BatchDeposit => {
-    const token = getAddress(toHex(payload.subarray(0, 20))); // 20 bytes for address
-    const sender = getAddress(toHex(payload.subarray(20, 40))); // 20 bytes for address
-    const rest = payload.subarray(40);
+export const parseErc1155BatchDeposit = (payload: Hex): Erc1155BatchDeposit => {
+    const token = getAddress(slice(payload, 0, 20)); // 20 bytes for address
+    const sender = getAddress(slice(payload, 20, 40)); // 20 bytes for address
+    const rest = slice(payload, 40);
     const [tokenIds, values] = decodeAbiParameters(
         parseAbiParameters("uint256[] tokenIds, uint256[] values"),
         rest,
@@ -150,107 +144,17 @@ export const parseERC1155BatchDeposit = (
     return { token, sender, tokenIds, values };
 };
 
-export const isEtherDeposit = (data: AdvanceRequestData): boolean =>
-    getAddress(data.metadata.msgSender) === etherPortalAddress;
+export const isEtherDeposit = (data: Advance): boolean =>
+    getAddress(data.msgSender) === etherPortalAddress;
 
-export const isERC20Deposit = (data: AdvanceRequestData): boolean =>
-    getAddress(data.metadata.msgSender) === erc20PortalAddress;
+export const isErc20Deposit = (data: Advance): boolean =>
+    getAddress(data.msgSender) === erc20PortalAddress;
 
-export const isERC721Deposit = (data: AdvanceRequestData): boolean =>
-    getAddress(data.metadata.msgSender) === erc721PortalAddress;
+export const isErc721Deposit = (data: Advance): boolean =>
+    getAddress(data.msgSender) === erc721PortalAddress;
 
-export const isERC1155SingleDeposit = (data: AdvanceRequestData): boolean =>
-    getAddress(data.metadata.msgSender) === erc1155SinglePortalAddress;
+export const isErc1155SingleDeposit = (data: Advance): boolean =>
+    getAddress(data.msgSender) === erc1155SinglePortalAddress;
 
-export const isERC1155BatchDeposit = (data: AdvanceRequestData): boolean =>
-    getAddress(data.metadata.msgSender) === erc1155BatchPortalAddress;
-
-export const createWithdrawEtherVoucher = (
-    receiver: Address,
-    value: bigint,
-): Voucher => {
-    return {
-        destination: receiver,
-        payload: "0x",
-        value,
-    };
-};
-
-export const createERC20TransferVoucher = (
-    token: Address,
-    recipient: Address,
-    amount: bigint,
-): Voucher => {
-    const call = encodeFunctionData({
-        abi: erc20Abi,
-        functionName: "transfer",
-        args: [recipient, amount],
-    });
-
-    // create voucher to the IERC20 transfer
-    return {
-        destination: token,
-        payload: call,
-    };
-};
-
-export const createERC721TransferVoucher = (
-    token: Address,
-    from: Address,
-    to: Address,
-    tokenId: bigint,
-): Voucher => {
-    const call = encodeFunctionData({
-        abi: erc721Abi,
-        functionName: "safeTransferFrom",
-        args: [from, to, tokenId],
-    });
-
-    // create voucher to the IERC721 transfer
-    return {
-        destination: token,
-        payload: call,
-    };
-};
-
-export const createERC1155SingleTransferVoucher = (
-    token: Address,
-    from: Address,
-    to: Address,
-    tokenId: bigint,
-    value: bigint,
-    data: Hex,
-): Voucher => {
-    const call = encodeFunctionData({
-        abi: erc1155Abi,
-        functionName: "safeTransferFrom",
-        args: [from, to, tokenId, value, data],
-    });
-
-    // create voucher to the IERC1155 transfer
-    return {
-        destination: token,
-        payload: call,
-    };
-};
-
-export const createERC1155BatchTransferVoucher = (
-    token: Address,
-    from: Address,
-    to: Address,
-    tokenIds: bigint[],
-    values: bigint[],
-    data: Hex,
-): Voucher => {
-    const call = encodeFunctionData({
-        abi: erc1155Abi,
-        functionName: "safeBatchTransferFrom",
-        args: [from, to, tokenIds, values, data],
-    });
-
-    // create voucher to the IERC1155 transfer
-    return {
-        destination: token,
-        payload: call,
-    };
-};
+export const isErc1155BatchDeposit = (data: Advance): boolean =>
+    getAddress(data.msgSender) === erc1155BatchPortalAddress;

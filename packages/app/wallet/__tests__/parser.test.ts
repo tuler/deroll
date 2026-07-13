@@ -1,4 +1,4 @@
-import type { AdvanceRequestData } from "@deroll/core";
+import type { Advance } from "@deroll/core";
 import {
     type Address,
     type Hex,
@@ -17,33 +17,29 @@ import {
     etherPortalAddress,
 } from "@cartesi/viem/abi";
 import {
-    isERC1155BatchDeposit,
-    isERC1155SingleDeposit,
-    isERC20Deposit,
-    isERC721Deposit,
+    isErc1155BatchDeposit,
+    isErc1155SingleDeposit,
+    isErc20Deposit,
+    isErc721Deposit,
     isEtherDeposit,
-    parseERC1155BatchDeposit,
-    parseERC1155SingleDeposit,
-    parseERC20Deposit,
-    parseERC721Deposit,
+    parseErc1155BatchDeposit,
+    parseErc1155SingleDeposit,
+    parseErc20Deposit,
+    parseErc721Deposit,
     parseEtherDeposit,
 } from "../src/index.js";
 
-const hexToBuffer = (hex: string): Buffer => Buffer.from(hex.slice(2), "hex");
-
 // the deposit detectors only inspect the sender, so a minimal advance request
 // (with a dummy payload) is enough to exercise them
-const advance = (msgSender: Hex): AdvanceRequestData => ({
-    metadata: {
-        chainId: 1n,
-        appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-        msgSender,
-        blockNumber: 0n,
-        blockTimestamp: 0n,
-        prevRandao: 0n,
-        index: 0n,
-    },
-    payload: Buffer.from("deadbeef", "hex"),
+const advance = (msgSender: Hex): Advance => ({
+    chainId: 1n,
+    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+    msgSender,
+    blockNumber: 0n,
+    blockTimestamp: 0n,
+    prevRandao: 0n,
+    index: 0n,
+    payload: "0xdeadbeef",
 });
 
 describe("parser", () => {
@@ -57,59 +53,57 @@ describe("parser", () => {
         expect(isEtherDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
-    test("isERC20Deposit", () => {
-        expect(isERC20Deposit(advance(erc20PortalAddress))).toBeTruthy();
+    test("isErc20Deposit", () => {
+        expect(isErc20Deposit(advance(erc20PortalAddress))).toBeTruthy();
         expect(
-            isERC20Deposit(
+            isErc20Deposit(
                 advance(erc20PortalAddress.toLowerCase() as Address),
             ),
         ).toBeTruthy();
-        expect(isERC20Deposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isErc20Deposit(advance(etherPortalAddress))).toBeFalsy();
     });
 
-    test("isERC721Deposit", () => {
-        expect(isERC721Deposit(advance(erc721PortalAddress))).toBeTruthy();
+    test("isErc721Deposit", () => {
+        expect(isErc721Deposit(advance(erc721PortalAddress))).toBeTruthy();
         expect(
-            isERC721Deposit(
+            isErc721Deposit(
                 advance(erc721PortalAddress.toLowerCase() as Address),
             ),
         ).toBeTruthy();
-        expect(isERC721Deposit(advance(etherPortalAddress))).toBeFalsy();
-        expect(isERC721Deposit(advance(erc20PortalAddress))).toBeFalsy();
+        expect(isErc721Deposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isErc721Deposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
-    test("isERC1155SingleDeposit", () => {
+    test("isErc1155SingleDeposit", () => {
         expect(
-            isERC1155SingleDeposit(advance(erc1155SinglePortalAddress)),
+            isErc1155SingleDeposit(advance(erc1155SinglePortalAddress)),
         ).toBeTruthy();
         expect(
-            isERC1155SingleDeposit(
+            isErc1155SingleDeposit(
                 advance(erc1155SinglePortalAddress.toLowerCase() as Address),
             ),
         ).toBeTruthy();
-        expect(isERC1155SingleDeposit(advance(etherPortalAddress))).toBeFalsy();
-        expect(isERC1155SingleDeposit(advance(erc20PortalAddress))).toBeFalsy();
+        expect(isErc1155SingleDeposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isErc1155SingleDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
-    test("isERC1155BatchDeposit", () => {
+    test("isErc1155BatchDeposit", () => {
         expect(
-            isERC1155BatchDeposit(advance(erc1155BatchPortalAddress)),
+            isErc1155BatchDeposit(advance(erc1155BatchPortalAddress)),
         ).toBeTruthy();
         expect(
-            isERC1155BatchDeposit(
+            isErc1155BatchDeposit(
                 advance(erc1155BatchPortalAddress.toLowerCase() as Address),
             ),
         ).toBeTruthy();
-        expect(isERC1155BatchDeposit(advance(etherPortalAddress))).toBeFalsy();
-        expect(isERC1155BatchDeposit(advance(erc20PortalAddress))).toBeFalsy();
+        expect(isErc1155BatchDeposit(advance(etherPortalAddress))).toBeFalsy();
+        expect(isErc1155BatchDeposit(advance(erc20PortalAddress))).toBeFalsy();
     });
 
     test("parseEtherDeposit", () => {
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const value = 123456n;
-        const payload = hexToBuffer(
-            encodePacked(["address", "uint256"], [sender, value]),
-        );
+        const payload = encodePacked(["address", "uint256"], [sender, value]);
         const deposit = parseEtherDeposit(payload);
         expect(deposit).toEqual({
             sender,
@@ -117,17 +111,15 @@ describe("parser", () => {
         });
     });
 
-    test("parseERC20Deposit", () => {
+    test("parseErc20Deposit", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const amount = 123456n;
-        const payload = hexToBuffer(
-            encodePacked(
-                ["address", "address", "uint256"],
-                [token, sender, amount],
-            ),
+        const payload = encodePacked(
+            ["address", "address", "uint256"],
+            [token, sender, amount],
         );
-        const deposit = parseERC20Deposit(payload);
+        const deposit = parseErc20Deposit(payload);
         expect(deposit).toEqual({
             token,
             sender,
@@ -135,17 +127,15 @@ describe("parser", () => {
         });
     });
 
-    test("parseERC721Deposit", () => {
+    test("parseErc721Deposit", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 123n;
-        const payload = hexToBuffer(
-            encodePacked(
-                ["address", "address", "uint256"],
-                [token, sender, tokenId],
-            ),
+        const payload = encodePacked(
+            ["address", "address", "uint256"],
+            [token, sender, tokenId],
         );
-        const deposit = parseERC721Deposit(payload);
+        const deposit = parseErc721Deposit(payload);
         expect(deposit).toEqual({
             token,
             sender,
@@ -153,18 +143,16 @@ describe("parser", () => {
         });
     });
 
-    test("parseERC1155SingleDeposit", () => {
+    test("parseErc1155SingleDeposit", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 123n;
         const value = 456n;
-        const payload = hexToBuffer(
-            encodePacked(
-                ["address", "address", "uint256", "uint256"],
-                [token, sender, tokenId, value],
-            ),
+        const payload = encodePacked(
+            ["address", "address", "uint256", "uint256"],
+            [token, sender, tokenId, value],
         );
-        const deposit = parseERC1155SingleDeposit(payload);
+        const deposit = parseErc1155SingleDeposit(payload);
         expect(deposit).toEqual({
             token,
             sender,
@@ -173,7 +161,7 @@ describe("parser", () => {
         });
     });
 
-    test("parseERC1155BatchDeposit", () => {
+    test("parseErc1155BatchDeposit", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenIds = [1n, 2n];
@@ -183,9 +171,7 @@ describe("parser", () => {
             parseAbiParameters("uint256[], uint256[]"),
             [tokenIds, values],
         );
-        const deposit = parseERC1155BatchDeposit(
-            hexToBuffer(concat([payload, rest])),
-        );
+        const deposit = parseErc1155BatchDeposit(concat([payload, rest]));
         expect(deposit).toEqual({
             token,
             sender,

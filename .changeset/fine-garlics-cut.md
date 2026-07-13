@@ -1,5 +1,5 @@
 ---
-"@deroll/cmio": patch
+"@deroll/rollup": patch
 ---
 
 bump node-gyp

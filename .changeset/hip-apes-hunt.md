@@ -1,5 +1,5 @@
 ---
-"@deroll/cmio": patch
+"@deroll/rollup": patch
 "@deroll/cm": patch
 ---
 

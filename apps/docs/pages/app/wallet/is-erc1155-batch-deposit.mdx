@@ -1,4 +1,4 @@
-# isERC1155BatchDeposit
+# isErc1155BatchDeposit
 
 Checks if a request is a ERC-1155 deposit coming from the `ERC1155BatchPortal` smart contract.
 
@@ -6,19 +6,19 @@ Checks if a request is a ERC-1155 deposit coming from the `ERC1155BatchPortal` s
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC1155BatchDeposit, parseERC1155BatchDeposit } from "@deroll/wallet";
+import { isErc1155BatchDeposit, parseErc1155BatchDeposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC1155BatchDeposit(data)) { // [!code focus]
-        const deposit = parseERC1155BatchDeposit(data.payload);
+    if (isErc1155BatchDeposit(data)) { // [!code focus]
+        const deposit = parseErc1155BatchDeposit(data.payload);
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
@@ -30,4 +30,4 @@ True if request is a ERC-1155 deposit from the `ERC1155BatchPortal` smart contra
 
 ## Parameters
 
-Type: `AdvanceRequestData`
+Type: `Advance`

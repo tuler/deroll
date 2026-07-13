@@ -1,0 +1,56 @@
+# createErc20Transfer
+
+Creates an `Erc20Transfer` output while processing an advance request: a typed voucher that transfers ERC-20 tokens from the application to a recipient on the base layer.
+
+## Usage
+
+The following example transfers 1 CTSI from the application to the sender of the input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { parseUnits } from "viem";
+
+// create application
+const app = createApp();
+
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const id = app.createErc20Transfer({ // [!code focus]
+        recipient: msgSender, // [!code focus]
+        token: "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // CTSI address // [!code focus]
+        value: parseUnits("1", 18), // [!code focus]
+    }); // [!code focus]
+    return true;
+});
+```
+
+## Returns
+
+Type: `number`
+
+The index of the output.
+
+## Parameters
+
+### recipient
+
+Type: `Address`
+
+The address that receives the tokens.
+
+### token
+
+Type: `Address`
+
+The ERC-20 token address.
+
+### value
+
+Type: `bigint`
+
+Amount of tokens to transfer.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Optional `bytes32` tag recipients can filter outputs by. Defaults to the application-wide [`appContext`](./create-app) (zero hash unless configured).

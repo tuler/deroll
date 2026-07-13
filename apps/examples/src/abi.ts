@@ -1,5 +1,5 @@
 import { createApp } from "@deroll/app";
-import { decodeFunctionData, parseAbi, toHex } from "viem";
+import { decodeFunctionData, parseAbi } from "viem";
 
 // create application
 const app = createApp();
@@ -14,19 +14,19 @@ const abi = parseAbi([
 app.addAdvanceHandler(async ({ payload }) => {
     const { functionName, args } = decodeFunctionData({
         abi,
-        data: toHex(payload),
+        data: payload,
     });
 
     switch (functionName) {
         case "attackDragon": {
             const [dragonId, weapon] = args;
             console.log(`attacking dragon ${dragonId} with ${weapon}...`);
-            return "accept";
+            return true;
         }
 
         case "drinkPotion": {
             console.log(`drinking potion...`);
-            return "accept";
+            return true;
         }
     }
 });

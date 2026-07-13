@@ -12,7 +12,7 @@ import { createApp } from "@deroll/app";
 // create application
 const app = createApp();
 
-app.addInspectHandler(async ({ payload }) => { // [!code focus]
+app.addInspectHandler(async (payload) => { // [!code focus]
     console.log(payload); // [!code focus]
 }); // [!code focus]
 ```
@@ -25,4 +25,4 @@ app.addInspectHandler(async ({ payload }) => { // [!code focus]
 
 Type: `InspectRequestHandler`
 
-An async function that receives an object with the request `payload`.
+An async function that receives the raw request `payload` (`Hex`).

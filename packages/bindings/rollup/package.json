@@ -1,0 +1,72 @@
+{
+    "name": "@deroll/rollup",
+    "version": "0.2.0-alpha.2",
+    "description": "Node.js bindings for libcmt, the Cartesi Machine guest rollup library",
+    "keywords": [
+        "cartesi",
+        "rollups",
+        "libcmt",
+        "riscv64"
+    ],
+    "license": "Apache-2.0",
+    "author": "Cartesi and individual authors (see AUTHORS)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./lib/index.d.mts",
+                "default": "./lib/index.mjs"
+            },
+            "require": {
+                "types": "./lib/index.d.ts",
+                "default": "./lib/index.js"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "AUTHORS",
+        "binding.gyp",
+        "lib/",
+        "src/",
+        "prebuilds/",
+        "deps/machine-guest-tools/sys-utils/libcmt/include/",
+        "deps/machine-guest-tools/sys-utils/libcmt/src/"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "install": "node-gyp-build",
+        "build": "node-gyp rebuild",
+        "prebuild": "prebuildify --napi --strip",
+        "test": "node --test \"test/*.test.mjs\"",
+        "check:package": "attw --pack ."
+    },
+    "dependencies": {
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4"
+    },
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.3",
+        "@deroll/codec": "workspace:*",
+        "@types/node": "^26",
+        "node-gyp": "^13.0.0",
+        "ox": "^0.14.29",
+        "prebuildify": "^6.0.1",
+        "typescript": "^6.0.3"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "binary": {
+        "napi_versions": [
+            8
+        ]
+    }
+}

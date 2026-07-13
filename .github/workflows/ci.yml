@@ -30,7 +30,7 @@ jobs:
             - name: Checkout Repo
               uses: actions/checkout@v6
               with:
-                  # cmio's native addon (cmt.node) compiles from the
+                  # the rollup binding's native addon compiles from the
                   # machine-guest-tools submodule (deps/machine-guest-tools)
                   # during `bun install`, so it must be checked out.
                   submodules: recursive
@@ -44,7 +44,7 @@ jobs:
                   node-version: 24
 
             # ubuntu-latest already ships gcc/g++/make/python3, which node-gyp
-            # needs to compile cmio's addon on install.
+            # needs to compile the rollup binding's addon on install.
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
@@ -62,8 +62,8 @@ jobs:
     # linux prebuilds are already exercised by `bun run test` above; the riscv64
     # addon can only be validated under emulation, so it's kept OFF the PR/push
     # hot path and runs on demand and weekly.
-    cmio-machine:
-        name: cmio riscv64 machine test
+    rollup-machine:
+        name: rollup binding riscv64 machine test
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         runs-on: ubuntu-latest
         steps:
@@ -93,19 +93,19 @@ jobs:
                   sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
 
             - name: Cross-build libcmt (real IO driver)
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
 
             - name: Prebuild riscv64 addon
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               env:
                   CC: riscv64-linux-gnu-gcc
                   CXX: riscv64-linux-gnu-g++
-                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
+                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/rollup/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
               run: bun run prebuild -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
 
             - name: Run end-to-end test inside cartesi-machine
-              working-directory: packages/bindings/cmio
+              working-directory: packages/bindings/rollup
               run: |
                   CARTESI_MACHINE="docker run --rm -u $(id -u):$(id -g) -v $PWD:/mnt -w /mnt cartesi/machine-emulator:0.19.0 cartesi-machine" \
                   SKIP_PREBUILD=1 test/machine/run.sh

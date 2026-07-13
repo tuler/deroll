@@ -9,6 +9,7 @@ The following example creates an inspect request handler that assumes the `paylo
 ```ts twoslash
 import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
+import { hexToString } from "viem";
 
 // create app
 const app = createApp();
@@ -19,8 +20,8 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address // [!code focus]
-app.addInspectHandler(async ({ payload }) => { // [!code focus]
-    const address = payload.toString(); // [!code focus]
+app.addInspectHandler(async (payload) => { // [!code focus]
+    const address = hexToString(payload); // [!code focus]
     const balance = wallet.erc1155BalanceOf(token, address, 1n); // [!code focus]
     console.log(balance); // [!code focus]
 }); // [!code focus]

@@ -1,4 +1,4 @@
-import type { AdvanceRequestData } from "@deroll/core";
+import type { Advance } from "@deroll/core";
 import {
     type Hex,
     concat,
@@ -17,18 +17,16 @@ import {
 } from "@cartesi/viem/abi";
 import { createWallet } from "../src/index.js";
 
-// build a libcmt-shaped advance request from the portal sender and a hex payload
-const advance = (msgSender: Hex, payload: Hex): AdvanceRequestData => ({
-    metadata: {
-        chainId: 1n,
-        appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-        msgSender,
-        blockNumber: 0n,
-        blockTimestamp: 0n,
-        prevRandao: 0n,
-        index: 0n,
-    },
-    payload: Buffer.from(payload.slice(2), "hex"),
+// build an advance request from the portal sender and a hex payload
+const advance = (msgSender: Hex, payload: Hex): Advance => ({
+    chainId: 1n,
+    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+    msgSender,
+    blockNumber: 0n,
+    blockTimestamp: 0n,
+    prevRandao: 0n,
+    index: 0n,
+    payload,
 });
 
 describe("transfer", () => {
@@ -67,7 +65,7 @@ describe("transfer", () => {
         const to = "0xd8464d1B3592b6c3786B32931E2a2AdAC501Aaad";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
 
-        expect(() => wallet.transferERC20(token, from, to, 1n)).toThrowError();
+        expect(() => wallet.transferErc20(token, from, to, 1n)).toThrowError();
     });
 
     test("ERC20", async () => {
@@ -90,7 +88,7 @@ describe("transfer", () => {
         expect(wallet.erc20BalanceOf(token, from)).toEqual(value);
         expect(wallet.erc20BalanceOf(token, to)).toEqual(0n);
 
-        wallet.transferERC20(token, from, to, transfer);
+        wallet.transferErc20(token, from, to, transfer);
         expect(wallet.erc20BalanceOf(token, from)).toEqual(value - transfer);
         expect(wallet.erc20BalanceOf(token, to)).toEqual(transfer);
     });
@@ -103,7 +101,7 @@ describe("transfer", () => {
         const tokenId = 1n;
 
         expect(() =>
-            wallet.transferERC721(token, from, to, tokenId),
+            wallet.transferErc721(token, from, to, tokenId),
         ).toThrowError();
     });
 
@@ -126,7 +124,7 @@ describe("transfer", () => {
         expect(wallet.erc721Has(token, from, tokenId)).toEqual(true);
         expect(wallet.erc721Has(token, to, tokenId)).toEqual(false);
 
-        wallet.transferERC721(token, from, to, tokenId);
+        wallet.transferErc721(token, from, to, tokenId);
         expect(wallet.erc721Has(token, from, tokenId)).toEqual(false);
         expect(wallet.erc721Has(token, to, tokenId)).toEqual(true);
     });
@@ -139,7 +137,7 @@ describe("transfer", () => {
         const tokenId = 1n;
 
         expect(() =>
-            wallet.transferERC1155(token, from, to, tokenId, 1n),
+            wallet.transferErc1155(token, from, to, tokenId, 1n),
         ).toThrowError();
     });
 
@@ -164,7 +162,7 @@ describe("transfer", () => {
         expect(wallet.erc1155BalanceOf(token, from, tokenId)).toEqual(value);
         expect(wallet.erc1155BalanceOf(token, to, tokenId)).toEqual(0n);
 
-        wallet.transferERC1155(token, from, to, tokenId, transfer);
+        wallet.transferErc1155(token, from, to, tokenId, transfer);
         expect(wallet.erc1155BalanceOf(token, from, tokenId)).toEqual(
             value - transfer,
         );
@@ -180,7 +178,7 @@ describe("transfer", () => {
         const values = [123n, 456n];
 
         expect(() =>
-            wallet.transferBatchERC1155(token, from, to, tokenIds, values),
+            wallet.transferBatchErc1155(token, from, to, tokenIds, values),
         ).toThrowError();
     });
 
@@ -193,7 +191,7 @@ describe("transfer", () => {
         const values = [123n];
 
         expect(() =>
-            wallet.transferBatchERC1155(token, from, to, tokenIds, values),
+            wallet.transferBatchErc1155(token, from, to, tokenIds, values),
         ).toThrowError();
     });
 
@@ -225,7 +223,7 @@ describe("transfer", () => {
         expect(wallet.erc1155BalanceOf(token, to, tokenIds[0])).toEqual(0n);
         expect(wallet.erc1155BalanceOf(token, to, tokenIds[1])).toEqual(0n);
 
-        wallet.transferBatchERC1155(token, from, to, tokenIds, transfers);
+        wallet.transferBatchErc1155(token, from, to, tokenIds, transfers);
         expect(wallet.erc1155BalanceOf(token, from, tokenIds[0])).toEqual(
             values[0] - transfers[0],
         );

@@ -1,4 +1,4 @@
-# transferERC721
+# transferErc721
 
 Transfer L2 ERC-721 ownership from one user to another.
 
@@ -10,6 +10,7 @@ If the sender does not have ownership of the token an exception is raised, and t
 ```ts twoslash
 import { createApp } from "@deroll/app";
 import { createWallet } from "@deroll/wallet";
+import { hexToString } from "viem";
 
 // create app
 const app = createApp();
@@ -20,10 +21,10 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    const address = payload.toString();
-    wallet.transferERC721(token, metadata.msgSender, address, 1n); // [!code focus]
-    return "accept";
+app.addAdvanceHandler(async ({ msgSender, payload }) => {
+    const address = hexToString(payload);
+    wallet.transferErc721(token, msgSender, address, 1n); // [!code focus]
+    return true;
 });
 ```
 

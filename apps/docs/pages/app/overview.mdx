@@ -15,13 +15,13 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // handle advance requests (inputs)
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload });
-    return "accept";
+app.addAdvanceHandler(async ({ msgSender, payload }) => {
+    console.log({ msgSender, payload });
+    return true;
 });
 
 // handle inspect requests (read-only queries)
-app.addInspectHandler(async ({ payload }) => {
+app.addInspectHandler(async (payload) => {
     console.log(payload);
 });
 
@@ -31,16 +31,19 @@ app.start().catch(() => process.exit(1));
 
 ## Registering handlers
 
-- [addAdvanceHandler](./add-advance-handler) — process state-changing inputs; handlers return `"accept"` or `"reject"`.
+- [addAdvanceHandler](./add-advance-handler) — process state-changing inputs; handlers return `true` to accept or `false` to reject.
 - [addInspectHandler](./add-inspect-handler) — answer read-only queries; handlers can only produce reports.
 
 ## Producing outputs
 
-While handling a request, an `App` can emit four kinds of output:
+While handling a request, an `App` can emit the following kinds of output:
 
 - [createNotice](./create-notice) — a provable event log.
 - [createReport](./create-report) — a stateless, non-provable log (the only output available to inspect handlers).
-- [createVoucher](./create-voucher) — an executable on-chain call (`CALL`), for example an asset withdrawal.
-- [createDelegateCallVoucher](./create-delegate-call-voucher) — an executable on-chain call run with `DELEGATECALL`, in the application contract's own context.
+- [createCallVoucher](./create-call-voucher) — an executable on-chain call (`CALL`), for example an arbitrary contract call or a native token transfer.
+- [createErc20Transfer](./create-erc20-transfer), [createErc721Transfer](./create-erc721-transfer), [createErc1155Transfer](./create-erc1155-transfer), [createErc1155BatchTransfer](./create-erc1155-batch-transfer) — typed asset transfer outputs, no manual ABI encoding required.
+- [createOutput](./create-output) — an escape hatch to emit an already EVM-ABI encoded output (e.g. produced with [@deroll/codec](/codec) encoders).
 
-Notices and vouchers are only available while processing an advance request, because they can change the application state. Reports can be produced from both advance and inspect handlers.
+Notices, vouchers and asset transfers are only available while processing an advance request, because they can change the application state. Reports can be produced from both advance and inspect handlers.
+
+All outputs carry an optional `appContext` tag (a free-form `bytes32`, default zero) that recipients can filter by; an application-wide default can be set on [createApp](./create-app).

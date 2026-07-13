@@ -50,13 +50,13 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload });
-    return "accept";
+app.addAdvanceHandler(async (data) => {
+    console.log(data);
+    return true;
 });
 
 // log incoming inspect request
-app.addInspectHandler(async ({ payload }) => {
+app.addInspectHandler(async (payload) => {
     console.log(payload);
 });
 
@@ -133,23 +133,21 @@ cartesi send
 
 ```bash [log]
 {
-  metadata: {
-    chainId: 31337n,
-    appContract: '0xa418ed392a99a1a0c08f96345e9a9b7514047ee2',
-    msgSender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-    blockNumber: 158n,
-    blockTimestamp: 1782243979n,
-    prevRandao: 50953495096857333910293917481377617449822294969307609189375131362321353489028n,
-    index: 0n
-  },
-  payload: <Buffer 68 65 6c 6c 6f>
+  chainId: 31337n,
+  appContract: '0xa418ed392a99a1a0c08f96345e9a9b7514047ee2',
+  msgSender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+  blockNumber: 158n,
+  blockTimestamp: 1782243979n,
+  prevRandao: 50953495096857333910293917481377617449822294969307609189375131362321353489028n,
+  index: 0n,
+  payload: '0x68656c6c6f'
 }
 ```
 ```ts [src/index.ts]
 // log incoming advance request
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload }); // [!code focus]
-    return "accept";
+app.addAdvanceHandler(async (data) => {
+    console.log(data); // [!code focus]
+    return true;
 });
 ```
 :::
@@ -208,17 +206,17 @@ $ curl -X POST -d "hello" http://127.0.0.1:6751/inspect/<application>
 {"status":"Accepted","reports":null,"processed_input_count":1}
 ```
 ```bash [log]
-{ payload: <Buffer 68 65 6c 6c 6f> }
+0x68656c6c6f
 ```
 ```ts [src/index.ts]
 // log incoming inspect request
-app.addInspectHandler(async (data) => {
-    console.log(data); // [!code focus]
+app.addInspectHandler(async (payload) => {
+    console.log(payload); // [!code focus]
 });
 ```
 :::
 
-If you check in the `cartesi logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi logs` log you will see the output above, which is the result of the `console.log(payload)` of the application code.
 Inspected state should be returned as report outputs, in this example no reports were produced.
 
 :::warning

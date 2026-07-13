@@ -1,4 +1,4 @@
-# isERC1155SingleDeposit
+# isErc1155SingleDeposit
 
 Checks if a request is a ERC-1155 deposit coming from the `ERC1155SinglePortal` smart contract.
 
@@ -6,19 +6,19 @@ Checks if a request is a ERC-1155 deposit coming from the `ERC1155SinglePortal` 
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC1155SingleDeposit, parseERC1155SingleDeposit } from "@deroll/wallet";
+import { isErc1155SingleDeposit, parseErc1155SingleDeposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC1155SingleDeposit(data)) { // [!code focus]
-        const deposit = parseERC1155SingleDeposit(data.payload);
+    if (isErc1155SingleDeposit(data)) { // [!code focus]
+        const deposit = parseErc1155SingleDeposit(data.payload);
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
@@ -30,4 +30,4 @@ True if request is a ERC-1155 deposit from the `ERC1155SinglePortal` smart contr
 
 ## Parameters
 
-Type: `AdvanceRequestData`
+Type: `Advance`

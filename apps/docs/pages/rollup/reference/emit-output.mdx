@@ -1,0 +1,58 @@
+# rollup.emitOutput
+
+Emits a **provable output** — a raw, already EVM-ABI encoded output that is added to the application's outputs merkle tree and can later be proven and executed/validated on-chain.
+
+`emitOutput` takes the encoded bytes directly. Build them with one of the standalone encoders:
+
+- [`encodeNotice`](/codec/encode-notice) — attest a fact about the application state.
+- [`encodeCallVoucher`](/codec/encode-call-voucher) — authorize an on-chain transaction (transfer ether, call a contract).
+- [asset transfer encoders](/codec/encode-asset-transfers) — typed ERC-20/721/1155 transfer outputs.
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { encodeNotice } from '@deroll/codec';
+import { Hex } from 'ox';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeNotice({ payload: Hex.fromString(JSON.stringify({ matchId: 42, winner: '0xf39F…2266' })) }),
+);
+```
+
+A voucher is emitted the same way:
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { encodeCallVoucher } from '@deroll/codec';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeCallVoucher({
+        destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+        value: 1_000_000_000_000_000_000n, // 1 ETH in wei
+        payload: '0x', // no calldata — plain value transfer
+    }),
+);
+```
+
+## Returns
+
+`number` — the output index: the output's position among all provable outputs ever emitted by the application. Off-chain components use it to fetch the output's proof for execution or validation.
+
+## Parameters
+
+### payload
+
+- Type: `BytesLike` — 0x-prefixed hex string, `Buffer` or `Uint8Array`
+- Required
+
+The already-encoded output bytes. Produce them with [`encodeNotice`](/codec/encode-notice), [`encodeCallVoucher`](/codec/encode-call-voucher) or the [asset transfer encoders](/codec/encode-asset-transfers).
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Malformed hex string / wrong argument type | `TypeError` |
+| Output larger than the machine's output buffer | `RollupError` with negative `errno` (e.g. `ENOBUFS`) |

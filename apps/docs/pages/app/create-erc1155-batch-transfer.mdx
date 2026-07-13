@@ -1,0 +1,58 @@
+# createErc1155BatchTransfer
+
+Creates an `Erc1155BatchTransfer` output while processing an advance request: a typed voucher that transfers several ERC-1155 tokens from the application to a recipient on the base layer in a single batch.
+
+## Usage
+
+The following example transfers 100 units of token id 1 and 200 units of token id 2 from the application to the sender of the input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp();
+
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const id = app.createErc1155BatchTransfer({ // [!code focus]
+        recipient: msgSender, // [!code focus]
+        token: "0x04d724738873CB6a86328D2EbAEb2079D715e61e", // ERC-1155 address // [!code focus]
+        items: [ // [!code focus]
+            [1n, 100n], // [!code focus]
+            [2n, 200n], // [!code focus]
+        ], // [!code focus]
+    }); // [!code focus]
+    return true;
+});
+```
+
+## Returns
+
+Type: `number`
+
+The index of the output.
+
+## Parameters
+
+### recipient
+
+Type: `Address`
+
+The address that receives the tokens.
+
+### token
+
+Type: `Address`
+
+The ERC-1155 token address.
+
+### items
+
+Type: `[bigint, bigint][]`
+
+The `[tokenId, value]` pairs to transfer.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Optional `bytes32` tag recipients can filter outputs by. Defaults to the application-wide [`appContext`](./create-app) (zero hash unless configured).

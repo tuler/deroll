@@ -1,19 +1,18 @@
 import { createApp } from "@deroll/app";
-import { toHex } from "viem";
 
 // create application
 const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async (data) => {
-    console.log(data.metadata);
-    console.log(data.payload.toString());
-    return "accept";
+    console.log(data.msgSender);
+    console.log(data.payload);
+    return true;
 });
 
 // log incoming inspect request
-app.addInspectHandler(async (data) => {
-    console.log(toHex(data.payload));
+app.addInspectHandler(async (payload) => {
+    console.log(payload);
 });
 
 // start app
