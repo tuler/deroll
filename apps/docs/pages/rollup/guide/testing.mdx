@@ -1,0 +1,127 @@
+# Testing on the Host
+
+On any architecture other than riscv64 the binding embeds libcmt's **mock IO driver**. The mock replaces the machine: inputs come from files you provide, and every output is written to a file next to them. This gives you fast, emulator-free feedback during development and works in any test runner.
+
+## Feeding inputs
+
+The `CMT_INPUTS` environment variable lists the inputs for the session, as comma-separated `reason:file` pairs, consumed in order:
+
+```sh
+CMT_INPUTS="0:advance.bin,1:inspect.bin" node app.js
+```
+
+The *reason* selects the request type:
+
+| Reason | Request | File contents |
+| --- | --- | --- |
+| `0` | advance | EVM-ABI encoded `EvmAdvance` input (see below) |
+| `1` | inspect | raw query payload |
+
+Set `CMT_DEBUG=yes` to make the mock log every operation.
+
+When the input list is exhausted, the next [`waitForInput`](/rollup/reference/wait-for-input) call fails and [`run`](/rollup/reference/run) rejects — that is your test's natural end-of-session signal.
+
+## Collecting outputs
+
+Each output is written to a file named after the input that produced it:
+
+```
+advance.output-0.bin    # first voucher/notice while handling advance.bin
+advance.report-0.bin    # first report
+advance.exception-0.bin # first exception
+```
+
+Provable outputs are EVM-ABI encoded calls with a per-type function selector — `Notice(bytes32,bytes)`, `CallVoucher(bytes32,address,uint256,bytes)`, `Erc20Transfer(bytes32,address,address,uint256)`, … — exactly the bytes the `encode*` helpers produce. Reports and exceptions are raw bytes.
+
+## Generating an advance input
+
+An advance input file is the ABI encoding of the `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` call that the on-chain input box would produce. [`encodeAdvance`](/codec/decode-advance) builds one:
+
+```ts twoslash
+import fs from 'node:fs';
+import { encodeAdvance } from '@deroll/codec';
+import { Bytes, Hex } from 'ox';
+
+fs.writeFileSync(
+    'input.bin',
+    // encodeAdvance returns 0x-hex; the mock reads raw bytes from the file
+    Bytes.fromHex(
+        encodeAdvance({
+            chainId: 31337n,
+            appContract: `0x${'02'.repeat(20)}`,
+            msgSender: `0x${'03'.repeat(20)}`,
+            blockNumber: 1n,
+            blockTimestamp: 1700000000n,
+            prevRandao: 0n,
+            index: 0n,
+            payload: Hex.fromString('hello'),
+        }),
+    ),
+);
+```
+
+## A complete test
+
+Putting it together with `node:test` — encode an input, point `CMT_INPUTS` at it, run the application, and assert on the output files:
+
+```ts twoslash filename="app.test.ts"
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
+import { decodeAdvance, encodeAdvance, encodeNotice } from '@deroll/codec';
+import { Bytes, Hex } from 'ox';
+
+test('echoes the payload as a notice', async () => {
+    // run in a temp dir: the mock writes output files next to the inputs
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'my-app-'));
+    process.chdir(dir);
+
+    const input = path.join(dir, 'input.bin');
+    fs.writeFileSync(
+        input,
+        Bytes.fromHex(
+            encodeAdvance({
+                chainId: 31337n,
+                appContract: `0x${'02'.repeat(20)}`,
+                msgSender: `0x${'03'.repeat(20)}`,
+                blockNumber: 1n,
+                blockTimestamp: 1700000000n,
+                prevRandao: 0n,
+                index: 0n,
+                payload: Hex.fromString('hello'),
+            }),
+        ),
+    );
+    process.env.CMT_INPUTS = `0:${input}`;
+
+    // the app under test: import it AFTER setting CMT_INPUTS, since the
+    // device opens on construction. run() rejects when inputs run out.
+    const { Rollup } = await import('@deroll/rollup');
+    const rollup = new Rollup();
+    await rollup
+        .run({
+            advance(request, rollup) {
+                const advance = decodeAdvance(Hex.fromBytes(request.payload));
+                rollup.emitOutput(encodeNotice({ payload: advance.payload }));
+                return true;
+            },
+        })
+        .catch(() => {}); // inputs exhausted — session over
+
+    // Notice(bytes32,bytes): funsel (4) + appContext (32) + offset (32) +
+    // length (32) + padded payload — so the payload starts at byte 100.
+    const notice = fs.readFileSync(path.join(dir, 'input.output-0.bin'));
+    assert.equal(notice.subarray(0, 4).toString('hex'), 'dd2a7453');
+    assert.equal(notice.subarray(100, 100 + 5).toString(), 'hello');
+});
+```
+
+:::tip
+The mock enforces the same rules as the real device — only one `Rollup` instance may exist at a time. If your test suite creates several, [`close`](/rollup/reference/close) each instance before creating the next.
+:::
+
+## Where the real thing differs
+
+The mock approximates the machine but does not emulate it: state is not rolled back on reject, and there is no determinism enforcement. Before shipping, run your application [inside a real Cartesi Machine](/rollup/guide/cartesi-machine).

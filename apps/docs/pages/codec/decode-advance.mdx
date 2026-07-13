@@ -1,0 +1,66 @@
+# decodeAdvance
+
+Decodes the raw payload of an [advance request](/rollup/reference/wait-for-input) — an EVM-ABI encoded `EvmAdvance(uint64,address,address,uint64,uint64,uint256,uint64,bytes)` input — into its structured fields. This is a pure-JS helper that mirrors libcmt's `cmt_evm_advance_decode`; it touches no device state.
+
+The inverse, `encodeAdvance`, builds the input bytes from the same fields (mirroring `cmt_evm_advance_encode`) — useful for crafting mock inputs (`CMT_INPUTS`) when [testing on the host](/rollup/guide/testing).
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { decodeAdvance } from '@deroll/codec';
+import { Hex } from 'ox';
+
+const rollup = new Rollup();
+
+await rollup.run({
+    advance(request, rollup) {
+        const advance = decodeAdvance(Hex.fromBytes(request.payload));
+        advance;
+        // ^?
+
+
+
+
+        rollup.emitReport(
+            Buffer.from(
+                `input ${advance.index} from ${advance.msgSender} ` +
+                    `at block ${advance.blockNumber} (chain ${advance.chainId})`,
+            ),
+        );
+        return true;
+    },
+});
+```
+
+## Returns
+
+`Advance`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `chainId` | `bigint` | Network chain id |
+| `appContract` | `` `0x${string}` `` | Application contract address (20 bytes) |
+| `msgSender` | `` `0x${string}` `` | Input sender address (20 bytes) |
+| `blockNumber` | `bigint` | Block number of this input |
+| `blockTimestamp` | `bigint` | Block timestamp (UNIX epoch seconds) |
+| `prevRandao` | `bigint` | RANDAO mix of the previous block's post beacon state |
+| `index` | `bigint` | Input index among all inputs ever sent to the application |
+| `payload` | `Hex` | The application input payload |
+
+Addresses and the inner payload come back as 0x-prefixed hex strings, numeric fields as `bigint`.
+
+## Parameters
+
+### input
+
+- Type: `Hex` — 0x-prefixed hex string
+
+The raw advance payload. [`waitForInput`](/rollup/reference/wait-for-input) returns it as a `Buffer`, so convert first: `` decodeAdvance(Hex.fromBytes(request.payload)) ``.
+
+## Errors
+
+| Condition | Error |
+| --- | --- |
+| Wrong selector (not an `EvmAdvance`) | `TypeError` |
+| Malformed input | [ox](https://oxlib.sh) decode errors |

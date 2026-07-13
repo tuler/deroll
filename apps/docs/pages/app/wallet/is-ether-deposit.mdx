@@ -18,7 +18,7 @@ app.addAdvanceHandler(async (data) => {
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
@@ -30,4 +30,4 @@ True if request is a ETH deposit from the `EtherPortal` smart contract.
 
 ## Parameters
 
-Type: `AdvanceRequestData`
+Type: `Advance`

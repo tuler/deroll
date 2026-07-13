@@ -26,3 +26,9 @@ The application instance.
 Type: `boolean | undefined`
 
 If value is true application will call every request handler regardless of the return value of each handler. Default is false.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Default `appContext` (a free-form `bytes32`) stamped on every output the app creates. An `appContext` given to an individual output still wins. Defaults to the zero hash.

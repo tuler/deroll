@@ -13,10 +13,10 @@ import { stringToHex, hexToString } from "viem";
 // create application
 const app = createApp();
 
-const handler: InspectRequestHandler = async ({ payload }) => {
+const handler: InspectRequestHandler = async (payload) => {
     console.log(payload);
-    const str = payload.toString();
-    await app.createReport({ payload: stringToHex(str.toUpperCase()) });
+    const str = hexToString(payload);
+    app.createReport(stringToHex(str.toUpperCase()));
 }
 
 app.addInspectHandler(handler);

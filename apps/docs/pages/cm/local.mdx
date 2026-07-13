@@ -48,8 +48,8 @@ The next step of this simple example is to run the machine until it yields or ha
 
 ```ts twoslash filename="run-hello-world.ts"
 // @noErrors
-import { create } from "@deroll/cm"; // [!code --] // [!code focus]
-import { BreakReason, create } from "@deroll/cm"; // [!code ++] // [!code focus]
+import { create } from "@deroll/cm"; // [!code --] [!code focus]
+import { BreakReason, create } from "@deroll/cm"; // [!code ++] [!code focus]
 
 // create a basic machine that prints Hello world
 const machine = create({

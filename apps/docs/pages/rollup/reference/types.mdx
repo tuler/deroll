@@ -1,0 +1,66 @@
+# Types & Constants
+
+Everything the package exports besides the [`Rollup`](/rollup/reference/rollup) class (the `RollupError` class is documented under [Errors](#errors)). The EVM-ABI codec types (`Advance`, `CallVoucher`, `Erc20Transfer`, …) live in [`@deroll/codec`](/codec/types). All types are importable with `import type`:
+
+```ts twoslash
+import type {
+    AdvanceRequest,
+    BytesLike,
+    Hex,
+    InspectRequest,
+    RollupRequest,
+    RunHandlers,
+} from '@deroll/rollup';
+```
+
+## Input types
+
+`BytesLike` describes what the binding accepts as payload bytes and converts automatically: `Hex` (a `` `0x${string}` `` hex string, structurally identical to viem's `Hex`), `Buffer` or `Uint8Array`.
+
+## Request types
+
+[`waitForInput`](/rollup/reference/wait-for-input) returns `RollupRequest`, the discriminated union of:
+
+- `AdvanceRequest` — `type: 'advance'` and the **raw, undecoded** `payload` (`Buffer`). Parse it with [`decodeAdvance`](/codec/decode-advance) to get the input fields.
+- `InspectRequest` — `type: 'inspect'` and the raw query `payload` (`Buffer`).
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+const rollup = new Rollup();
+// ---cut---
+const request = rollup.waitForInput();
+if (request.type === 'advance') {
+    request.payload;
+    //      ^?
+}
+```
+
+## Handler types
+
+`RunHandlers` is the parameter of [`run`](/rollup/reference/run) — an optional `advance` and `inspect` handler, each receiving `(request, rollup)` and returning `boolean | void`, possibly wrapped in a `Promise`.
+
+## Errors
+
+Failed libcmt calls throw a `RollupError` (a subclass of `Error`) with two extra properties:
+
+| Property | Type | Meaning |
+| --- | --- | --- |
+| `errno` | `number` | The negative errno from libcmt (e.g. `-16` for `EBUSY`) |
+| `syscall` | `string` | The libcmt call that failed (e.g. `cmt_rollup_init`) |
+
+`RollupError` is exported as a value, so it can be caught with `instanceof`:
+
+```ts twoslash
+import { Rollup, RollupError } from '@deroll/rollup';
+
+try {
+    new Rollup();
+} catch (error) {
+    if (error instanceof RollupError) {
+        error.errno;
+        //    ^?
+    }
+}
+```
+
+Argument validation failures throw plain `TypeError` / `RangeError` before reaching the device.

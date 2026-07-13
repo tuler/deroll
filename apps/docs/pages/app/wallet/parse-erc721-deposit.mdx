@@ -6,25 +6,25 @@ Parse a ERC-721 deposit request coming from the `ERC721Portal` smart contract.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC721Deposit, parseERC721Deposit } from "@deroll/wallet";
+import { isErc721Deposit, parseErc721Deposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC721Deposit(data)) {
-        const deposit = parseERC721Deposit(data.payload); // [!code focus]
+    if (isErc721Deposit(data)) {
+        const deposit = parseErc721Deposit(data.payload); // [!code focus]
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `ERC721Deposit`
+Type: `Erc721Deposit`
 
 Structure with deposit data.
 

@@ -1,0 +1,62 @@
+{
+    "name": "@deroll/codec",
+    "version": "0.1.0-alpha.0",
+    "description": "EVM-ABI codecs for Cartesi rollup inputs and outputs, mirroring libcmt's codec module",
+    "keywords": [
+        "cartesi",
+        "rollups",
+        "libcmt",
+        "abi",
+        "codec"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
+    "type": "module",
+    "sideEffects": false,
+    "license": "Apache-2.0",
+    "author": "Cartesi and individual authors (see AUTHORS)",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist/**"
+    ],
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "scripts": {
+        "build": "tsup",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+        "dev": "tsup --watch",
+        "lint": "biome check",
+        "prepack": "run-s build",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "abitype": "^1.2.4",
+        "ox": "^0.14.29"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "catalog:",
+        "@deroll/tsconfig": "workspace:*",
+        "npm-run-all": "^4",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

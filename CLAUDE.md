@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@deroll/cmio`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
+Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@deroll/rollup`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
 
 The two request types from the rollup are:
-- **advance_state** — a state-changing input (on-chain). Handlers return `"accept"` or `"reject"`; on reject the machine state is reverted and vouchers/notices are discarded (reports survive).
+- **advance_state** — a state-changing input (on-chain). Handlers return a boolean (`true` accepts); on reject the machine state is reverted and vouchers/notices are discarded (reports survive).
 - **inspect_state** — a read-only query (off-chain). Handlers produce reports but cannot change state.
 
 The four outputs a backend can emit: **notices** (verifiable event logs), **reports** (stateless logs, e.g. inspect results), **vouchers** (executable on-chain calls, e.g. withdrawals), and **delegate-call vouchers**.
@@ -17,14 +17,15 @@ The four outputs a backend can emit: **notices** (verifiable event logs), **repo
 bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glob) and `apps/*`. The three pillars are **App** (`packages/app/*`), **Bindings** (`packages/bindings/*`), and **Explorer** (`packages/explorer/*`). `apps/*` are private (docs + examples + the explorer site).
 
 App pillar — `packages/app/*`:
-- **`packages/app/core`** (`@deroll/core`) — shared, **hand-authored** types (`src/types.ts`, `src/index.ts`; depends only on `viem`). Defines the `App` interface, `AppOptions`, and the request/output types (camelCase, `bigint` metadata, `Buffer` request payloads; outputs use viem `Hex`/`Uint8Array`). No runtime logic, no codegen; everything else depends on this.
-- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@tuler/node-libcmt`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
-- **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
+- **`packages/app/codec`** (`@deroll/codec`) — EVM-ABI codecs for rollup inputs/outputs (`EvmAdvance`, `Notice`, `CallVoucher`, `ERC*Transfer`), mirroring libcmt's codec module byte-for-byte. Pure JS, dual ESM + CJS, browser-compatible (no Node APIs; bytes/addresses are 0x-hex `Hex` strings, numbers `bigint`, errors come from ox; argument types are derived from the ABI via abitype); depends only on `ox` + `abitype`. Also exports the full `abi`. Used together with `@deroll/rollup` inside the machine, or standalone outside it.
+- **`packages/app/core`** (`@deroll/core`) — shared, **hand-authored** types (a single `src/index.ts`; depends only on `@deroll/codec`). Defines the `App` interface, `AppOptions` (`broadcastAdvanceRequests?`, `appContext?`) and the two handler types; the request/output vocabulary is re-exported from the codec — advance handlers receive the codec's flat `Advance` object (no `metadata` nesting) and return booleans, inspect handlers receive the raw `Hex` payload, numbers are `bigint`. No runtime logic, no codegen; everything else depends on this.
+- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@deroll/rollup`, drives the request loop via its blocking `waitForInput()`, decodes advances with `@deroll/codec`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createCallVoucher/createERC*Transfer/createOutput`, stamping the app-level `appContext` default on outputs. This is the entry point of every dApp. Tests in `__tests__/` drive the loop against the libcmt mock (`CMT_INPUTS`).
+- **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts (Hex payloads), tracks balances, supports internal transfers, and builds withdrawals: `withdraw*` debit the ledger and return the typed output object (`CallVoucher` for Ether, `ERC*Transfer` otherwise) to emit with the matching `app.create*` method, e.g. `app.createErc20Transfer(wallet.withdrawErc20(...))`. No codec dependency — encoding happens in the App. Largest/most complex package.
 - **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
 - **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
 - **`packages/app/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
 
-Bindings pillar — `packages/bindings/*` (`@deroll/cmio`, `@deroll/cm`) and Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
+Bindings pillar — `packages/bindings/*` (`@deroll/rollup`, `@deroll/cm`) and Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
 
 Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend examples — `echo`, `minimal`, `router`, `wallet`, `walletRouter`, `withdraw`, `abi`), and `apps/explorer` (the explorer site, deployed to explorer.deroll.dev).
 
@@ -33,7 +34,7 @@ Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend e
 `createApp` owns the loop and the rollup outputs. Wallet and Router are plugged in as handlers, not subclasses:
 
 ```ts
-const app = createApp();   // AppOptions: { broadcastAdvanceRequests?: boolean }
+const app = createApp();   // AppOptions: { broadcastAdvanceRequests?: boolean; appContext?: Hex }
 const wallet = createWallet();
 const router = createRouter({ app });
 
@@ -42,7 +43,7 @@ app.addInspectHandler(router.handler);   // router answers inspect queries
 app.start();
 ```
 
-Advance handlers run in registration order. With `broadcastAdvanceRequests` unset/false, the first handler to return `"accept"` short-circuits the rest; when true, all handlers run and the request is accepted if any accepted. Handler exceptions are caught and logged, never thrown out of the loop.
+Advance handlers run in registration order and return booleans. With `broadcastAdvanceRequests` unset/false, the first handler to return `true` short-circuits the rest; when true, all handlers run and the request is accepted if any accepted. Handler exceptions are caught and logged, never thrown out of the loop. Inspect handlers receive the raw query payload (`Hex`) directly.
 
 ## Commands
 
@@ -68,7 +69,7 @@ cd packages/app/wallet && bunx vitest run __tests__/transfer.test.ts   # single 
 cd packages/app/wallet && bunx vitest run -t "withdraw"                # tests matching a name
 ```
 
-Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` currently have them). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
+Tests use **Vitest** and live in `__tests__/` (`app`, `wallet` and `router` have them; the app tests exercise the real native binding through the libcmt mock). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
 
 ## Build specifics
 

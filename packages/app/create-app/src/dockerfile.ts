@@ -6,14 +6,14 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage the runtime files: the JS bundle plus @deroll/cmio's native addon,
+# Stage the runtime files: the JS bundle plus @deroll/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. npm's flat layout
 # keeps the addon and its node-gyp-build loader as real dirs at the top level, so
 # copy both next to the bundle.
 
 RUN mkdir -p rootfs/node_modules/@deroll \\
  && cp dist/index.js rootfs/index.js \\
- && cp -R node_modules/@deroll/cmio rootfs/node_modules/@deroll/ \\
+ && cp -R node_modules/@deroll/rollup rootfs/node_modules/@deroll/ \\
  && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
 
     pnpm: `RUN corepack enable pnpm
@@ -22,13 +22,13 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
-# Stage the runtime files: the JS bundle plus @deroll/cmio's native addon,
+# Stage the runtime files: the JS bundle plus @deroll/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. \`cp -RL\` flattens
 # pnpm's self-contained store dir for the addon into a real node_modules (the
 # addon, its node-gyp-build loader, and node-addon-api).
 RUN mkdir -p rootfs \\
  && cp dist/index.js rootfs/index.js \\
- && cp -RL node_modules/.pnpm/@deroll+cmio@*/node_modules rootfs/node_modules
+ && cp -RL node_modules/.pnpm/@deroll+rollup@*/node_modules rootfs/node_modules
 `,
 
     bun: `COPY package.json bun.lock ./
@@ -36,14 +36,14 @@ RUN bun ci
 COPY . .
 RUN bun run build
 
-# Stage the runtime files: the JS bundle plus @deroll/cmio's native addon,
+# Stage the runtime files: the JS bundle plus @deroll/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. npm's flat layout
 # keeps the addon and its node-gyp-build loader as real dirs at the top level, so
 # copy both next to the bundle.
 
 RUN mkdir -p rootfs/node_modules/@deroll \\
  && cp dist/index.js rootfs/index.js \\
- && cp -R node_modules/@deroll/cmio rootfs/node_modules/@deroll/ \\
+ && cp -R node_modules/@deroll/rollup rootfs/node_modules/@deroll/ \\
  && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
 };
 

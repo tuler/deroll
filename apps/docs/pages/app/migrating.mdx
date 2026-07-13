@@ -15,18 +15,18 @@ Deroll v1 communicates with the Cartesi Machine through the **Rollup HTTP Server
 const app = createApp({ url: "http://127.0.0.1:5004" });
 ```
 
-Deroll v2 talks to the machine directly through a native Node.js binding instead of polling the HTTP server, so `createApp` no longer takes a `url`:
+Deroll v2 talks to the machine directly through a native Node.js binding ([@deroll/rollup](/rollup)) instead of polling the HTTP server, so `createApp` no longer takes a `url`:
 
 ```ts
 // v2
 const app = createApp();
 ```
 
-The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used. The only remaining option is [`broadcastAdvanceRequests`](/app/create-app), which is unchanged.
+The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used. The remaining options are [`broadcastAdvanceRequests`](/app/create-app) (unchanged) and the new [`appContext`](/app/create-app) default.
 
-### Input metadata
+### Input data
 
-The input metadata received in an advance handler has changed.
+The data received by an advance handler changed in two ways: the field names and types follow the rollup's `EvmAdvance` input format, and the fields are no longer nested under a `metadata` object — the handler receives a single flat object, with the `payload` alongside the metadata fields.
 
 ```diff
 -chain_id: number;
@@ -35,49 +35,102 @@ The input metadata received in an advance handler has changed.
 -input_index: number;
 -block_number: number;
 -timestamp: number;
+-payload: Hex;
 +chainId: bigint;
 +appContract: Address;
 +msgSender: Address;
-+index: bigint;
 +blockNumber: bigint;
 +blockTimestamp: bigint;
 +prevRandao: bigint;
++index: bigint;
++payload: Hex;
 ```
 
-### Payload type
+```diff
+-app.addAdvanceHandler(async ({ metadata, payload }) => {
+-    console.log(metadata.msg_sender);
+-    return "accept";
++app.addAdvanceHandler(async ({ msgSender, payload }) => {
++    console.log(msgSender);
++    return true;
+ });
+```
 
-The input payload the application should handle in advance handlers and inspect handlers are now a Node.js [Buffer](https://nodejs.org/api/buffer.html#class-buffer) instead of a `Hex` string.
+Payloads remain 0x-prefixed hex strings (viem's `Hex`), for inputs as well as outputs.
 
-### Voucher value
+### Handler results are booleans
 
-Vouchers now have an optional bigint `value` field, which is the amount of native token to be sent during voucher execution.
-With this new property withdraw vouchers can now be much simpler.
+Advance handlers return a boolean instead of the `"accept"` / `"reject"` strings — `true` accepts the input, `false` rejects it — matching the underlying binding. Inspect handlers now receive the raw query payload directly, instead of an object wrapping it:
+
+```diff
+-app.addAdvanceHandler(async (data) => {
+-    return "accept";
++app.addAdvanceHandler(async (data) => {
++    return true;
+ });
+
+-app.addInspectHandler(async ({ payload }) => {
+-    console.log(payload);
++app.addInspectHandler(async (payload) => {
++    console.log(payload);
+ });
+```
+
+For the same reason `createReport` and `registerException` take the payload directly: `app.createReport(payload)` instead of `app.createReport({ payload })`.
+
+### Output methods are synchronous
+
+In v1 the output methods returned promises, because each output was an HTTP request to the Rollup HTTP Server. The native binding emits outputs synchronously, so in v2 `createNotice`, `createCallVoucher`, the typed transfers, `createOutput`, `createReport` and `registerException` return their results directly — no `await` needed:
+
+```diff
+-const id = await app.createNotice({ payload });
++const id = app.createNotice({ payload });
+```
+
+### createVoucher is now createCallVoucher
+
+Cartesi Rollups v2 names the voucher output format `CallVoucher` — an on-chain `CALL` to a destination, carrying an optional `value` in wei and the calldata `payload`. Deroll follows: [`createCallVoucher`](/app/create-call-voucher) replaces `createVoucher`, and the `value` and `payload` fields are now required (use `0n` / `0x` when not needed).
+
+```diff
+-app.createVoucher({ destination, payload });
++app.createCallVoucher({ destination, value: 0n, payload });
+```
+
+With the `value` field, withdrawing the native token is a plain transfer:
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
 // create application
 const app = createApp();
 
-// log incoming advance request
-app.addAdvanceHandler(async (data) => {
-    const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-    const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
-    const amount = parseUnits("1", 18);
-
-    const id = await app.createVoucher({
-        destination: token,
-        payload: encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [to, amount],
-        }),
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const id = app.createCallVoucher({
+        destination: msgSender,
         value: 1000000000000000000n, // [!code focus]
+        payload: "0x",
     });
-    return "accept";
+    return true;
 });
 ```
+
+### Typed asset transfer outputs
+
+Rollups v2 defines dedicated output formats for asset transfers, which need no manual ABI encoding: [`createErc20Transfer`](/app/create-erc20-transfer), [`createErc721Transfer`](/app/create-erc721-transfer), [`createErc1155Transfer`](/app/create-erc1155-transfer) and [`createErc1155BatchTransfer`](/app/create-erc1155-batch-transfer). Prefer them over hand-built ERC-20/721/1155 `transfer` call vouchers.
+
+The `@deroll/wallet` `withdraw*` methods now build these typed outputs, to be emitted with the matching `App` method (`withdrawEther` builds a `CallVoucher`, the others the corresponding `ERC*Transfer`):
+
+```diff
+-const voucher = wallet.withdrawErc20(token, user, amount);
+-app.createVoucher(voucher);
++app.createErc20Transfer(wallet.withdrawErc20(token, user, amount));
+```
+
+The ERC-721 and ERC-1155 withdrawals no longer take the application address (`dapp`) as first parameter — the typed formats don't need it.
+
+### Output `appContext`
+
+Every v2 output carries an `appContext`: a free-form `bytes32` applications use to tag outputs, so recipients can filter them. It is optional everywhere and defaults to the zero hash; a default for the whole application can be set on [`createApp`](/app/create-app).
 
 ### Change in ERC-20 deposit input
 
@@ -86,17 +139,16 @@ If you use the `@deroll/wallet` module this change is automatically handled for 
 
 ### DAppAddressRelay removed
 
-Now that the input metadata includes the application address there is no need to use the `DAppAddressRelay` contract anymore.
+Now that the input data includes the application address (`appContract`) there is no need to use the `DAppAddressRelay` contract anymore.
 
-### Delegate-call vouchers
+### Delegate-call vouchers removed
 
-Cartesi Rollups v2 introduces a new output type, the **delegate-call voucher**, which the application contract executes with `DELEGATECALL` instead of `CALL`, running the target code in the application's own context.
-Deroll v2 exposes it through [`createDelegateCallVoucher`](/app/create-delegate-call-voucher).
+The delegate-call voucher output type present in earlier Rollups v2 drafts was dropped from the final output format set, along with deroll's `createDelegateCallVoucher`. Use a [call voucher](/app/create-call-voucher) instead.
 
 ### Executing outputs on the base layer
 
 In v1 each output type had its own entry point on the `CartesiDApp` contract (for example `executeVoucher`).
-In Cartesi Rollups v2 all outputs — vouchers, delegate-call vouchers and notices — share a single Merkle tree and are executed and validated through unified functions on the application contract:
+In Cartesi Rollups v2 all outputs — call vouchers and notices — share a single Merkle tree and are executed and validated through unified functions on the application contract:
 
 ```solidity
 function executeOutput(bytes output, OutputValidityProof proof);

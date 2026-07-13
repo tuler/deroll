@@ -1,21 +1,23 @@
-import type { AdvanceRequestHandler, Voucher } from "@deroll/core";
-import { type Address, type Hex, getAddress, isAddress } from "viem";
+import type {
+    AdvanceRequestHandler,
+    CallVoucher,
+    Erc20Transfer,
+    Erc721Transfer,
+    Erc1155BatchTransfer,
+    Erc1155Transfer,
+} from "@deroll/core";
+import { type Address, getAddress, isAddress } from "viem";
 
 import {
-    createERC1155BatchTransferVoucher,
-    createERC1155SingleTransferVoucher,
-    createERC20TransferVoucher,
-    createERC721TransferVoucher,
-    createWithdrawEtherVoucher,
-    isERC1155BatchDeposit,
-    isERC1155SingleDeposit,
-    isERC20Deposit,
-    isERC721Deposit,
+    isErc1155BatchDeposit,
+    isErc1155SingleDeposit,
+    isErc20Deposit,
+    isErc721Deposit,
     isEtherDeposit,
-    parseERC1155BatchDeposit,
-    parseERC1155SingleDeposit,
-    parseERC20Deposit,
-    parseERC721Deposit,
+    parseErc1155BatchDeposit,
+    parseErc1155SingleDeposit,
+    parseErc20Deposit,
+    parseErc721Deposit,
     parseEtherDeposit,
 } from "./index.js";
 
@@ -52,56 +54,55 @@ export interface WalletApp {
     getWallet(address: string): DeepReadonly<Wallet>;
     handler: AdvanceRequestHandler;
     transferEther(from: string, to: string, value: bigint): void;
-    transferERC20(
+    transferErc20(
         token: Address,
         from: string,
         to: string,
         amount: bigint,
     ): void;
-    transferERC721(
+    transferErc721(
         token: Address,
         from: string,
         to: string,
         tokenId: bigint,
     ): void;
-    transferERC1155(
+    transferErc1155(
         token: Address,
         from: string,
         to: string,
         tokenId: bigint,
         value: bigint,
     ): void;
-    transferBatchERC1155(
+    transferBatchErc1155(
         token: Address,
         from: string,
         to: string,
         tokenIds: bigint[],
         values: bigint[],
     ): void;
-    withdrawEther(address: Address, value: bigint): Voucher;
-    withdrawERC20(token: Address, address: Address, amount: bigint): Voucher;
-    withdrawERC721(
-        dapp: Address,
+    withdrawEther(address: Address, value: bigint): CallVoucher;
+    withdrawErc20(
+        token: Address,
+        address: Address,
+        amount: bigint,
+    ): Erc20Transfer;
+    withdrawErc721(
         token: Address,
         address: Address,
         tokenId: bigint,
-    ): Voucher;
-    withdrawERC1155(
-        dapp: Address,
+    ): Erc721Transfer;
+    withdrawErc1155(
         token: Address,
         address: Address,
         tokenId: bigint,
         value: bigint,
-        data: Hex,
-    ): Voucher;
-    withdrawBatchERC1155(
-        dapp: Address,
+    ): Erc1155Transfer;
+    withdrawBatchErc1155(
         token: Address,
         address: Address,
         tokenIds: bigint[],
         values: bigint[],
-        data: Hex,
-    ): Voucher;
+    ): Erc1155BatchTransfer;
 }
 
 export class WalletAppImpl implements WalletApp {
@@ -178,10 +179,10 @@ export class WalletAppImpl implements WalletApp {
             wallet.ether += value;
 
             this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC20Deposit(data)) {
+            return true;
+        } else if (isErc20Deposit(data)) {
             // parse payload
-            const { token, sender, amount } = parseERC20Deposit(data.payload);
+            const { token, sender, amount } = parseErc20Deposit(data.payload);
 
             // get or create wallet
             const wallet = this.wallets[sender] ?? createEmptyWallet();
@@ -193,10 +194,10 @@ export class WalletAppImpl implements WalletApp {
 
             this.wallets[sender] = wallet;
 
-            return "accept";
-        } else if (isERC721Deposit(data)) {
+            return true;
+        } else if (isErc721Deposit(data)) {
             // parse payload
-            const { sender, token, tokenId } = parseERC721Deposit(data.payload);
+            const { sender, token, tokenId } = parseErc721Deposit(data.payload);
 
             // get or create wallet
             const wallet = this.wallets[sender] ?? createEmptyWallet();
@@ -206,10 +207,10 @@ export class WalletAppImpl implements WalletApp {
             wallet.erc721[token].add(tokenId);
 
             this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC1155SingleDeposit(data)) {
+            return true;
+        } else if (isErc1155SingleDeposit(data)) {
             // parse payload
-            const { sender, token, tokenId, value } = parseERC1155SingleDeposit(
+            const { sender, token, tokenId, value } = parseErc1155SingleDeposit(
                 data.payload,
             );
 
@@ -224,11 +225,11 @@ export class WalletAppImpl implements WalletApp {
             );
 
             this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC1155BatchDeposit(data)) {
+            return true;
+        } else if (isErc1155BatchDeposit(data)) {
             // parse payload
             const { sender, token, tokenIds, values } =
-                parseERC1155BatchDeposit(data.payload);
+                parseErc1155BatchDeposit(data.payload);
 
             // get or create wallet
             const wallet = this.wallets[sender] ?? createEmptyWallet();
@@ -243,9 +244,9 @@ export class WalletAppImpl implements WalletApp {
             });
 
             this.wallets[sender] = wallet;
-            return "accept";
+            return true;
         }
-        return "reject";
+        return false;
     };
 
     public transferEther(from: string, to: string, value: bigint): void {
@@ -269,7 +270,7 @@ export class WalletAppImpl implements WalletApp {
         this.wallets[to] = walletTo;
     }
 
-    public transferERC20(
+    public transferErc20(
         token: Address,
         from: string,
         to: string,
@@ -299,7 +300,7 @@ export class WalletAppImpl implements WalletApp {
         this.wallets[to] = walletTo;
     }
 
-    public transferERC721(
+    public transferErc721(
         token: Address,
         from: string,
         to: string,
@@ -330,7 +331,7 @@ export class WalletAppImpl implements WalletApp {
         this.wallets[to] = walletTo;
     }
 
-    public transferERC1155(
+    public transferErc1155(
         token: Address,
         from: string,
         to: string,
@@ -366,7 +367,7 @@ export class WalletAppImpl implements WalletApp {
         this.wallets[to] = walletTo;
     }
 
-    public transferBatchERC1155(
+    public transferBatchErc1155(
         token: Address,
         from: string,
         to: string,
@@ -415,7 +416,7 @@ export class WalletAppImpl implements WalletApp {
         this.wallets[to] = walletTo;
     }
 
-    withdrawEther(address: Address, value: bigint): Voucher {
+    withdrawEther(address: Address, value: bigint): CallVoucher {
         // normalize address
         address = getAddress(address);
 
@@ -432,11 +433,19 @@ export class WalletAppImpl implements WalletApp {
         // reduce balance right away
         wallet.ether = wallet.ether - value;
 
-        // create voucher
-        return createWithdrawEtherVoucher(address, value);
+        // plain transfer voucher (no calldata)
+        return {
+            destination: address,
+            value,
+            payload: "0x",
+        };
     }
 
-    withdrawERC20(token: Address, address: Address, amount: bigint): Voucher {
+    withdrawErc20(
+        token: Address,
+        address: Address,
+        amount: bigint,
+    ): Erc20Transfer {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
@@ -454,15 +463,18 @@ export class WalletAppImpl implements WalletApp {
         // reduce balance right away
         wallet.erc20[token] -= amount;
 
-        return createERC20TransferVoucher(token, address, amount);
+        return {
+            recipient: address,
+            token,
+            value: amount,
+        };
     }
 
-    withdrawERC721(
-        dapp: Address,
+    withdrawErc721(
         token: Address,
         address: Address,
         tokenId: bigint,
-    ): Voucher {
+    ): Erc721Transfer {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
@@ -480,18 +492,19 @@ export class WalletAppImpl implements WalletApp {
         // remove tokenId right away
         wallet.erc721[token].delete(tokenId);
 
-        // create voucher
-        return createERC721TransferVoucher(token, dapp, address, tokenId);
+        return {
+            recipient: address,
+            token,
+            tokenId,
+        };
     }
 
-    withdrawERC1155(
-        dapp: Address,
+    withdrawErc1155(
         token: Address,
         address: Address,
         tokenId: bigint,
         value: bigint,
-        data: Hex,
-    ): Voucher {
+    ): Erc1155Transfer {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
@@ -509,25 +522,20 @@ export class WalletAppImpl implements WalletApp {
         // reduce balance right away
         wallet.erc1155[token].set(tokenId, balance - value);
 
-        // create voucher
-        return createERC1155SingleTransferVoucher(
+        return {
+            recipient: address,
             token,
-            dapp,
-            address,
             tokenId,
             value,
-            data,
-        );
+        };
     }
 
-    withdrawBatchERC1155(
-        dapp: Address,
+    withdrawBatchErc1155(
         token: Address,
         address: Address,
         tokenIds: bigint[],
         values: bigint[],
-        data: Hex,
-    ): Voucher {
+    ): Erc1155BatchTransfer {
         // normalize addresses
         token = getAddress(token);
         address = getAddress(address);
@@ -559,14 +567,12 @@ export class WalletAppImpl implements WalletApp {
             wallet.erc1155[token].set(tokenId, balance - value);
         });
 
-        // create voucher
-        return createERC1155BatchTransferVoucher(
+        return {
+            recipient: address,
             token,
-            dapp,
-            address,
-            tokenIds,
-            values,
-            data,
-        );
+            items: tokenIds.map(
+                (tokenId, i) => [tokenId, values[i]] as [bigint, bigint],
+            ),
+        };
     }
 }

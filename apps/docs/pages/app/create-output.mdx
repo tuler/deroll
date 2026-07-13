@@ -1,0 +1,39 @@
+# createOutput
+
+Emits an already EVM-ABI encoded output while processing an advance request. This is the escape hatch used when the encoded bytes come from somewhere else, for example the [@deroll/codec](/codec) encoders.
+
+## Usage
+
+The following example emits a notice encoded manually with the codec — equivalent to calling [createNotice](/app/create-notice), which is preferred.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { encodeNotice } from "@deroll/codec";
+
+// create app
+const app = createApp();
+
+app.addAdvanceHandler(async ({ payload }) => {
+    const output = encodeNotice({ payload }); // [!code focus]
+    app.createOutput(output); // [!code focus]
+    return true;
+});
+```
+
+:::tip
+Prefer the typed methods — [createNotice](/app/create-notice), [createCallVoucher](/app/create-call-voucher) and the [asset transfers](/app/create-erc20-transfer) — which encode for you and apply the application-wide [`appContext`](/app/create-app) default. `createOutput` emits the bytes exactly as given.
+:::
+
+## Returns
+
+Type: `number`
+
+The index of the output.
+
+## Parameters
+
+### payload
+
+Type: `Hex`
+
+The complete EVM-ABI encoded output (selector and arguments), e.g. produced with a [@deroll/codec](/codec) encoder.

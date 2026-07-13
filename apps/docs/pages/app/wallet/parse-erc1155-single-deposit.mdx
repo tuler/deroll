@@ -1,4 +1,4 @@
-# parseERC1155SingleDeposit
+# parseErc1155SingleDeposit
 
 Parse a ERC-1155 deposit request coming from the `ERC1155SinglePortal` smart contract.
 
@@ -6,25 +6,25 @@ Parse a ERC-1155 deposit request coming from the `ERC1155SinglePortal` smart con
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC1155SingleDeposit, parseERC1155SingleDeposit } from "@deroll/wallet";
+import { isErc1155SingleDeposit, parseErc1155SingleDeposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC1155SingleDeposit(data)) {
-        const deposit = parseERC1155SingleDeposit(data.payload); // [!code focus]
+    if (isErc1155SingleDeposit(data)) {
+        const deposit = parseErc1155SingleDeposit(data.payload); // [!code focus]
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `ERC1155SingleDeposit`
+Type: `Erc1155SingleDeposit`
 
 Structure with deposit data.
 

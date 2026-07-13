@@ -1,7 +1,7 @@
-# withdrawERC20
+# withdrawErc20
 
-Withdraw ERC-20 tokens from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+Withdraw ERC-20 tokens from one user, returning an `Erc20Transfer` that transfers the tokens to the user on L1.
+Emit it with [createErc20Transfer](/app/create-erc20-transfer).
 
 ## Usage
 
@@ -20,20 +20,20 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const value = wallet.erc20BalanceOf(token, user);
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const value = wallet.erc20BalanceOf(token, msgSender);
     if (value > 0) {
-        const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createErc20Transfer(wallet.withdrawErc20(token, msgSender, value)); // [!code focus]
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `Voucher`
+Type: `Erc20Transfer`
+
+The transfer fields (`recipient`, `token`, `value`), ready for [createErc20Transfer](/app/create-erc20-transfer).
 
 ## Parameters
 
@@ -41,9 +41,9 @@ Type: `Address`
 
 Address of ERC-20 token.
 
-Type: `string`
+Type: `Address`
 
-User to withdraw from.
+User to withdraw from (and L1 recipient).
 
 Type: `bigint`
 

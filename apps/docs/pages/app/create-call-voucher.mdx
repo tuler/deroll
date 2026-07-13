@@ -1,0 +1,69 @@
+# createCallVoucher
+
+Creates a call voucher output while processing an advance request: an on-chain `CALL` to a destination address, optionally sending native token and executing calldata.
+
+## Usage
+
+The following example creates a call voucher of a ERC-20 transfer of 1 CTSI from the application to user `0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f`.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
+
+// create application
+const app = createApp();
+
+// log incoming advance request
+app.addAdvanceHandler(async (data) => {
+    const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
+    const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient // [!code focus]
+    const amount = parseUnits("1", 18); // [!code focus]
+
+    const id = app.createCallVoucher({ // [!code focus]
+        destination: token, // [!code focus]
+        value: 0n, // [!code focus]
+        payload: encodeFunctionData({ // [!code focus]
+            abi: erc20Abi, // [!code focus]
+            functionName: "transfer", // [!code focus]
+            args: [to, amount], // [!code focus]
+        }), // [!code focus]
+    }); // [!code focus]
+    return true;
+});
+```
+
+:::tip
+For ERC-20/721/1155 transfers, prefer the typed asset transfer outputs ([createErc20Transfer](./create-erc20-transfer) and friends) — no manual ABI encoding needed.
+:::
+
+## Returns
+
+Type: `number`
+
+The index of the voucher output.
+
+## Parameters
+
+### destination
+
+Type: `Address`
+
+The address the voucher calls: a smart contract, or an EOA for plain transfers.
+
+### value
+
+Type: `bigint`
+
+Amount of native token (in wei) to send to the `destination` when the voucher is executed. Use `0n` for none.
+
+### payload
+
+Type: `Hex`
+
+The ABI-encoded solidity call. Use `0x` for a plain `value` transfer without calling any function.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Optional `bytes32` tag recipients can filter outputs by. Defaults to the application-wide [`appContext`](./create-app) (zero hash unless configured).

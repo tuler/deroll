@@ -1,4 +1,4 @@
-# isERC20Deposit
+# isErc20Deposit
 
 Checks if a request is a ERC-20 deposit coming from the `ERC20Portal` smart contract.
 
@@ -6,19 +6,19 @@ Checks if a request is a ERC-20 deposit coming from the `ERC20Portal` smart cont
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC20Deposit, parseERC20Deposit } from "@deroll/wallet";
+import { isErc20Deposit, parseErc20Deposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC20Deposit(data)) { // [!code focus]
-        const deposit = parseERC20Deposit(data.payload);
+    if (isErc20Deposit(data)) { // [!code focus]
+        const deposit = parseErc20Deposit(data.payload);
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
@@ -30,4 +30,4 @@ True if request is a ERC-20 deposit from the `ERC20Portal` smart contract.
 
 ## Parameters
 
-Type: `AdvanceRequestData`
+Type: `Advance`

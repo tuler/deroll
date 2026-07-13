@@ -1,14 +1,10 @@
-import type { AdvanceRequestData } from "@deroll/core";
+import type { Advance } from "@deroll/core";
 import {
     type Hex,
     concat,
     encodeAbiParameters,
-    encodeFunctionData,
     encodePacked,
-    erc20Abi,
-    erc721Abi,
     parseAbiParameters,
-    zeroHash,
 } from "viem";
 import { describe, expect, test } from "vitest";
 
@@ -20,20 +16,17 @@ import {
     etherPortalAddress,
 } from "@cartesi/viem/abi";
 import { createWallet } from "../src/index.js";
-import { erc1155Abi } from "../src/abi/index.js";
 
-// build a libcmt-shaped advance request from the portal sender and a hex payload
-const advance = (msgSender: Hex, payload: Hex): AdvanceRequestData => ({
-    metadata: {
-        chainId: 1n,
-        appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-        msgSender,
-        blockNumber: 0n,
-        blockTimestamp: 0n,
-        prevRandao: 0n,
-        index: 0n,
-    },
-    payload: Buffer.from(payload.slice(2), "hex"),
+// build an advance request from the portal sender and a hex payload
+const advance = (msgSender: Hex, payload: Hex): Advance => ({
+    chainId: 1n,
+    appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+    msgSender,
+    blockNumber: 0n,
+    blockTimestamp: 0n,
+    prevRandao: 0n,
+    index: 0n,
+    payload,
 });
 
 describe("withdraw", () => {
@@ -60,8 +53,11 @@ describe("withdraw", () => {
 
         const voucher = wallet.withdrawEther(sender, withdraw);
         expect(wallet.etherBalanceOf(sender)).toEqual(value - withdraw);
-        expect(voucher.destination).toBe(sender);
-        expect(voucher.payload).toBe("0x");
+        expect(voucher).toEqual({
+            destination: sender,
+            value: withdraw,
+            payload: "0x",
+        });
     });
 
     test("ERC20 with no balance", () => {
@@ -69,7 +65,7 @@ describe("withdraw", () => {
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const value = 3n;
-        expect(() => wallet.withdrawERC20(token, sender, value)).toThrowError();
+        expect(() => wallet.withdrawErc20(token, sender, value)).toThrowError();
     });
 
     test("ERC20", async () => {
@@ -89,32 +85,27 @@ describe("withdraw", () => {
         expect(response).toBeTruthy();
         expect(wallet.erc20BalanceOf(token, sender)).toBe(value);
 
-        const voucher = wallet.withdrawERC20(token, sender, withdraw);
+        const transfer = wallet.withdrawErc20(token, sender, withdraw);
         expect(wallet.erc20BalanceOf(token, sender)).toBe(value - withdraw);
-        expect(voucher.destination).toBe(token);
-        expect(voucher.payload).toBe(
-            encodeFunctionData({
-                abi: erc20Abi,
-                functionName: "transfer",
-                args: [sender, withdraw],
-            }),
-        );
+        expect(transfer).toEqual({
+            recipient: sender,
+            token,
+            value: withdraw,
+        });
     });
 
     test("ERC721 with no balance", () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 1n;
         expect(() =>
-            wallet.withdrawERC721(dapp, token, sender, tokenId),
+            wallet.withdrawErc721(token, sender, tokenId),
         ).toThrowError();
     });
 
     test("ERC721", async () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 1n;
@@ -129,40 +120,33 @@ describe("withdraw", () => {
         expect(response).toBeTruthy();
         expect(wallet.erc721Has(token, sender, tokenId)).toBe(true);
 
-        const voucher = wallet.withdrawERC721(dapp, token, sender, tokenId);
+        const transfer = wallet.withdrawErc721(token, sender, tokenId);
         expect(wallet.erc721Has(token, sender, tokenId)).toBe(false);
-        expect(voucher.destination).toBe(token);
-        expect(voucher.payload).toBe(
-            encodeFunctionData({
-                abi: erc721Abi,
-                functionName: "safeTransferFrom",
-                args: [dapp, sender, tokenId],
-            }),
-        );
+        expect(transfer).toEqual({
+            recipient: sender,
+            token,
+            tokenId,
+        });
     });
 
     test("ERC1155 with no balance", () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 1n;
         const value = 3n;
-        const data = zeroHash;
         expect(() =>
-            wallet.withdrawERC1155(dapp, token, sender, tokenId, value, data),
+            wallet.withdrawErc1155(token, sender, tokenId, value),
         ).toThrowError();
     });
 
     test("ERC1155", async () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenId = 1n;
         const value = 3n;
         const withdraw = 1n;
-        const data = zeroHash;
         expect(wallet.erc1155BalanceOf(token, sender, tokenId)).toBe(0n);
         const payload = encodePacked(
             ["address", "address", "uint256", "uint256"],
@@ -174,77 +158,52 @@ describe("withdraw", () => {
         expect(response).toBeTruthy();
         expect(wallet.erc1155BalanceOf(token, sender, tokenId)).toBe(value);
 
-        const voucher = wallet.withdrawERC1155(
-            dapp,
+        const transfer = wallet.withdrawErc1155(
             token,
             sender,
             tokenId,
             withdraw,
-            data,
         );
         expect(wallet.erc1155BalanceOf(token, sender, tokenId)).toBe(
             value - withdraw,
         );
-        expect(voucher.destination).toBe(token);
-        expect(voucher.payload).toBe(
-            encodeFunctionData({
-                abi: erc1155Abi,
-                functionName: "safeTransferFrom",
-                args: [dapp, sender, tokenId, withdraw, data],
-            }),
-        );
+        expect(transfer).toEqual({
+            recipient: sender,
+            token,
+            tokenId,
+            value: withdraw,
+        });
     });
 
     test("ERC1155 batch with wrong array length", () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenIds = [1n, 2n];
         const values = [3n];
-        const data = zeroHash;
         expect(() =>
-            wallet.withdrawBatchERC1155(
-                dapp,
-                token,
-                sender,
-                tokenIds,
-                values,
-                data,
-            ),
+            wallet.withdrawBatchErc1155(token, sender, tokenIds, values),
         ).toThrowError();
     });
 
     test("ERC1155 batch with no balance", () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
         const tokenIds = [1n, 2n];
         const values = [3n, 5n];
-        const data = zeroHash;
         expect(() =>
-            wallet.withdrawBatchERC1155(
-                dapp,
-                token,
-                sender,
-                tokenIds,
-                values,
-                data,
-            ),
+            wallet.withdrawBatchErc1155(token, sender, tokenIds, values),
         ).toThrowError();
     });
 
     test("ERC1155 batch", async () => {
         const wallet = createWallet();
-        const dapp = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D";
         const sender = "0x18930e8a66a1DbE21D00581216789AAB7460Afd0";
-        const dappAddress = "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e";
         const tokenIds = [1n, 2n];
         const values = [3n, 5n];
         const withdraws = [1n, 2n];
-        const data = zeroHash;
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[0])).toBe(0n);
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[1])).toBe(0n);
         const payload = encodePacked(["address", "address"], [token, sender]);
@@ -264,13 +223,11 @@ describe("withdraw", () => {
             values[1],
         );
 
-        const voucher = wallet.withdrawBatchERC1155(
-            dapp,
+        const transfer = wallet.withdrawBatchErc1155(
             token,
             sender,
             tokenIds,
             withdraws,
-            data,
         );
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[0])).toBe(
             values[0] - withdraws[0],
@@ -278,13 +235,13 @@ describe("withdraw", () => {
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[1])).toBe(
             values[1] - withdraws[1],
         );
-        expect(voucher.destination).toBe(token);
-        expect(voucher.payload).toBe(
-            encodeFunctionData({
-                abi: erc1155Abi,
-                functionName: "safeBatchTransferFrom",
-                args: [dappAddress, sender, tokenIds, withdraws, data],
-            }),
-        );
+        expect(transfer).toEqual({
+            recipient: sender,
+            token,
+            items: [
+                [tokenIds[0], withdraws[0]],
+                [tokenIds[1], withdraws[1]],
+            ],
+        });
     });
 });

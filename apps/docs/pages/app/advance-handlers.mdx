@@ -2,18 +2,16 @@
 
 ## Overview
 
-Advance handlers are async function callbacks that receive the `metadata` and `payload` of an input, and must return either `"accept"` or `"reject"`.
-The following example defines a request handler that accepts all requests, but just logs the input metadata.
+Advance handlers are async function callbacks that receive the decoded fields of an input — its metadata (`msgSender`, `blockTimestamp`, ...) alongside the `payload` — and must return a boolean: `true` accepts the input, `false` rejects it.
+The following example defines a request handler that accepts all requests, but just logs the input sender.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
 import { AdvanceRequestHandler } from "@deroll/core";
 
-const handler: AdvanceRequestHandler = async ({ metadata, payload }) => {
-    console.log(metadata);
-// @noErrors
-    return "
-//          ^|
+const handler: AdvanceRequestHandler = async ({ msgSender, payload }) => {
+    console.log(msgSender);
+    return true;
 }
 
 // create application
@@ -25,7 +23,7 @@ app.addAdvanceHandler(handler);
 
 The application created with `createApp` holds a list of advance handlers that are executed in the order they were added.
 
-By default, when a handler returns `"accept"` the execution chain stops.
+By default, when a handler returns `true` (accepting the input) the execution chain stops.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
@@ -36,16 +34,16 @@ const app = createApp();
 // ---cut---
 app.addAdvanceHandler(async (data) => {
     console.log(data);
-    return "accept";
+    return true;
 });
 
 app.addAdvanceHandler(async (data) => {
-    // this code is never executed, because the first handler always returns "accept" // [!code hl]
-    return "accept";
+    // this code is never executed, because the first handler always accepts // [!code hl]
+    return true;
 });
 ```
 
-If a handler returns `"reject"` or **raises an exception**, the next handler in the list is executed.
+If a handler returns `false` or **raises an exception**, the next handler in the list is executed.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
@@ -56,16 +54,16 @@ const app = createApp();
 // ---cut---
 app.addAdvanceHandler(async (data) => {
     console.log(data);
-    return "reject";
+    return false;
 });
 
 app.addAdvanceHandler(async (data) => {
     // this code will execute // [!code hl]
-    return "accept";
+    return true;
 });
 ```
 
-If no handler returns `"accept"` the input is rejected and the machine is reverted to the initial state by the Cartesi node.
+If no handler accepts, the input is rejected and the machine is reverted to the initial state by the Cartesi node.
 
 ## Broadcast Mode
 
@@ -82,11 +80,11 @@ const app = createApp({
 
 app.addAdvanceHandler(async (data) => {
     console.log(data);
-    return "accept";
+    return true;
 });
 
 app.addAdvanceHandler(async (data) => {
-    // this code executes, even when the first handler returns "accept" // [!code hl]
-    return "accept";
+    // this code executes, even when the first handler accepts // [!code hl]
+    return true;
 });
 ```

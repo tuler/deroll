@@ -1,7 +1,7 @@
-# withdrawBatchERC1155
+# withdrawBatchErc1155
 
-Withdraw multiple ERC-1155 tokens from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+Withdraw multiple ERC-1155 tokens from one user, returning an `Erc1155BatchTransfer` that transfers the tokens to the user on L1 in a single batch.
+Emit it with [createErc1155BatchTransfer](/app/create-erc1155-batch-transfer).
 
 ## Usage
 
@@ -20,29 +20,28 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const dapp = metadata.appContract;
-    const value1 = wallet.erc1155BalanceOf(token, user, 1n);
-    const value2 = wallet.erc1155BalanceOf(token, user, 2n);
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const value1 = wallet.erc1155BalanceOf(token, msgSender, 1n);
+    const value2 = wallet.erc1155BalanceOf(token, msgSender, 2n);
     if (value1 > 0 && value2 > 0) {
-        const voucher = wallet.withdrawBatchERC1155( // [!code focus]
-            dapp, // [!code focus]
-            token, // [!code focus]
-            user, // [!code focus]
-            [1n, 2n], // [!code focus]
-            [value1, value2], // [!code focus]
-            "0x", // [!code focus]
+        app.createErc1155BatchTransfer( // [!code focus]
+            wallet.withdrawBatchErc1155( // [!code focus]
+                token, // [!code focus]
+                msgSender, // [!code focus]
+                [1n, 2n], // [!code focus]
+                [value1, value2], // [!code focus]
+            ), // [!code focus]
         ); // [!code focus]
-        await app.createVoucher(voucher);
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `Voucher`
+Type: `Erc1155BatchTransfer`
+
+The transfer fields (`recipient`, `token`, `items`), ready for [createErc1155BatchTransfer](/app/create-erc1155-batch-transfer).
 
 ## Parameters
 
@@ -50,9 +49,9 @@ Type: `Address`
 
 Address of ERC-1155 token.
 
-Type: `string`
+Type: `Address`
 
-User to withdraw from.
+User to withdraw from (and L1 recipient).
 
 Type: `bigint[]`
 
@@ -61,7 +60,3 @@ Ids of the token.
 Type: `bigint[]`
 
 Amounts to withdraw.
-
-Type: `Hex`
-
-Extra payload to pass to the L1 voucher.

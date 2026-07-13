@@ -1,0 +1,72 @@
+# Types
+
+The codecs take and return exactly the types [ox](https://oxlib.sh) works with — no conversions happen inside the package, and invalid values raise ox's own errors:
+
+- **bytes and addresses** are `Hex` — a `` `0x${string}` `` hex string, structurally identical to viem's `Hex`/`Address`;
+- **numbers** are `bigint`.
+
+Callers convert at the boundary with ox's `Hex.fromBytes`/`Hex.fromString` (viem's `toHex` works too).
+
+All types are importable with `import type`:
+
+```ts twoslash
+import type {
+    Advance,
+    CallVoucher,
+    Erc20Transfer,
+    Erc721Transfer,
+    Erc1155Transfer,
+    Erc1155BatchTransfer,
+    Hex,
+} from '@deroll/codec';
+```
+
+## Encoder argument types
+
+Each encoder takes a named options object, importable for typing helpers that build outputs:
+
+- `Advance` — argument of `encodeAdvance` and return type of [`decodeAdvance`](/codec/decode-advance).
+- `Notice` — argument of [`encodeNotice`](/codec/encode-notice): `payload` (`Hex`) and optional `appContext` (`Hex`, 32 bytes; default zero hash).
+- `CallVoucher` — argument of [`encodeCallVoucher`](/codec/encode-call-voucher): `destination` (`Hex` address), `value` (`bigint`), `payload` (`Hex`) and optional `appContext`.
+- `Erc20Transfer` / `Erc721Transfer` / `Erc1155Transfer` / `Erc1155BatchTransfer` — arguments of the [asset transfer encoders](/codec/encode-asset-transfers).
+
+```ts twoslash
+import type { CallVoucher, Erc20Transfer } from '@deroll/codec';
+
+const voucher: CallVoucher = {
+    destination: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    value: 1_000_000_000_000_000_000n,
+    payload: '0x',
+};
+
+const transfer: Erc20Transfer = {
+    recipient: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+    token: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    value: 100n,
+};
+```
+
+## Decoded advance type
+
+`Advance` is the return type of [`decodeAdvance`](/codec/decode-advance) — the structured fields of an `EvmAdvance` input:
+
+```ts twoslash
+import type { Advance } from '@deroll/codec';
+// ---cut---
+declare const advance: Advance;
+advance.msgSender;
+//      ^?
+```
+
+Numeric fields (`chainId`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index`) are `bigint`; `appContract`, `msgSender` and `payload` are 0x-hex strings.
+
+## The ABI
+
+The package also exports `abi`, the full ABI with one entry per wire format — useful with viem/ox directly, e.g. for decoding arbitrary outputs:
+
+```ts twoslash
+import { abi } from '@deroll/codec';
+
+abi;
+// ^?
+```

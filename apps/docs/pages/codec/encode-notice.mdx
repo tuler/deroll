@@ -1,0 +1,43 @@
+# encodeNotice
+
+Encodes a **notice** — a verifiable statement of fact about the application state, with no on-chain action attached. Off-chain consumers can validate a notice against the application's settled output root instead of re-executing the machine.
+
+`encodeNotice` is a pure-JS helper that returns the EVM-ABI encoded output as 0x-hex (a `Notice(bytes32,bytes)` call, mirroring libcmt's `cmt_notice_encode`). Emit them with [`emitOutput`](/rollup/reference/emit-output) to add the notice to the outputs merkle tree (provable).
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import { encodeNotice } from '@deroll/codec';
+import { Hex } from 'ox';
+const rollup = new Rollup();
+// ---cut---
+const index = rollup.emitOutput(
+    encodeNotice({ payload: Hex.fromString(JSON.stringify({ matchId: 42, winner: '0xf39F…2266' })) }),
+);
+```
+
+The output index comes from [`emitOutput`](/rollup/reference/emit-output); `encodeNotice` itself just returns a `Buffer`.
+
+## Returns
+
+`Hex` — the encoded notice as a 0x-hex string, ready to pass to [`emitOutput`](/rollup/reference/emit-output).
+
+## Parameters
+
+### appContext
+
+- Type: `Hex` — 0x-prefixed hex string (32 bytes)
+- Optional; defaults to the zero hash (`0x00…00`)
+
+Free-form application-defined tag carried by the output; recipients can filter outputs by it.
+
+### payload
+
+- Type: `Hex` — 0x-prefixed hex string
+
+The attested data. Application-defined format — JSON, ABI-encoded structs, hashes, anything your consumers can decode.
+
+## Errors
+
+Malformed hex throws an [ox](https://oxlib.sh) error.

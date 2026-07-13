@@ -9,10 +9,11 @@ export default defineConfig({
     },
     topNav: [
         { text: "App", link: "/app/quick-start" },
+        { text: "Codec", link: "/codec" },
         {
             text: "Bindings",
             items: [
-                { text: "cmio (libcmt)", link: "/cmio/getting-started" },
+                { text: "rollup (libcmt)", link: "/rollup" },
                 { text: "cm (cartesi-machine)", link: "/cm" },
             ],
         },
@@ -84,12 +85,28 @@ export default defineConfig({
                             link: "/app/create-report",
                         },
                         {
-                            text: "createVoucher",
-                            link: "/app/create-voucher",
+                            text: "createCallVoucher",
+                            link: "/app/create-call-voucher",
                         },
                         {
-                            text: "createDelegateCallVoucher",
-                            link: "/app/create-delegate-call-voucher",
+                            text: "createErc20Transfer",
+                            link: "/app/create-erc20-transfer",
+                        },
+                        {
+                            text: "createErc721Transfer",
+                            link: "/app/create-erc721-transfer",
+                        },
+                        {
+                            text: "createErc1155Transfer",
+                            link: "/app/create-erc1155-transfer",
+                        },
+                        {
+                            text: "createErc1155BatchTransfer",
+                            link: "/app/create-erc1155-batch-transfer",
+                        },
+                        {
+                            text: "createOutput",
+                            link: "/app/create-output",
                         },
                     ],
                 },
@@ -127,19 +144,19 @@ export default defineConfig({
                             link: "/app/wallet/transfer-ether",
                         },
                         {
-                            text: "transferERC20",
+                            text: "transferErc20",
                             link: "/app/wallet/transfer-erc20",
                         },
                         {
-                            text: "transferERC721",
+                            text: "transferErc721",
                             link: "/app/wallet/transfer-erc721",
                         },
                         {
-                            text: "transferERC1155",
+                            text: "transferErc1155",
                             link: "/app/wallet/transfer-erc1155",
                         },
                         {
-                            text: "transferBatchERC1155",
+                            text: "transferBatchErc1155",
                             link: "/app/wallet/transfer-batch-erc1155",
                         },
                         {
@@ -147,59 +164,39 @@ export default defineConfig({
                             link: "/app/wallet/withdraw-ether",
                         },
                         {
-                            text: "withdrawERC20",
+                            text: "withdrawErc20",
                             link: "/app/wallet/withdraw-erc20",
                         },
                         {
-                            text: "withdrawERC721",
+                            text: "withdrawErc721",
                             link: "/app/wallet/withdraw-erc721",
                         },
                         {
-                            text: "withdrawERC1155",
+                            text: "withdrawErc1155",
                             link: "/app/wallet/withdraw-erc1155",
                         },
                         {
-                            text: "withdrawBatchERC1155",
+                            text: "withdrawBatchErc1155",
                             link: "/app/wallet/withdraw-batch-erc1155",
-                        },
-                        {
-                            text: "createWithdrawEtherVoucher",
-                            link: "/app/wallet/create-withdraw-ether-voucher",
-                        },
-                        {
-                            text: "createERC20TransferVoucher",
-                            link: "/app/wallet/create-erc20-transfer-voucher",
-                        },
-                        {
-                            text: "createERC721TransferVoucher",
-                            link: "/app/wallet/create-erc721-transfer-voucher",
-                        },
-                        {
-                            text: "createERC1155SingleTransferVoucher",
-                            link: "/app/wallet/create-erc1155-single-transfer-voucher",
-                        },
-                        {
-                            text: "createERC1155BatchTransferVoucher",
-                            link: "/app/wallet/create-erc1155-batch-transfer-voucher",
                         },
                         {
                             text: "isEtherDeposit",
                             link: "/app/wallet/is-ether-deposit",
                         },
                         {
-                            text: "isERC20Deposit",
+                            text: "isErc20Deposit",
                             link: "/app/wallet/is-erc20-deposit",
                         },
                         {
-                            text: "isERC721Deposit",
+                            text: "isErc721Deposit",
                             link: "/app/wallet/is-erc721-deposit",
                         },
                         {
-                            text: "isERC1155SingleDeposit",
+                            text: "isErc1155SingleDeposit",
                             link: "/app/wallet/is-erc1155-single-deposit",
                         },
                         {
-                            text: "isERC1155BatchDeposit",
+                            text: "isErc1155BatchDeposit",
                             link: "/app/wallet/is-erc1155-batch-deposit",
                         },
                         {
@@ -207,19 +204,19 @@ export default defineConfig({
                             link: "/app/wallet/parse-ether-deposit",
                         },
                         {
-                            text: "parseERC20Deposit",
+                            text: "parseErc20Deposit",
                             link: "/app/wallet/parse-erc20-deposit",
                         },
                         {
-                            text: "parseERC721Deposit",
+                            text: "parseErc721Deposit",
                             link: "/app/wallet/parse-erc721-deposit",
                         },
                         {
-                            text: "parseERC1155SingleDeposit",
+                            text: "parseErc1155SingleDeposit",
                             link: "/app/wallet/parse-erc1155-single-deposit",
                         },
                         {
-                            text: "parseERC1155BatchDeposit",
+                            text: "parseErc1155BatchDeposit",
                             link: "/app/wallet/parse-erc1155-batch-deposit",
                         },
                     ],
@@ -247,34 +244,38 @@ export default defineConfig({
             { text: "Writing Decoders", link: "/explorer/decoders" },
             { text: "Open explorer.deroll.dev", link: "https://explorer.deroll.dev" },
         ],
-        "/cmio/": [
-            { text: "Introduction", link: "/cmio" },
-            { text: "Getting Started", link: "/cmio/getting-started" },
+        "/codec/": [
+            { text: "Introduction", link: "/codec" },
+            { text: "decodeAdvance / encodeAdvance", link: "/codec/decode-advance" },
+            { text: "encodeNotice", link: "/codec/encode-notice" },
+            { text: "encodeCallVoucher", link: "/codec/encode-call-voucher" },
+            { text: "Asset transfer encoders", link: "/codec/encode-asset-transfers" },
+            { text: "Types & Constants", link: "/codec/types" },
+        ],
+        "/rollup/": [
+            { text: "Introduction", link: "/rollup" },
+            { text: "Getting Started", link: "/rollup/getting-started" },
             {
                 text: "User Guide",
                 items: [
-                    { text: "Handling Requests", link: "/cmio/guide/handling-requests" },
-                    { text: "Emitting Outputs", link: "/cmio/guide/emitting-outputs" },
-                    { text: "Testing on the Host", link: "/cmio/guide/testing" },
-                    { text: "Running in the Cartesi Machine", link: "/cmio/guide/cartesi-machine" },
+                    { text: "Handling Requests", link: "/rollup/guide/handling-requests" },
+                    { text: "Emitting Outputs", link: "/rollup/guide/emitting-outputs" },
+                    { text: "Testing on the Host", link: "/rollup/guide/testing" },
+                    { text: "Running in the Cartesi Machine", link: "/rollup/guide/cartesi-machine" },
                 ],
             },
             {
                 text: "Reference",
                 items: [
-                    { text: "new Rollup()", link: "/cmio/reference/rollup" },
-                    { text: "run", link: "/cmio/reference/run" },
-                    { text: "finish", link: "/cmio/reference/finish" },
-                    { text: "emitVoucher", link: "/cmio/reference/emit-voucher" },
-                    { text: "emitDelegateCallVoucher", link: "/cmio/reference/emit-delegate-call-voucher" },
-                    { text: "emitNotice", link: "/cmio/reference/emit-notice" },
-                    { text: "emitReport", link: "/cmio/reference/emit-report" },
-                    { text: "emitException", link: "/cmio/reference/emit-exception" },
-                    { text: "progress", link: "/cmio/reference/progress" },
-                    { text: "gio", link: "/cmio/reference/gio" },
-                    { text: "Merkle persistence", link: "/cmio/reference/merkle" },
-                    { text: "close", link: "/cmio/reference/close" },
-                    { text: "Types & Constants", link: "/cmio/reference/types" },
+                    { text: "new Rollup()", link: "/rollup/reference/rollup" },
+                    { text: "run", link: "/rollup/reference/run" },
+                    { text: "waitForInput", link: "/rollup/reference/wait-for-input" },
+                    { text: "emitOutput", link: "/rollup/reference/emit-output" },
+                    { text: "emitReport", link: "/rollup/reference/emit-report" },
+                    { text: "emitException", link: "/rollup/reference/emit-exception" },
+                    { text: "progress", link: "/rollup/reference/progress" },
+                    { text: "close", link: "/rollup/reference/close" },
+                    { text: "Types & Constants", link: "/rollup/reference/types" },
                 ],
             },
         ],

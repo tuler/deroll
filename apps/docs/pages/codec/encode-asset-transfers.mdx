@@ -1,0 +1,82 @@
+# Asset transfer encoders
+
+Encoders for the **typed asset-transfer outputs** introduced by the new rollups contracts: instead of hand-crafting a [call voucher](/codec/encode-call-voucher) with ERC-20/721/1155 calldata, the application emits a first-class transfer output that the contracts know how to execute. Each helper mirrors one entry of libcmt's codec module and produces the exact same bytes.
+
+| Function | Wire format |
+| --- | --- |
+| `encodeErc20Transfer` | `Erc20Transfer(bytes32,address,address,uint256)` |
+| `encodeErc721Transfer` | `Erc721Transfer(bytes32,address,address,uint256)` |
+| `encodeErc1155Transfer` | `Erc1155Transfer(bytes32,address,address,uint256,uint256)` |
+| `encodeErc1155BatchTransfer` | `Erc1155BatchTransfer(bytes32,address,address,(uint256,uint256)[])` |
+
+All of them return the encoded output as a 0x-hex string, ready to pass to [`emitOutput`](/rollup/reference/emit-output).
+
+## Usage
+
+```ts twoslash
+import { Rollup } from '@deroll/rollup';
+import {
+    encodeErc20Transfer,
+    encodeErc721Transfer,
+    encodeErc1155Transfer,
+    encodeErc1155BatchTransfer,
+} from '@deroll/codec';
+const rollup = new Rollup();
+// ---cut---
+const recipient = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+
+// 100 units of an ERC-20 token
+rollup.emitOutput(
+    encodeErc20Transfer({
+        recipient,
+        token: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+        value: 100n,
+    }),
+);
+
+// one ERC-721 token
+rollup.emitOutput(
+    encodeErc721Transfer({
+        recipient,
+        token: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+        tokenId: 7n,
+    }),
+);
+
+// ERC-1155: a single (id, value) or a batch of [id, value] pairs
+rollup.emitOutput(
+    encodeErc1155Transfer({
+        recipient,
+        token: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+        tokenId: 7n,
+        value: 3n,
+    }),
+);
+rollup.emitOutput(
+    encodeErc1155BatchTransfer({
+        recipient,
+        token: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+        items: [
+            [1n, 2n],
+            [3n, 4n],
+        ],
+    }),
+);
+```
+
+## Parameters
+
+All four take a named options object:
+
+| Field | Type | Applies to | Description |
+| --- | --- | --- | --- |
+| `recipient` | `Hex` (address, 20 bytes) | all | Address receiving the assets |
+| `token` | `Hex` (address, 20 bytes) | all | Token contract address |
+| `appContext` | `Hex` (32 bytes), optional (default zero hash) | all | Free-form application tag carried by the output |
+| `value` | `bigint` | ERC-20, ERC-1155 | Amount of tokens to transfer |
+| `tokenId` | `bigint` | ERC-721, ERC-1155 | Token id to transfer |
+| `items` | `[bigint, bigint][]` | ERC-1155 batch | `[tokenId, value]` pairs |
+
+## Errors
+
+Invalid arguments (malformed addresses, out-of-range integers, malformed hex) throw [ox](https://oxlib.sh) errors, e.g. `Address.InvalidAddressError` or `Hex.IntegerOutOfRangeError`.

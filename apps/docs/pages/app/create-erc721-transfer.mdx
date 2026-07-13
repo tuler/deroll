@@ -1,0 +1,55 @@
+# createErc721Transfer
+
+Creates an `Erc721Transfer` output while processing an advance request: a typed voucher that transfers an ERC-721 token from the application to a recipient on the base layer.
+
+## Usage
+
+The following example transfers token id 1 from the application to the sender of the input.
+
+```ts twoslash
+import { createApp } from "@deroll/app";
+
+// create application
+const app = createApp();
+
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const id = app.createErc721Transfer({ // [!code focus]
+        recipient: msgSender, // [!code focus]
+        token: "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B", // NFT address // [!code focus]
+        tokenId: 1n, // [!code focus]
+    }); // [!code focus]
+    return true;
+});
+```
+
+## Returns
+
+Type: `number`
+
+The index of the output.
+
+## Parameters
+
+### recipient
+
+Type: `Address`
+
+The address that receives the token.
+
+### token
+
+Type: `Address`
+
+The ERC-721 token address.
+
+### tokenId
+
+Type: `bigint`
+
+The id of the token to transfer.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Optional `bytes32` tag recipients can filter outputs by. Defaults to the application-wide [`appContext`](./create-app) (zero hash unless configured).

@@ -5,13 +5,13 @@ const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async ({ payload }) => {
-    await app.createNotice({ payload });
-    return "accept";
+    app.createNotice({ payload });
+    return true;
 });
 
 // log incoming inspect request
-app.addInspectHandler(async ({ payload }) => {
-    await app.createReport({ payload });
+app.addInspectHandler(async (payload) => {
+    app.createReport(payload);
 });
 
 // start app

@@ -1,7 +1,7 @@
-# withdrawERC1155
+# withdrawErc1155
 
-Withdraw ERC-1155 tokens from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+Withdraw ERC-1155 tokens from one user, returning an `Erc1155Transfer` that transfers the tokens to the user on L1.
+Emit it with [createErc1155Transfer](/app/create-erc1155-transfer).
 
 ## Usage
 
@@ -20,21 +20,22 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const dapp = metadata.appContract;
-    const value = wallet.erc1155BalanceOf(token, user, 1n);
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const value = wallet.erc1155BalanceOf(token, msgSender, 1n);
     if (value > 0) {
-        const voucher = wallet.withdrawERC1155(dapp, token, user, 1n, value, "0x"); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createErc1155Transfer( // [!code focus]
+            wallet.withdrawErc1155(token, msgSender, 1n, value), // [!code focus]
+        ); // [!code focus]
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `Voucher`
+Type: `Erc1155Transfer`
+
+The transfer fields (`recipient`, `token`, `tokenId`, `value`), ready for [createErc1155Transfer](/app/create-erc1155-transfer).
 
 ## Parameters
 
@@ -42,9 +43,9 @@ Type: `Address`
 
 Address of ERC-1155 token.
 
-Type: `string`
+Type: `Address`
 
-User to withdraw from.
+User to withdraw from (and L1 recipient).
 
 Type: `bigint`
 
@@ -53,7 +54,3 @@ Id of the token.
 Type: `bigint`
 
 Amount to withdraw.
-
-Type: `Hex`
-
-Extra payload to pass to the L1 voucher.

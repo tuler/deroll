@@ -29,18 +29,19 @@
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsup --watch",
         "lint": "biome check",
-        "prepack": "run-s build"
+        "prepack": "run-s build",
+        "test": "vitest run"
     },
     "dependencies": {
-        "@deroll/cmio": "workspace:*",
+        "@deroll/codec": "workspace:*",
         "@deroll/core": "workspace:*",
-        "viem": "^2.53.1"
+        "@deroll/rollup": "workspace:*",
+        "ox": "^0.14.29"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "npm-run-all": "^4.1.5",
-        "ts-node": "^10.9.2",
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9"

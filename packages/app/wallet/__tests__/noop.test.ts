@@ -19,17 +19,15 @@ describe("noop", () => {
     test("reject", async () => {
         const wallet = createWallet();
         const response = await wallet.handler({
-            metadata: {
-                chainId: 1n,
-                appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
-                msgSender: "0x18930e8a66a1DbE21D00581216789AAB7460Afd0",
-                blockNumber: 0n,
-                blockTimestamp: 0n,
-                prevRandao: 0n,
-                index: 0n,
-            },
-            payload: Buffer.from("deadbeef", "hex"),
+            chainId: 1n,
+            appContract: "0xab7528bb862fB57E8A2BCd567a2e929a0Be56a5e",
+            msgSender: "0x18930e8a66a1DbE21D00581216789AAB7460Afd0",
+            blockNumber: 0n,
+            blockTimestamp: 0n,
+            prevRandao: 0n,
+            index: 0n,
+            payload: "0xdeadbeef",
         });
-        expect(response).toBe("reject");
+        expect(response).toBe(false);
     });
 });

@@ -1,7 +1,7 @@
 # withdrawEther
 
-Withdraw L2 ETH (or base layer native token) from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+Withdraw L2 ETH (or base layer native token) from one user, returning a `CallVoucher` that transfers the value to the user on L1.
+Emit it with [createCallVoucher](/app/create-call-voucher).
 
 ## Usage
 
@@ -19,26 +19,26 @@ const wallet = createWallet();
 
 app.addAdvanceHandler(wallet.handler);
 
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const value = wallet.etherBalanceOf(user);
+app.addAdvanceHandler(async ({ msgSender }) => {
+    const value = wallet.etherBalanceOf(msgSender);
     if (value > 0) {
-        const voucher = wallet.withdrawEther(user, value); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createCallVoucher(wallet.withdrawEther(msgSender, value)); // [!code focus]
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `Voucher`
+Type: `CallVoucher`
+
+The voucher fields (`destination`, `value`, `payload`), ready for [createCallVoucher](/app/create-call-voucher).
 
 ## Parameters
 
-Type: `string`
+Type: `Address`
 
-User to withdraw from.
+User to withdraw from (and L1 recipient).
 
 Type: `bigint`
 

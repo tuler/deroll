@@ -12,9 +12,9 @@ import { createApp } from "@deroll/app";
 // create application
 const app = createApp();
 
-app.addAdvanceHandler(async ({ metadata, payload }) => { // [!code focus]
-    console.log(metadata, payload); // [!code focus]
-    return "accept"; // [!code focus]
+app.addAdvanceHandler(async ({ msgSender, payload }) => { // [!code focus]
+    console.log(msgSender, payload); // [!code focus]
+    return true; // [!code focus]
 }); // [!code focus]
 ```
 
@@ -26,4 +26,4 @@ app.addAdvanceHandler(async ({ metadata, payload }) => { // [!code focus]
 
 Type: `AdvanceRequestHandler`
 
-An async function that receives an object with the request `metadata` and `payload`, and returns either `accept` or `reject`.
+An async function that receives an object with the decoded input fields (`chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index` and `payload`), and returns a boolean: `true` accepts the input, `false` rejects it.

@@ -1,4 +1,4 @@
-# parseERC20Deposit
+# parseErc20Deposit
 
 Parse a ERC-20 deposit request coming from the `ERC20Portal` smart contract.
 
@@ -6,25 +6,25 @@ Parse a ERC-20 deposit request coming from the `ERC20Portal` smart contract.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
-import { isERC20Deposit, parseERC20Deposit } from "@deroll/wallet";
+import { isErc20Deposit, parseErc20Deposit } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => {
-    if (isERC20Deposit(data)) {
-        const deposit = parseERC20Deposit(data.payload); // [!code focus]
+    if (isErc20Deposit(data)) {
+        const deposit = parseErc20Deposit(data.payload); // [!code focus]
 // @noErrors
         deposit.
 //              ^|
     }
-    return "accept";
+    return true;
 });
 ```
 
 ## Returns
 
-Type: `ERC20Deposit`
+Type: `Erc20Deposit`
 
 Structure with deposit data.
 

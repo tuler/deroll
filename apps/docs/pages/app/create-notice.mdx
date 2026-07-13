@@ -15,8 +15,8 @@ const app = createApp();
 
 // log incoming advance request
 app.addAdvanceHandler(async (data) => {
-    const id = await app.createNotice({ payload: stringToHex("hello") }); // [!code focus]
-    return "accept";
+    const id = app.createNotice({ payload: stringToHex("hello") }); // [!code focus]
+    return true;
 });
 ```
 
@@ -33,3 +33,9 @@ The id of the notice output.
 Type: `Hex`
 
 Binary payload of the notice, hex-encoded.
+
+### appContext
+
+Type: `Hex | undefined`
+
+Optional `bytes32` tag recipients can filter outputs by. Defaults to the application-wide [`appContext`](./create-app) (zero hash unless configured).

@@ -30,7 +30,7 @@
         "dev": "tsup --watch",
         "lint": "biome check",
         "prepack": "run-s build",
-        "test": "vitest"
+        "test": "vitest run"
     },
     "dependencies": {
         "@cartesi/viem": "2.0.0-alpha.31",
