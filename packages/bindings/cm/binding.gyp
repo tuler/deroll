@@ -35,12 +35,26 @@
         "cflags_cc!": ["-std=gnu++17", "-fno-exceptions", "-fno-rtti"],
         "cflags_cc": ["-std=gnu++20", "-fexceptions", "-frtti"],
         "xcode_settings": {
-            "CLANG_CXX_LANGUAGE_STANDARD": "c++20",
+            "CLANG_CXX_LANGUAGE_STANDARD": "gnu++20",
             "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
             "GCC_ENABLE_CPP_RTTI": "YES",
             "GCC_SYMBOLS_PRIVATE_EXTERN": "YES",
             "MACOSX_DEPLOYMENT_TARGET": "12.0",
+            # OTHER_* flags are emitted after the flags gyp computes from the
+            # GCC_/CLANG_ settings above, so they win even when node-gyp's
+            # common.gypi (-fno-exceptions, -fno-rtti, -std=gnu++17) takes
+            # precedence in the settings merge. libcartesi requires C++20
+            # with exceptions and RTTI.
             "OTHER_CFLAGS": [
+                "-O2",
+                "-fno-strict-aliasing",
+                "-fno-strict-overflow",
+                "-fno-delete-null-pointer-checks"
+            ],
+            "OTHER_CPLUSPLUSFLAGS": [
+                "-std=gnu++20",
+                "-fexceptions",
+                "-frtti",
                 "-O2",
                 "-fno-strict-aliasing",
                 "-fno-strict-overflow",
