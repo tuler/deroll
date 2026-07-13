@@ -1,11 +1,7 @@
 import { MachineError } from "../cartesi-machine.js";
 import type { CleanupCall } from "../remote-cartesi-machine.js";
 import type { MachineConfig, MachineRuntimeConfig } from "../types.js";
-import {
-    addon,
-    ensureJsonrpcServerBinary,
-    type NativeMachine,
-} from "./addon.js";
+import { addon, ensureJsonrpcServerBinary } from "./addon.js";
 import { NodeCartesiMachine } from "./cartesi-machine.js";
 
 /**
