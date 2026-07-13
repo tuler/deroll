@@ -1,4 +1,5 @@
-import { existsSync } from "node:fs";
+import { chmodSync, existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import nodeGypBuild from "node-gyp-build";
 
@@ -152,7 +153,37 @@ const findPackageRoot = (dir: string): string => {
 };
 const packageRoot = findPackageRoot(__dirname);
 
-export const addon = nodeGypBuild(packageRoot) as NativeAddon;
+/**
+ * Prebuilt binaries ship in per-platform packages (esbuild-style), declared
+ * as optionalDependencies of the published @deroll/cm so only the matching
+ * one is installed.
+ */
+const platformPackage = `@deroll/cm-${process.platform}-${process.arch}`;
+
+// works in both output formats (require is not defined in the ESM bundle)
+const require_ = createRequire(join(__dirname, "index.js"));
+
+const loadAddon = (): NativeAddon => {
+    // A local build wins: node-gyp-build resolves build/ (and prebuilds/)
+    // under the package root, present when the addon was compiled from source
+    // (repo checkout, or the install-time fallback compile).
+    try {
+        return nodeGypBuild(packageRoot) as NativeAddon;
+    } catch (buildError) {
+        // Published installs resolve the platform-specific prebuilt package,
+        // whose main is the addon itself.
+        try {
+            return require_(platformPackage) as NativeAddon;
+        } catch {
+            throw new Error(
+                `@deroll/cm: no native binding available; expected the ${platformPackage} package (unsupported platform?) or a source build (requires a C++20 compiler and boost headers)`,
+                { cause: buildError },
+            );
+        }
+    }
+};
+
+export const addon = loadAddon();
 
 // -----------------------------------------------------------------------------
 // Bundled JSON-RPC server binary
@@ -161,21 +192,36 @@ export const addon = nodeGypBuild(packageRoot) as NativeAddon;
 /**
  * cm_jsonrpc_spawn_server() launches the executable named by the
  * CARTESI_JSONRPC_MACHINE environment variable, falling back to
- * `cartesi-jsonrpc-machine` on the PATH. When the addon was compiled from
- * source, the same build also produced the server executable; point the
+ * `cartesi-jsonrpc-machine` on the PATH. Both a source build and the
+ * platform-specific prebuilt package bundle the server executable; point the
  * environment variable at it so spawn works out of the box.
  */
 export function ensureJsonrpcServerBinary(): void {
     if (process.env.CARTESI_JSONRPC_MACHINE) {
         return;
     }
-    const bundled = join(
-        packageRoot,
-        "build",
-        "Release",
-        "cartesi-jsonrpc-machine",
-    );
-    if (existsSync(bundled)) {
-        process.env.CARTESI_JSONRPC_MACHINE = bundled;
+    const candidates = [
+        join(packageRoot, "build", "Release", "cartesi-jsonrpc-machine"),
+    ];
+    try {
+        const platformPackageDir = dirname(
+            require_.resolve(`${platformPackage}/package.json`),
+        );
+        candidates.push(join(platformPackageDir, "cartesi-jsonrpc-machine"));
+    } catch {
+        // platform package not installed
     }
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            try {
+                // some installers do not preserve the executable bit
+                chmodSync(candidate, 0o755);
+            } catch {
+                // best effort: spawn fails later with a clearer error
+            }
+            process.env.CARTESI_JSONRPC_MACHINE = candidate;
+            return;
+        }
+    }
+    // fall through: cm_jsonrpc_spawn_server searches the PATH
 }

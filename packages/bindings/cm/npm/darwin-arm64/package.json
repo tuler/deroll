@@ -1,0 +1,25 @@
+{
+    "name": "@deroll/cm-darwin-arm64",
+    "version": "0.2.0-alpha.2",
+    "description": "Prebuilt @deroll/cm native binaries for darwin-arm64 (Cartesi Machine N-API addon and cartesi-jsonrpc-machine server)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
+    "license": "(Apache-2.0 AND LGPL-3.0-or-later)",
+    "preferUnplugged": true,
+    "main": "cartesi_machine.node",
+    "os": [
+        "darwin"
+    ],
+    "cpu": [
+        "arm64"
+    ],
+    "files": [
+        "cartesi_machine.node",
+        "cartesi-jsonrpc-machine"
+    ],
+    "publishConfig": {
+        "access": "public"
+    }
+}

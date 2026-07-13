@@ -7,7 +7,7 @@
         "clean": "turbo clean && rm -rf node_modules",
         "dev": "turbo dev --no-cache --continue",
         "lint": "turbo lint",
-        "release": "turbo build && node scripts/resolve-workspace-deps.mjs && changeset publish",
+        "release": "turbo build && node scripts/resolve-workspace-deps.mjs && node packages/bindings/cm/scripts/inject-platform-deps.mjs && node packages/bindings/cm/scripts/publish-platform-packages.mjs && changeset publish",
         "test": "turbo test",
         "version-packages": "changeset version"
     },

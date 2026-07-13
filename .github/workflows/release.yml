@@ -19,18 +19,19 @@ env:
     LINUX_VERSION: 6.5.13-ctsi-1
 
 jobs:
-    # Build cmio prebuilds only when @deroll/cmio is actually about to be
-    # published — i.e. its package.json version is not yet on npm. This is the
-    # only reason the prebuild matrix needs to run, and it's correct in every
-    # case: false on Version-PR runs (cmio not bumped yet) and on already-
+    # Build native prebuilds only when the owning package is actually about to
+    # be published — i.e. its package.json version is not yet on npm. This is
+    # the only reason the prebuild matrices need to run, and it's correct in
+    # every case: false on Version-PR runs (not bumped yet) and on already-
     # published versions. (Counting .changeset/*.md does NOT work: in changesets
     # pre mode the .md files persist after `changeset version`, so they can't
     # signal whether this push publishes.)
     detect:
-        name: Detect cmio publish
+        name: Detect native package publish
         runs-on: ubuntu-latest
         outputs:
             publish: ${{ steps.check.outputs.publish }}
+            cm-publish: ${{ steps.check-cm.outputs.publish }}
         steps:
             - uses: actions/checkout@v6
             - uses: actions/setup-node@v6
@@ -45,6 +46,16 @@ jobs:
                   else
                       echo "publish=true" >> "$GITHUB_OUTPUT"
                       echo "@deroll/cmio@${LOCAL} not yet published -> build prebuilds."
+                  fi
+            - id: check-cm
+              run: |
+                  LOCAL=$(node -p "require('./packages/bindings/cm/package.json').version")
+                  if npm view "@deroll/cm@${LOCAL}" version >/dev/null 2>&1; then
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                      echo "@deroll/cm@${LOCAL} already on npm -> skip platform packages."
+                  else
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                      echo "@deroll/cm@${LOCAL} not yet published -> build platform packages."
                   fi
 
     # @deroll/cmio native prebuilds, built from the exact commit being published
@@ -70,6 +81,14 @@ jobs:
             - uses: actions/setup-node@v6
               with:
                   node-version: 24
+            # boost headers: cm's addon compiles from the machine-emulator
+            # submodule during the root `bun install`
+            - name: Install boost (linux)
+              if: runner.os == 'Linux'
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+            - name: Install boost (macos)
+              if: runner.os == 'macOS'
+              run: brew install boost
             # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
             # npm can't resolve. Install at the repo root, then prebuild in cmio.
             - run: bun install --frozen-lockfile
@@ -95,6 +114,10 @@ jobs:
             - uses: actions/setup-node@v6
               with:
                   node-version: 24
+            # boost headers: cm's addon compiles from the machine-emulator
+            # submodule during the root `bun install`
+            - name: Install boost
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
             - run: bun install --frozen-lockfile
             - name: Install riscv64 cross toolchain and Cartesi Linux headers
               run: |
@@ -119,16 +142,63 @@ jobs:
                   if-no-files-found: error
                   path: packages/bindings/cmio/prebuilds/
 
+    # @deroll/cm per-platform prebuilt packages (@deroll/cm-<platform>-<arch>),
+    # assembled from the exact commit being published. Each job builds the
+    # N-API addon + the cartesi-jsonrpc-machine server for its platform and
+    # uploads the whole npm/ tree (scaffolds are version-stamped identically
+    # by package-platform, so the artifacts merge cleanly).
+    cm-platform:
+        name: cm platform package ${{ matrix.os }}
+        needs: detect
+        if: needs.detect.outputs.cm-publish == 'true'
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest # linux-x64
+                    - os: ubuntu-24.04-arm # linux-arm64
+                    - os: macos-15-intel # darwin-x64
+                    - os: macos-latest # darwin-arm64
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+            - uses: oven-sh/setup-bun@v2
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+            # boost headers, required to compile libcartesi (header-only usage)
+            - name: Install boost (linux)
+              if: runner.os == 'Linux'
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+            - name: Install boost (macos)
+              if: runner.os == 'macOS'
+              run: brew install boost
+            # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
+            # npm can't resolve. The cm install script compiles the addon here.
+            - run: bun install --frozen-lockfile
+            - name: Assemble platform package
+              working-directory: packages/bindings/cm
+              run: bun run package:platform
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: cm-platform-${{ matrix.os }}
+                  if-no-files-found: error
+                  path: packages/bindings/cm/npm/
+
     release:
         name: Release
-        needs: [detect, prebuild, prebuild-riscv64]
+        needs: [detect, prebuild, prebuild-riscv64, cm-platform]
         # Run when creating the Version PR (publish=false, prebuilds skipped), or
-        # when publishing AND every prebuild succeeded. Never publish cmio without
-        # its prebuilds: a prebuild failure blocks the release (re-runnable).
+        # when publishing AND every prebuild succeeded. Never publish a native
+        # package without its prebuilds: a prebuild failure blocks the release
+        # (re-runnable).
         if: >-
             always() && needs.detect.result == 'success' &&
             (needs.detect.outputs.publish == 'false' ||
-             (needs.prebuild.result == 'success' && needs.prebuild-riscv64.result == 'success'))
+             (needs.prebuild.result == 'success' && needs.prebuild-riscv64.result == 'success')) &&
+            (needs.detect.outputs.cm-publish == 'false' ||
+             needs.cm-platform.result == 'success')
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repo
@@ -155,6 +225,11 @@ jobs:
             - name: Update npm for trusted publishing
               run: npm install -g npm@11
 
+            # boost headers: cm's addon compiles from the machine-emulator
+            # submodule during `bun install`
+            - name: Install boost
+              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
@@ -168,6 +243,16 @@ jobs:
                   pattern: prebuilds-*
                   merge-multiple: true
                   path: packages/bindings/cmio/prebuilds
+
+            # Collect the assembled @deroll/cm-<platform>-<arch> packages so the
+            # release script can publish them right before @deroll/cm itself.
+            - name: Collect cm platform packages
+              if: needs.detect.outputs.cm-publish == 'true'
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: cm-platform-*
+                  merge-multiple: true
+                  path: packages/bindings/cm/npm
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets

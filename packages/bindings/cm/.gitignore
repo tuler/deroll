@@ -9,3 +9,5 @@ linux.bin
 rootfs.ext2
 /snapshots
 /prebuilds
+npm/*/cartesi_machine.node
+npm/*/cartesi-jsonrpc-machine
