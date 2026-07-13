@@ -1,0 +1,181 @@
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import nodeGypBuild from "node-gyp-build";
+
+// -----------------------------------------------------------------------------
+// Native addon loading
+// -----------------------------------------------------------------------------
+
+/**
+ * Native machine object exposed by the N-API addon. uint64 values cross the
+ * boundary as bigint, configs/proofs/access logs as JSON strings, and byte
+ * blobs as Buffers. Failed calls throw an Error carrying `code` (cm_error)
+ * and `description` (cm_get_last_error_message()).
+ */
+export interface NativeMachine {
+    isEmpty(): boolean;
+    create(config: string, runtimeConfig: string | null): void;
+    load(dir: string, runtimeConfig: string | null): void;
+    cloneEmpty(): NativeMachine;
+    store(dir: string): void;
+    destroy(): void;
+    getDefaultConfig(): string;
+    getRegAddress(reg: number): bigint;
+    setRuntimeConfig(runtimeConfig: string): void;
+    getRuntimeConfig(): string;
+    replaceMemoryRange(
+        start: bigint,
+        length: bigint,
+        shared: boolean,
+        imageFilename: string | null,
+    ): void;
+    getInitialConfig(): string;
+    getMemoryRanges(): string;
+    getRootHash(): Buffer;
+    getProof(address: bigint, log2Size: number): string;
+    readWord(address: bigint): bigint;
+    readReg(reg: number): bigint;
+    writeReg(reg: number, value: bigint): void;
+    readMemory(address: bigint, length: bigint): Buffer;
+    writeMemory(address: bigint, data: Uint8Array): void;
+    readVirtualMemory(address: bigint, length: bigint): Buffer;
+    writeVirtualMemory(address: bigint, data: Uint8Array): void;
+    translateVirtualAddress(vaddr: bigint): bigint;
+    run(mcycleEnd: bigint): number;
+    runUarch(uarchCycleEnd: bigint): number;
+    resetUarch(): void;
+    receiveCmioRequest(): { cmd: number; reason: number; data: Buffer };
+    sendCmioResponse(reason: number, data: Uint8Array): void;
+    logStep(mcycleCount: bigint, logFilename: string): number;
+    logStepUarch(logType: number): string;
+    logResetUarch(logType: number): string;
+    logSendCmioResponse(
+        reason: number,
+        data: Uint8Array,
+        logType: number,
+    ): string;
+    verifyStep(
+        rootHashBefore: Uint8Array,
+        logFilename: string,
+        mcycleCount: bigint,
+        rootHashAfter: Uint8Array,
+    ): number;
+    verifyStepUarch(
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    verifyResetUarch(
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    verifySendCmioResponse(
+        reason: number,
+        data: Uint8Array,
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    verifyMerkleTree(): boolean;
+    verifyDirtyPageMaps(): boolean;
+    jsonrpcFork(): { machine: NativeMachine; address: string; pid: number };
+    jsonrpcShutdownServer(): void;
+    jsonrpcRebindServer(address: string): string;
+    jsonrpcGetServerVersion(): string;
+    jsonrpcEmancipateServer(): void;
+    jsonrpcSetTimeout(ms: number): void;
+    jsonrpcGetTimeout(): number;
+    jsonrpcSetCleanupCall(call: number): void;
+    jsonrpcGetCleanupCall(): number;
+    jsonrpcGetServerAddress(): string;
+    jsonrpcDelayNextRequest(ms: number): void;
+}
+
+export interface NativeAddon {
+    getLastErrorMessage(): string;
+    machineNew(): NativeMachine;
+    machineCreateNew(
+        config: string,
+        runtimeConfig: string | null,
+    ): NativeMachine;
+    machineLoadNew(dir: string, runtimeConfig: string | null): NativeMachine;
+    getDefaultConfig(): string;
+    getRegAddress(reg: number): bigint;
+    verifyStep(
+        rootHashBefore: Uint8Array,
+        logFilename: string,
+        mcycleCount: bigint,
+        rootHashAfter: Uint8Array,
+    ): number;
+    verifyStepUarch(
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    verifyResetUarch(
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    verifySendCmioResponse(
+        reason: number,
+        data: Uint8Array,
+        rootHashBefore: Uint8Array,
+        log: string,
+        rootHashAfter: Uint8Array,
+    ): void;
+    jsonrpcSpawnServer(
+        address: string,
+        spawnTimeoutMs: number,
+    ): { machine: NativeMachine; boundAddress: string; pid: number };
+    jsonrpcConnectServer(
+        address: string,
+        connectTimeoutMs: number,
+    ): NativeMachine;
+}
+
+// Package root: walk up from this file (dist/ when bundled, src/node/ when
+// executed from sources) until the directory containing binding.gyp.
+const findPackageRoot = (dir: string): string => {
+    let current = dir;
+    while (true) {
+        if (existsSync(join(current, "binding.gyp"))) {
+            return current;
+        }
+        const parent = dirname(current);
+        if (parent === current) {
+            throw new Error(`could not find package root from ${dir}`);
+        }
+        current = parent;
+    }
+};
+const packageRoot = findPackageRoot(__dirname);
+
+export const addon = nodeGypBuild(packageRoot) as NativeAddon;
+
+// -----------------------------------------------------------------------------
+// Bundled JSON-RPC server binary
+// -----------------------------------------------------------------------------
+
+/**
+ * cm_jsonrpc_spawn_server() launches the executable named by the
+ * CARTESI_JSONRPC_MACHINE environment variable, falling back to
+ * `cartesi-jsonrpc-machine` on the PATH. When the addon was compiled from
+ * source, the same build also produced the server executable; point the
+ * environment variable at it so spawn works out of the box.
+ */
+export function ensureJsonrpcServerBinary(): void {
+    if (process.env.CARTESI_JSONRPC_MACHINE) {
+        return;
+    }
+    const bundled = join(
+        packageRoot,
+        "build",
+        "Release",
+        "cartesi-jsonrpc-machine",
+    );
+    if (existsSync(bundled)) {
+        process.env.CARTESI_JSONRPC_MACHINE = bundled;
+    }
+}

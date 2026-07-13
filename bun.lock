@@ -13,7 +13,7 @@
     },
     "apps/docs": {
       "name": "@deroll/docs",
-      "version": "1.0.0-alpha.5",
+      "version": "1.0.0-alpha.7",
       "dependencies": {
         "@deroll/app": "workspace:*",
         "@deroll/cm": "workspace:*",
@@ -39,7 +39,7 @@
     },
     "apps/examples": {
       "name": "@deroll/examples",
-      "version": "2.0.0-alpha.9",
+      "version": "2.0.0-alpha.11",
       "bin": {
         "deroll-example-abi": "dist/abi.js",
         "deroll-example-echo": "dist/echo.js",
@@ -67,7 +67,7 @@
     },
     "apps/explorer": {
       "name": "@deroll/explorer",
-      "version": "0.1.1-alpha.0",
+      "version": "0.2.0-alpha.3",
       "dependencies": {
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.101.0",
@@ -88,7 +88,7 @@
     },
     "packages/app/app": {
       "name": "@deroll/app",
-      "version": "2.0.0-alpha.7",
+      "version": "2.0.0-alpha.9",
       "dependencies": {
         "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
@@ -194,15 +194,18 @@
     },
     "packages/bindings/cm": {
       "name": "@deroll/cm",
-      "version": "0.2.0-alpha.1",
+      "version": "0.2.0-alpha.2",
       "dependencies": {
-        "koffi": "^3.1.0",
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4",
       },
       "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
+        "node-gyp": "^13.0.0",
         "npm-run-all": "^4.1.5",
+        "prebuildify": "^6.0.1",
         "tsup": "^8.5.0",
         "tsx": "^4.20.3",
         "typescript": "^6.0.3",
@@ -212,7 +215,7 @@
     },
     "packages/bindings/cmio": {
       "name": "@deroll/cmio",
-      "version": "0.2.0-alpha.1",
+      "version": "0.2.0-alpha.2",
       "dependencies": {
         "node-addon-api": "^8.3.0",
         "node-gyp-build": "^4.8.4",
@@ -227,7 +230,7 @@
     },
     "packages/explorer/decoder": {
       "name": "@deroll/decoder",
-      "version": "0.2.0-alpha.0",
+      "version": "0.2.0-alpha.2",
     },
     "packages/explorer/json-decoder": {
       "name": "@deroll/json-decoder",
@@ -243,7 +246,6 @@
     "node-gyp-build",
     "vue-demi",
     "es5-ext",
-    "koffi",
   ],
   "catalog": {
     "@biomejs/biome": "2.5.1",
@@ -530,34 +532,6 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
     "@keyv/serialize": ["@keyv/serialize@1.1.1", "", {}, "sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA=="],
-
-    "@koromix/koffi-darwin-arm64": ["@koromix/koffi-darwin-arm64@3.1.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-VEt5r3fXTfbejr83PnuOP0H7s9Zmazcs+lofu96DOcRkistlMsn59wYyWiKpyAjs9PCgm0Ykh62ChZ3CGMmIOg=="],
-
-    "@koromix/koffi-darwin-x64": ["@koromix/koffi-darwin-x64@3.1.0", "", { "os": "darwin", "cpu": "x64" }, "sha512-n/tVRB9xIzdXT5H3zZt8ueThgWTSDL+yU7PWnU8wbZPBSawP/otx3swQyd6nMOqj1bmHgSHopiKSBXRS9pllmg=="],
-
-    "@koromix/koffi-freebsd-arm64": ["@koromix/koffi-freebsd-arm64@3.1.0", "", { "os": "freebsd", "cpu": "arm64" }, "sha512-vazoPYIhOAlXZksVIqDRMIID4VeUZKx8F3dR90hOobT2ATyOkqNS5dv5UCV7Q7DSq22lQTrdbvENBAhROzCp0w=="],
-
-    "@koromix/koffi-freebsd-ia32": ["@koromix/koffi-freebsd-ia32@3.1.0", "", { "os": "freebsd", "cpu": "ia32" }, "sha512-Vm7Uc97ru6RTSVmae2zCZZQeaizqVZ8WoU4+gG4H03Qe+WOj7kbKt/MxT7VBzdbPYIU5ZJeG/ZED1YlZyab6eQ=="],
-
-    "@koromix/koffi-freebsd-x64": ["@koromix/koffi-freebsd-x64@3.1.0", "", { "os": "freebsd", "cpu": "x64" }, "sha512-N+VuVWjoiYPy1Go5mRadZ3B6RM5Qz+eCLhj2LXrMlefbUJ+O4gg7teCUGvPGfBEHDgmSN4yYUrfQmdJC10vOYw=="],
-
-    "@koromix/koffi-linux-arm64": ["@koromix/koffi-linux-arm64@3.1.0", "", { "os": "linux", "cpu": "arm64" }, "sha512-Wx5iOkeALe2ympLdiYwRpIg5qUkyQIv8N2foZ9rRker0uE7ZtXew2RRkbEgMir4b0yDYR1zyXd6B62GUzLtZ/g=="],
-
-    "@koromix/koffi-linux-ia32": ["@koromix/koffi-linux-ia32@3.1.0", "", { "os": "linux", "cpu": "ia32" }, "sha512-1DjYm1QehXU0dgn0uE+FGYOb3Of7GiTMqLS+ZI2gbl1b+h76sz4LRBvDVrQyAmSMVVU8/7696S21YgE/iBhBVg=="],
-
-    "@koromix/koffi-linux-loong64": ["@koromix/koffi-linux-loong64@3.1.0", "", { "os": "linux", "cpu": "none" }, "sha512-NOa0LdyltdESz3oeTqUH6MErHVoJOHoeXIsEp6xIMTUh4eKXEtlDQeoK6EYqo0DnBt83Xud95qLvi4Aw12pG4Q=="],
-
-    "@koromix/koffi-linux-riscv64": ["@koromix/koffi-linux-riscv64@3.1.0", "", { "os": "linux", "cpu": "none" }, "sha512-Ye6kiXZCGxGtAIXSly6XuOP5tJZNYOZ2eVg33k1MilKrzimAy9Mpw4d6e9+Sfsc1jesgeNYs1sb5iaI8HS3ncA=="],
-
-    "@koromix/koffi-linux-x64": ["@koromix/koffi-linux-x64@3.1.0", "", { "os": "linux", "cpu": "x64" }, "sha512-3yQTOkQrMna4VX+yeyfYImBjLlGrItMpsWyfaW1uSiz/A6GRydqdwYH7DWnp4Z+RSGYZpsewkf7byMc8pOOQKA=="],
-
-    "@koromix/koffi-openbsd-ia32": ["@koromix/koffi-openbsd-ia32@3.1.0", "", { "os": "openbsd", "cpu": "ia32" }, "sha512-/cDoFHb9yx4+yoT3GUpnKnfi3W2drG+/Ewo0TTZaQHb4PsxnYYyT6V8+t4cL5XXbQcTTcOsZxpmBRrn0NBa3dA=="],
-
-    "@koromix/koffi-openbsd-x64": ["@koromix/koffi-openbsd-x64@3.1.0", "", { "os": "openbsd", "cpu": "x64" }, "sha512-CoQdqgnKvWgTXXZlUst8cBRQEov7QsxlTN2WAsu9wez01Xe6gEcH/zYePANualzzCbnaELfe5P0rA80QkoDuPA=="],
-
-    "@koromix/koffi-win32-ia32": ["@koromix/koffi-win32-ia32@3.1.0", "", { "os": "win32", "cpu": "ia32" }, "sha512-WjrA+DEkpy0xEHu48+NSOboHhTnzkIfsFuq3d/WrSs+T9WflWRng3jC7mdJxmR4eHb6i6BqjW3k/U0mNUTjFPA=="],
-
-    "@koromix/koffi-win32-x64": ["@koromix/koffi-win32-x64@3.1.0", "", { "os": "win32", "cpu": "x64" }, "sha512-tnK5+IkzQBauQAQSzuyjso8OOIQRlaTZS39xIWpfqVYDLVDIuLDQk/WwHcOrR5yxlDrZq9ygiebBTOfcJFia7w=="],
 
     "@lezer/common": ["@lezer/common@1.5.2", "", {}, "sha512-sxQE460fPZyU3sdc8lafxiPwJHBzZRy/udNFynGQky1SePYBdhkBl1kOagA9uT3pxR8K09bOrmTUqA9wb/PjSQ=="],
 
@@ -1714,8 +1688,6 @@
     "jsonpointer": ["jsonpointer@5.0.1", "", {}, "sha512-p/nXbhSEcu3pZRdkW1OfJhpsVtW1gd4Wa1fnQc9YLiTfAjn0312eMKimbdIQzuZl9aa9xUGaRlP9T/CJE/ditQ=="],
 
     "keyv": ["keyv@5.6.0", "", { "dependencies": { "@keyv/serialize": "^1.1.1" } }, "sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw=="],
-
-    "koffi": ["koffi@3.1.0", "", { "optionalDependencies": { "@koromix/koffi-darwin-arm64": "3.1.0", "@koromix/koffi-darwin-x64": "3.1.0", "@koromix/koffi-freebsd-arm64": "3.1.0", "@koromix/koffi-freebsd-ia32": "3.1.0", "@koromix/koffi-freebsd-x64": "3.1.0", "@koromix/koffi-linux-arm64": "3.1.0", "@koromix/koffi-linux-ia32": "3.1.0", "@koromix/koffi-linux-loong64": "3.1.0", "@koromix/koffi-linux-riscv64": "3.1.0", "@koromix/koffi-linux-x64": "3.1.0", "@koromix/koffi-openbsd-ia32": "3.1.0", "@koromix/koffi-openbsd-x64": "3.1.0", "@koromix/koffi-win32-ia32": "3.1.0", "@koromix/koffi-win32-x64": "3.1.0" } }, "sha512-0mCvdjTJBXioiaKNz0vajAEdWtfM5qyhVXSq+wQrrU3odzNvl/J7Cqna79QpNo9mfoKpQgGsyFFDRtDACCwGrQ=="],
 
     "ky": ["ky@1.14.3", "", {}, "sha512-9zy9lkjac+TR1c2tG+mkNSVlyOpInnWdSMiue4F+kq8TwJSgv6o8jhLRg8Ho6SnZ9wOYUq/yozts9qQCfk7bIw=="],
 

@@ -13,9 +13,9 @@ import type {
 // -----------------------------------------------------------------------------
 
 /**
- * The maximum value for mcycle
+ * The maximum value for mcycle (UINT64_MAX)
  */
-export const MAX_MCYCLE = 0xffffffffffffffffffn;
+export const MAX_MCYCLE = 0xffffffffffffffffn;
 
 /// Constants
 export enum Constant {
