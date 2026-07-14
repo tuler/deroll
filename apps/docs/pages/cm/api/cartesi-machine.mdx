@@ -9,10 +9,20 @@ Descriptions for each method are in the following sections.
 export interface CartesiMachine {
     //// Machine Lifecycle
     isEmpty(): boolean;
-    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+    create(
+        config: MachineConfig,
+        runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
+    ): void;
+    load(
+        dir: string,
+        runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
+    ): void;
     cloneEmpty(): CartesiMachine;
-    store(dir: string): void;
+    store(dir: string, sharing?: SharingMode): void;
+    cloneStored(fromDir: string, toDir: string): void;
+    removeStored(dir: string): void;
     destroy(): void;
     
     //// Configuration
@@ -20,16 +30,12 @@ export interface CartesiMachine {
     getInitialConfig(): MachineConfig;
     setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
     getRuntimeConfig(): MachineRuntimeConfig;
-    getMemoryRanges(): MemoryRangeDescription[];
+    getAddressRanges(): AddressRangeDescription[];
 
     //// Memory Operations
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename?: string,
-    ): void;
+    replaceMemoryRange(rangeConfig: MemoryRangeConfig): void;
     readWord(address: bigint): bigint;
+    writeWord(address: bigint, value: bigint): void;
     readMemory(address: bigint, length: bigint): Buffer;
     writeMemory(address: bigint, data: Buffer): void;
     readVirtualMemory(address: bigint, length: bigint): Buffer;
@@ -46,11 +52,12 @@ export interface CartesiMachine {
     runUarch(uarchCycleEnd: bigint): UarchBreakReason;
     resetUarch(): void;
 
-    //// Merkle Tree Operations
+    //// Hash Tree Operations
     getRootHash(): Buffer;
-    getProof(address: bigint, log2Size: number): Proof;
-    verifyMerkleTree(): boolean;
-    verifyDirtyPageMaps(): boolean;
+    getNodeHash(address: bigint, log2Size: number): Buffer;
+    getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof;
+    verifyHashTree(): boolean;
+    getHashTreeStats(clear?: boolean): HashTreeStats;
 
     //// Execution Log
     logStep(mcycleCount: bigint, logFilename: string): BreakReason;
@@ -63,12 +70,6 @@ export interface CartesiMachine {
     ): string;
 
     //// Verification
-    verifyStep(
-        rootHashBefore: Buffer,
-        logFilename: string,
-        mcycleCount: bigint,
-        rootHashAfter: Buffer,
-    ): BreakReason;
     verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
@@ -100,18 +101,26 @@ isEmpty(): boolean;
 
 ## create
 
-Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty.
+Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty. The optional `dir` sets the directory for on-disk backing stores.
 
 ```ts
-create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
+create(
+    config: MachineConfig,
+    runtimeConfig?: MachineRuntimeConfig,
+    dir?: string,
+): void;
 ```
 
 ## load
 
-Loads a machine instance from a previously stored directory, with optional runtime configuration. The machine object must be empty.
+Loads a machine instance from a previously stored directory, with optional runtime configuration. The machine object must be empty. The `sharing` mode controls whether machine changes stay in-memory (`SharingMode.None`, the default) or are reflected on-disk.
 
 ```ts
-load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+load(
+    dir: string,
+    runtimeConfig?: MachineRuntimeConfig,
+    sharing?: SharingMode,
+): void;
 ```
 
 ## cloneEmpty
@@ -124,10 +133,26 @@ cloneEmpty(): CartesiMachine;
 
 ## store
 
-Stores the current machine instance to a directory, serializing its entire state. Will not overwrite an existing directory.
+Stores the current machine instance to a directory, serializing its entire state. Will not overwrite an existing directory. The `sharing` mode defaults to `SharingMode.All` (store the full current state).
 
 ```ts
-store(dir: string): void;
+store(dir: string, sharing?: SharingMode): void;
+```
+
+## cloneStored
+
+Clones a stored machine directory.
+
+```ts
+cloneStored(fromDir: string, toDir: string): void;
+```
+
+## removeStored
+
+Removes a stored machine directory.
+
+```ts
+removeStored(dir: string): void;
 ```
 
 ## destroy
@@ -170,12 +195,12 @@ Returns the current machine runtime configuration.
 getRuntimeConfig(): MachineRuntimeConfig;
 ```
 
-## getMemoryRanges
+## getAddressRanges
 
-Returns a list of all memory ranges in the machine.
+Returns a list of all address ranges in the machine.
 
 ```ts
-getMemoryRanges(): MemoryRangeDescription[];
+getAddressRanges(): AddressRangeDescription[];
 ```
 
 ## replaceMemoryRange
@@ -183,12 +208,7 @@ getMemoryRanges(): MemoryRangeDescription[];
 Replaces a memory range in the machine. The new range must match an existing range's start and length.
 
 ```ts
-replaceMemoryRange(
-    start: bigint,
-    length: bigint,
-    shared: boolean,
-    imageFilename?: string,
-): void;
+replaceMemoryRange(rangeConfig: MemoryRangeConfig): void;
 ```
 
 ## readWord
@@ -197,6 +217,14 @@ Reads a 64-bit word from memory at the given physical address.
 
 ```ts
 readWord(address: bigint): bigint;
+```
+
+## writeWord
+
+Writes a 64-bit word to memory at the given physical address.
+
+```ts
+writeWord(address: bigint, value: bigint): void;
 ```
 
 ## readMemory
@@ -297,28 +325,36 @@ Obtains the root hash of the current machine state.
 getRootHash(): Buffer;
 ```
 
+## getNodeHash
+
+Obtains the hash of a node in the machine state hash tree.
+
+```ts
+getNodeHash(address: bigint, log2Size: number): Buffer;
+```
+
 ## getProof
 
-Obtains a Merkle proof for a range in the machine state.
+Obtains a Merkle proof for a range in the machine state. `log2RootSize` defaults to 64 (the full state).
 
 ```ts
-getProof(address: bigint, log2Size: number): Proof;
+getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof;
 ```
 
-## verifyMerkleTree
+## verifyHashTree
 
-Verifies the integrity of the Merkle tree against the current machine state.
+Verifies the integrity of the hash tree against the current machine state.
 
 ```ts
-verifyMerkleTree(): boolean;
+verifyHashTree(): boolean;
 ```
 
-## verifyDirtyPageMaps
+## getHashTreeStats
 
-Verifies the integrity of the dirty page maps.
+Returns hash tree statistics, optionally clearing the counters.
 
 ```ts
-verifyDirtyPageMaps(): boolean;
+getHashTreeStats(clear?: boolean): HashTreeStats;
 ```
 
 ## logStep
@@ -357,20 +393,20 @@ logSendCmioResponse(
 ): string;
 ```
 
-## verifyStep
+## verifyStepUarch
 
-Checks the validity of a step log file.
+**Note:** verifying a big-machine step log (`verifyStep`) is a module-level function, not a machine method:
 
 ```ts
-verifyStep(
-    rootHashBefore: Buffer,
-    logFilename: string,
-    mcycleCount: bigint,
-    rootHashAfter: Buffer,
-): BreakReason;
-```
+import { verifyStep } from "@deroll/cm";
 
-## verifyStepUarch
+verifyStep(
+    rootHashBefore,
+    logFilename,
+    mcycleCount,
+    rootHashAfter,
+); // returns BreakReason
+```
 
 Checks the validity of a state transition produced by a microarchitecture step log.
 
