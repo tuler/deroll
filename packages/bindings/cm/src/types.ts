@@ -13,26 +13,59 @@ export type VirtIODeviceType = "console" | "p9fs" | "net-user" | "net-tuntap";
 
 // Concurrency Runtime Configuration
 export interface ConcurrencyRuntimeConfig {
-    update_merkle_tree?: UnsignedInteger;
+    update_hash_tree?: UnsignedInteger;
 }
 
-// HTIF Runtime Configuration
-export interface HTIFRuntimeConfig {
-    no_console_putchar?: boolean;
+// Console Runtime Configuration
+export type ConsoleOutputDestination =
+    | "to_null"
+    | "to_stdout"
+    | "to_stderr"
+    | "to_fd"
+    | "to_file"
+    | "to_buffer";
+export type ConsoleInputSource =
+    | "from_null"
+    | "from_stdin"
+    | "from_fd"
+    | "from_file"
+    | "from_buffer";
+export type ConsoleFlushMode = "when_full" | "every_char" | "every_line";
+
+export interface ConsoleRuntimeConfig {
+    output_destination?: ConsoleOutputDestination;
+    output_flush_mode?: ConsoleFlushMode;
+    output_buffer_size?: UnsignedInteger;
+    output_fd?: number;
+    output_filename?: string;
+    input_source?: ConsoleInputSource;
+    input_buffer_size?: UnsignedInteger;
+    input_fd?: number;
+    input_filename?: string;
+    tty_cols?: number;
+    tty_rows?: number;
 }
 
 // Main Machine Runtime Configuration
 export interface MachineRuntimeConfig {
+    console?: ConsoleRuntimeConfig;
     concurrency?: ConcurrencyRuntimeConfig;
-    htif?: HTIFRuntimeConfig;
-    skip_root_hash_check?: boolean;
-    skip_root_hash_store?: boolean;
     skip_version_check?: boolean;
     soft_yield?: boolean;
+    no_reserve?: boolean;
 }
 
-// Processor Configuration
-export interface ProcessorConfig {
+// Backing store of a memory or device range
+export interface BackingStoreConfig {
+    data_filename?: string;
+    dht_filename?: string;
+    shared?: boolean;
+    create?: boolean;
+    truncate?: boolean;
+}
+
+// Processor registers
+export interface RegistersConfig {
     // General purpose registers (x0-x31)
     x0?: UnsignedInteger;
     x1?: UnsignedInteger;
@@ -138,10 +171,16 @@ export interface ProcessorConfig {
     iunrep?: UnsignedInteger;
 }
 
+// Processor Configuration
+export interface ProcessorConfig {
+    registers?: RegistersConfig;
+    backing_store?: BackingStoreConfig;
+}
+
 // RAM Configuration
 export interface RAMConfig {
     length: UnsignedInteger; // Required
-    image_filename?: string;
+    backing_store?: BackingStoreConfig;
 }
 
 // Device Tree Blob Configuration
@@ -149,19 +188,19 @@ export interface DTBConfig {
     bootargs?: string;
     init?: string;
     entrypoint?: string;
-    image_filename?: string;
+    backing_store?: BackingStoreConfig;
 }
 
 // Memory Range Configuration
 export interface MemoryRangeConfig {
     start?: UnsignedInteger;
     length?: UnsignedInteger;
-    image_filename?: string;
-    shared?: boolean;
+    read_only?: boolean;
+    backing_store?: BackingStoreConfig;
 }
 
-// Memory Range Description
-export interface MemoryRangeDescription {
+// Address Range Description
+export interface AddressRangeDescription {
     start?: UnsignedInteger;
     length?: UnsignedInteger;
     description?: string;
@@ -219,9 +258,40 @@ export interface AccessLog {
 // Flash Drive Configurations (array of memory ranges)
 export type FlashDriveConfigs = MemoryRangeConfig[];
 
-// TLB Configuration
-export interface TLBConfig {
-    image_filename?: string;
+// PMAs Configuration
+export interface PMAsConfig {
+    backing_store?: BackingStoreConfig;
+}
+
+// Hash function used by the hash tree
+export type HashFunctionType = "keccak256" | "sha256";
+
+// Hash Tree Configuration
+export interface HashTreeConfig {
+    shared?: boolean;
+    create?: boolean;
+    sht_filename?: string;
+    phtc_filename?: string;
+    phtc_size?: UnsignedInteger;
+    hash_function?: HashFunctionType;
+}
+
+// Page Hash Tree Cache statistics
+export interface PageHashTreeCacheStats {
+    page_hits?: UnsignedInteger;
+    page_misses?: UnsignedInteger;
+    word_hits?: UnsignedInteger;
+    word_misses?: UnsignedInteger;
+    page_changes?: UnsignedInteger;
+    inner_page_hashes?: UnsignedInteger;
+    pristine_pages?: UnsignedInteger;
+}
+
+// Hash Tree statistics
+export interface HashTreeStats {
+    phtc?: PageHashTreeCacheStats;
+    sparse_node_hashes?: UnsignedInteger;
+    dense_node_hashes?: UnsignedInteger[];
 }
 
 // CLINT Configuration
@@ -244,8 +314,8 @@ export interface HTIFConfig {
     yield_automatic?: boolean;
 }
 
-// Microarchitecture Processor Configuration
-export interface UarchProcessorConfig {
+// Microarchitecture processor registers
+export interface UarchRegistersConfig {
     // General purpose registers (x0-x31)
     x0?: UnsignedInteger;
     x1?: UnsignedInteger;
@@ -286,10 +356,16 @@ export interface UarchProcessorConfig {
     halt_flag?: boolean;
 }
 
+// Microarchitecture Processor Configuration
+export interface UarchProcessorConfig {
+    registers?: UarchRegistersConfig;
+    backing_store?: BackingStoreConfig;
+}
+
 // Microarchitecture RAM Configuration
 export interface UarchRAMConfig {
     length?: UnsignedInteger;
-    image_filename?: string;
+    backing_store?: BackingStoreConfig;
 }
 
 // Microarchitecture Configuration
@@ -300,8 +376,7 @@ export interface UarchConfig {
 
 // CMIO Buffer Configuration
 export interface CmioBufferConfig {
-    image_filename?: string;
-    shared?: boolean;
+    backing_store?: BackingStoreConfig;
 }
 
 // CMIO Configuration
@@ -337,7 +412,8 @@ export interface MachineConfig {
     ram: RAMConfig; // Required
     dtb?: DTBConfig;
     flash_drive?: FlashDriveConfigs;
-    tlb?: TLBConfig;
+    pmas?: PMAsConfig;
+    hash_tree?: HashTreeConfig;
     clint?: CLINTConfig;
     plic?: PLICConfig;
     htif?: HTIFConfig;

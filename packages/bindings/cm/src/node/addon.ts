@@ -15,26 +15,29 @@ import nodeGypBuild from "node-gyp-build";
  */
 export interface NativeMachine {
     isEmpty(): boolean;
-    create(config: string, runtimeConfig: string | null): void;
-    load(dir: string, runtimeConfig: string | null): void;
+    create(
+        config: string,
+        runtimeConfig: string | null,
+        dir: string | null,
+    ): void;
+    load(dir: string, runtimeConfig: string | null, sharing?: number): void;
     cloneEmpty(): NativeMachine;
-    store(dir: string): void;
+    store(dir: string, sharing?: number): void;
+    cloneStored(fromDir: string, toDir: string): void;
+    removeStored(dir: string): void;
     destroy(): void;
     getDefaultConfig(): string;
     getRegAddress(reg: number): bigint;
     setRuntimeConfig(runtimeConfig: string): void;
     getRuntimeConfig(): string;
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename: string | null,
-    ): void;
+    replaceMemoryRange(rangeConfig: string): void;
     getInitialConfig(): string;
-    getMemoryRanges(): string;
+    getAddressRanges(): string;
     getRootHash(): Buffer;
-    getProof(address: bigint, log2Size: number): string;
+    getNodeHash(address: bigint, log2Size: number): Buffer;
+    getProof(address: bigint, log2Size: number, log2RootSize?: number): string;
     readWord(address: bigint): bigint;
+    writeWord(address: bigint, value: bigint): void;
     readReg(reg: number): bigint;
     writeReg(reg: number, value: bigint): void;
     readMemory(address: bigint, length: bigint): Buffer;
@@ -55,12 +58,6 @@ export interface NativeMachine {
         data: Uint8Array,
         logType: number,
     ): string;
-    verifyStep(
-        rootHashBefore: Uint8Array,
-        logFilename: string,
-        mcycleCount: bigint,
-        rootHashAfter: Uint8Array,
-    ): number;
     verifyStepUarch(
         rootHashBefore: Uint8Array,
         log: string,
@@ -78,8 +75,8 @@ export interface NativeMachine {
         log: string,
         rootHashAfter: Uint8Array,
     ): void;
-    verifyMerkleTree(): boolean;
-    verifyDirtyPageMaps(): boolean;
+    verifyHashTree(): boolean;
+    getHashTreeStats(clear: boolean): string;
     jsonrpcFork(): { machine: NativeMachine; address: string; pid: number };
     jsonrpcShutdownServer(): void;
     jsonrpcRebindServer(address: string): string;
@@ -95,12 +92,18 @@ export interface NativeMachine {
 
 export interface NativeAddon {
     getLastErrorMessage(): string;
+    getVersion(): bigint;
     machineNew(): NativeMachine;
     machineCreateNew(
         config: string,
         runtimeConfig: string | null,
+        dir: string | null,
     ): NativeMachine;
-    machineLoadNew(dir: string, runtimeConfig: string | null): NativeMachine;
+    machineLoadNew(
+        dir: string,
+        runtimeConfig: string | null,
+        sharing?: number,
+    ): NativeMachine;
     getDefaultConfig(): string;
     getRegAddress(reg: number): bigint;
     verifyStep(
@@ -176,7 +179,7 @@ const loadAddon = (): NativeAddon => {
             return require_(platformPackage) as NativeAddon;
         } catch {
             throw new Error(
-                `@deroll/cm: no native binding available; expected the ${platformPackage} package (unsupported platform?) or a source build (requires a C++20 compiler and boost headers)`,
+                `@deroll/cm: no native binding available; expected the ${platformPackage} package (unsupported platform?) or a source build (requires a C++23 compiler and boost headers)`,
                 { cause: buildError },
             );
         }

@@ -42,11 +42,11 @@ async function example() {
         const config = {
             ram: {
                 length: 0x8000000,
-                image_filename: "linux.bin",
+                backing_store: { data_filename: "linux.bin" },
             },
             flash_drive: [
                 {
-                    image_filename: "rootfs.ext2",
+                    backing_store: { data_filename: "rootfs.ext2" },
                 },
             ],
             dtb: {

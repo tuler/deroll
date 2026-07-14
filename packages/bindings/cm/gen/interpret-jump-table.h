@@ -193,6 +193,7 @@ enum class insn_label_id : unsigned char {
 
 #endif // USE_COMPUTED_GOTO
 
+//NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 static const INSN_JUMPTABLE_TYPE insn_jumptable[65536] = {
 #ifndef CLANG_TIDY_LINT // Disable clang-tidy via an ifdef because it's too slow
     INSN_LABEL(ILLEGAL),                 //    0

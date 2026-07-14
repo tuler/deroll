@@ -18,11 +18,11 @@ async function basicMachineExample() {
         const config = {
             ram: {
                 length: 0x8000000,
-                image_filename: "linux.bin",
+                backing_store: { data_filename: "linux.bin" },
             },
             flash_drive: [
                 {
-                    image_filename: "rootfs.ext2",
+                    backing_store: { data_filename: "rootfs.ext2" },
                 },
             ],
             dtb: {
@@ -42,7 +42,7 @@ async function basicMachineExample() {
         console.log("Initial configuration:", initialConfig);
 
         // Get memory ranges
-        const memoryRanges = machine.getMemoryRanges();
+        const memoryRanges = machine.getAddressRanges();
         console.log("Memory ranges:", memoryRanges);
 
         // Get root hash
@@ -202,7 +202,7 @@ async function merkleTreeExample() {
 
         // Verify Merkle tree integrity
         console.log("Verifying Merkle tree integrity...");
-        const isIntegrityValid = machine.verifyMerkleTree();
+        const isIntegrityValid = machine.verifyHashTree();
         console.log(
             "Merkle tree integrity:",
             isIntegrityValid ? "Valid" : "Invalid",
@@ -210,7 +210,7 @@ async function merkleTreeExample() {
 
         // Verify dirty page maps
         console.log("Verifying dirty page maps...");
-        const areDirtyMapsValid = machine.verifyDirtyPageMaps();
+        const areDirtyMapsValid = machine.getHashTreeStats();
         console.log(
             "Dirty page maps:",
             areDirtyMapsValid ? "Valid" : "Invalid",

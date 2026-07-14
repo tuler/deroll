@@ -5,7 +5,7 @@ extern char const *const jsonrpc_discover_json = R"json(
   "openrpc": "1.0.0-rc1",
   "info": {
     "title": "Remote Cartesi Machine",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "API for controlling a remote Cartesi Machine server",
     "license": {
       "name": "MIT"
@@ -133,6 +133,13 @@ extern char const *const jsonrpc_discover_json = R"json(
           "schema": {
             "$ref": "#/components/schemas/MachineRuntimeConfig"
           }
+        },
+        {
+          "name": "directory",
+          "description": "Directory to create an on-disk machine instance",
+          "schema": {
+            "type": "string"
+          }
         }
       ],
       "result": {
@@ -162,6 +169,14 @@ extern char const *const jsonrpc_discover_json = R"json(
           "schema": {
             "$ref": "#/components/schemas/MachineRuntimeConfig"
           }
+        },
+        {
+          "name": "sharing",
+          "description": "Backing stores sharing mode",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/SharingMode"
+          }
         }
       ],
       "result": {
@@ -190,6 +205,64 @@ extern char const *const jsonrpc_discover_json = R"json(
       "params": [
         {
           "name": "directory",
+          "description": "Directory to stored machine instance",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "sharing",
+          "description": "Backing stores sharing mode",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SharingMode"
+          }
+        }
+      ],
+      "result": {
+        "name": "status",
+        "description": "True when operation succeeded",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "machine.clone_stored",
+      "summary": "Clones a machine stored from source directory to destination directory",
+      "params": [
+        {
+          "name": "from_dir",
+          "description": "Source directory",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "to_dir",
+          "description": "Destination directory",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "status",
+        "description": "True when operation succeeded",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "machine.remove_stored",
+      "summary": "Removes a stored machine instance from a directory",
+      "params": [
+        {
+          "name": "dir",
           "description": "Directory to stored machine instance",
           "required": true,
           "schema": {
@@ -227,6 +300,51 @@ extern char const *const jsonrpc_discover_json = R"json(
       }
     },
     {
+      "name": "machine.collect_mcycle_root_hashes",
+      "summary": "Collect root hashes periodically while running the emulator",
+      "params": [
+        {
+          "name": "mcycle_end",
+          "description": "End machine cycle value",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        },
+        {
+          "name": "mcycle_period",
+          "description": "Number of machine cycles between root hashes to collect",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        },
+        {
+          "name": "mcycle_phase",
+          "description": "Number of machine cycles elapsed since last root hash collected",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        },
+        {
+          "name": "log2_bundle_mcycle_count",
+          "description": "Log base 2 of the amount of mcycle root hashes to bundle",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "Collected hashes",
+        "schema": {
+          "$ref": "#/components/schemas/McycleRootHashes"
+        }
+      }
+    },
+    {
       "name": "machine.run_uarch",
       "summary": "Runs the small emulator until a given cycle",
       "params": [
@@ -244,6 +362,35 @@ extern char const *const jsonrpc_discover_json = R"json(
         "description": "Reason call returned",
         "schema": {
           "$ref": "#/components/schemas/UarchInterpreterBreakReason"
+        }
+      }
+    },
+    {
+      "name": "machine.collect_uarch_cycle_root_hashes",
+      "summary": "Collect root hashes while running the emulator's uarch",
+      "params": [
+        {
+          "name": "mcycle_end",
+          "description": "End machine cycle value to execute, uarch cycle by uarch cycle",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        },
+        {
+          "name": "log2_bundle_uarch_cycle_count",
+          "description": "Log base 2 of the amount of uarch cycle root hashes to bundle",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "Collected hashes",
+        "schema": {
+          "$ref": "#/components/schemas/UarchCycleRootHashes"
         }
       }
     },
@@ -344,11 +491,11 @@ extern char const *const jsonrpc_discover_json = R"json(
     },
     {
       "name": "machine.get_root_hash",
-      "summary": "Obtains the Merkle hash of the current machine state",
+      "summary": "Obtains the hash-tree root hash of the current machine state",
       "params": [],
       "result": {
         "name": "hash",
-        "description": "Merkle hash",
+        "description": "Root hash",
         "schema": {
           "$ref": "#/components/schemas/Base64Hash"
         }
@@ -356,7 +503,7 @@ extern char const *const jsonrpc_discover_json = R"json(
     },
     {
       "name": "machine.get_proof",
-      "summary": "Obtains a Merkle proof for a range in the machine state",
+      "summary": "Obtains a hash-tree proof for a range in the machine state",
       "params": [
         {
           "name": "address",
@@ -367,11 +514,24 @@ extern char const *const jsonrpc_discover_json = R"json(
           }
         },
         {
-          "name": "log2_size",
-          "description": "Log2 of size of range",
+          "name": "log2_target_size",
+          "description": "Log2 of size of target range",
           "required": true,
           "schema": {
-            "$ref": "#/components/schemas/UnsignedInteger"
+            "$ref": "#/components/schemas/UnsignedInteger",
+            "minimum": 5,
+            "maximum": 64
+          }
+        },
+        {
+          "name": "log2_root_size",
+          "description": "Log2 of size of enclosing range",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger",
+            "minimum": 5,
+            "maximum": 64,
+            "default": 64
           }
         }
       ],
@@ -380,6 +540,27 @@ extern char const *const jsonrpc_discover_json = R"json(
         "description": "Proof of range contents",
         "schema": {
           "$ref": "#/components/schemas/Proof"
+        }
+      }
+    },
+    {
+      "name": "machine.get_hash_tree_stats",
+      "summary": "Returns statistics for the hash tree",
+      "params": [
+        {
+          "name": "clear",
+          "description": "Whether to clear the stats after retrieving them",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "stats",
+        "description": "Statistics for the hash tree",
+        "schema": {
+          "$ref": "#/components/schemas/HashTreeStats"
         }
       }
     },
@@ -401,6 +582,35 @@ extern char const *const jsonrpc_discover_json = R"json(
         "description": "Value of word (little-endian)",
         "schema": {
           "$ref": "#/components/schemas/UnsignedInteger"
+        }
+      }
+    },
+    {
+      "name": "machine.write_word",
+      "summary": "Writes a 64-bit word from memory (must be aligned)",
+      "params": [
+        {
+          "name": "address",
+          "description": "Starting physical address of word",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        },
+        {
+          "name": "value",
+          "description": "Value of word (little-endian)",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        }
+      ],
+      "result": {
+        "name": "status",
+        "description": "True when operation succeeded",
+        "schema": {
+          "type": "boolean"
         }
       }
     },
@@ -536,6 +746,65 @@ extern char const *const jsonrpc_discover_json = R"json(
       "result": {
         "name": "paddr",
         "description": "Value of corresponding physical address (little-endian)",
+        "schema": {
+          "$ref": "#/components/schemas/UnsignedInteger"
+        }
+      }
+    },
+    {
+      "name": "machine.read_console_output",
+      "summary": "Reads and consumes data from the console output buffer",
+      "params": [
+        {
+          "name": "max_length",
+          "description": "Maximum number of bytes to read",
+          "schema": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "description": "Console output data or available read length",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Base64String"
+                }
+              },
+              "required": ["data"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "read_len": {
+                  "$ref": "#/components/schemas/UnsignedInteger"
+                }
+              },
+              "required": ["read_len"]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "machine.write_console_input",
+      "summary": "Writes data to the console input buffer",
+      "params": [
+        {
+          "name": "data",
+          "description": "Data to write to console input buffer",
+          "schema": {
+            "$ref": "#/components/schemas/Base64String"
+          }
+        }
+      ],
+      "result": {
+        "name": "written_len",
+        "description": "Number of bytes actually written",
         "schema": {
           "$ref": "#/components/schemas/UnsignedInteger"
         }
@@ -691,38 +960,26 @@ extern char const *const jsonrpc_discover_json = R"json(
       }
     },
     {
-      "name": "machine.verify_merkle_tree",
-      "summary": "Verifies sanity of Merkle tree",
+      "name": "machine.verify_hash_tree",
+      "summary": "Verifies sanity of hash tree",
       "params": [],
       "result": {
         "name": "valid",
-        "description": "True if Merkle tree is sane",
+        "description": "True if hash tree is sane",
         "schema": {
           "type": "boolean"
         }
       }
     },
     {
-      "name": "machine.verify_dirty_page_maps",
-      "summary": "Verifies sanity of dirty page maps",
-      "params": [],
-      "result": {
-        "name": "valid",
-        "description": "True if dirty page maps are sane",
-        "schema": {
-          "type": "boolean"
-        }
-      }
-    },
-    {
-      "name": "machine.get_memory_ranges",
-      "summary": "Returns a list with descriptions for all of the machine's memory ranges",
+      "name": "machine.get_address_ranges",
+      "summary": "Returns a list with descriptions for all of the machine's address ranges",
       "params": [],
       "result": {
         "name": "ranges",
-        "description": "Array of memory range descriptions",
+        "description": "Array of address range descriptions",
         "schema": {
-          "$ref": "#/components/schemas/MemoryRangeDescriptionArray"
+          "$ref": "#/components/schemas/AddressRangeDescriptionArray"
         }
       }
     },
@@ -961,21 +1218,128 @@ extern char const *const jsonrpc_discover_json = R"json(
           }
         }
       },
+      "ConsoleOutputDestination": {
+        "title": "ConsoleOutputDestination",
+        "enum": [
+          "to_null",
+          "to_stdout",
+          "to_stderr",
+          "to_fd",
+          "to_file",
+          "to_buffer"
+        ]
+      },
+      "ConsoleFlushMode": {
+        "title": "ConsoleFlushMode",
+        "enum": ["when_full", "every_char", "every_line"]
+      },
+      "ConsoleInputSource": {
+        "title": "ConsoleInputSource",
+        "enum": [
+          "from_null",
+          "from_stdin",
+          "from_fd",
+          "from_file",
+          "from_buffer"
+        ]
+      },
+      "ConsoleRuntimeConfig": {
+        "title": "ConsoleRuntimeConfig",
+        "type": "object",
+        "properties": {
+          "output_destination": {
+            "$ref": "#/components/schemas/ConsoleOutputDestination"
+          },
+          "output_flush_mode": {
+            "$ref": "#/components/schemas/ConsoleFlushMode"
+          },
+          "output_buffer_size": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "output_fd": {
+            "type": "integer"
+          },
+          "output_filename": {
+            "type": "string"
+          },
+          "input_source": {
+            "$ref": "#/components/schemas/ConsoleInputSource"
+          },
+          "input_buffer_size": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "input_fd": {
+            "type": "integer"
+          },
+          "input_filename": {
+            "type": "string"
+          },
+          "tty_cols": {
+            "type": "integer"
+          },
+          "tty_rows": {
+            "type": "integer"
+          }
+        }
+      },
       "ConcurrencyRuntimeConfig": {
         "title": "ConcurrencyRuntimeConfig",
         "type": "object",
         "properties": {
-          "update_merkle_tree": {
+          "update_hash_tree": {
             "$ref": "#/components/schemas/UnsignedInteger"
           }
         }
       },
-      "HTIFRuntimeConfig": {
-        "title": "HTIFRuntimeConfig",
+      "HashTreeStats": {
+        "title": "HashTreeStats",
         "type": "object",
         "properties": {
-          "no_console_putchar": {
-            "type": "boolean"
+          "phtc": {
+            "$ref": "#/components/schemas/PageHashTreeCacheStats"
+          },
+          "sparse_node_hashes": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "dense_node_hashes": {
+            "$ref": "#/components/schemas/UnsignedIntegerArray"
+          }
+        }
+      },
+      "UnsignedIntegerArray": {
+        "title": "UnsignedIntegerArray",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/UnsignedInteger"
+        }
+      },
+      "PageHashTreeCacheStats": {
+        "title": "PageHashTreeCacheStats",
+        "type": "object",
+        "properties": {
+          "page_hits": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "page_misses": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "word_hits": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "word_misses": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "page_changes": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "inner_page_hashes": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "pristine_pages": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "non_pristine_pages": {
+            "$ref": "#/components/schemas/UnsignedInteger"
           }
         }
       },
@@ -983,28 +1347,37 @@ extern char const *const jsonrpc_discover_json = R"json(
         "title": "MachineRuntimeConfig",
         "type": "object",
         "properties": {
+          "console": {
+            "$ref": "#/components/schemas/ConsoleRuntimeConfig"
+          },
           "concurrency": {
             "$ref": "#/components/schemas/ConcurrencyRuntimeConfig"
-          },
-          "htif": {
-            "$ref": "#/components/schemas/HTIFRuntimeConfig"
-          },
-          "skip_root_hash_check": {
-            "type": "boolean"
-          },
-          "skip_root_hash_store": {
-            "type": "boolean"
           },
           "skip_version_check": {
             "type": "boolean"
           },
           "soft_yield": {
             "type": "boolean"
+          },
+          "no_reserve": {
+            "type": "boolean"
           }
         }
       },
       "ProcessorConfig": {
         "title": "ProcessorConfig",
+        "type": "object",
+        "properties": {
+          "registers": {
+            "$ref": "#/components/schemas/RegistersConfig"
+          },
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
+          }
+        }
+      },
+      "RegistersConfig": {
+        "title": "RegistersConfig",
         "type": "object",
         "properties": {
           "x0": {
@@ -1310,8 +1683,8 @@ extern char const *const jsonrpc_discover_json = R"json(
           "length": {
             "$ref": "#/components/schemas/UnsignedInteger"
           },
-          "image_filename": {
-            "type": "string"
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
           }
         },
         "required": ["length"]
@@ -1329,8 +1702,8 @@ extern char const *const jsonrpc_discover_json = R"json(
           "entrypoint": {
             "type": "string"
           },
-          "image_filename": {
-            "type": "string"
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
           }
         }
       },
@@ -1344,23 +1717,41 @@ extern char const *const jsonrpc_discover_json = R"json(
           "length": {
             "$ref": "#/components/schemas/UnsignedInteger"
           },
-          "image_filename": {
+          "read_only": {
+            "type": "boolean"
+          },
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
+          }
+        }
+      },
+      "BackingStoreConfig": {
+        "title": "BackingStoreConfig",
+        "type": "object",
+        "properties": {
+          "data_filename": {
+            "type": "string"
+          },
+          "dht_filename": {
             "type": "string"
           },
           "shared": {
+            "type": "boolean"
+          },
+          "create": {
+            "type": "boolean"
+          },
+          "truncate": {
             "type": "boolean"
           }
         }
       },
-      "CmioBufferConfig": {
-        "title": "CmioBufferConfig",
+      "CMIOBufferConfig": {
+        "title": "CMIOBufferConfig",
         "type": "object",
         "properties": {
-          "image_filename": {
-            "type": "string"
-          },
-          "shared": {
-            "type": "boolean"
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
           }
         }
       },
@@ -1425,15 +1816,6 @@ extern char const *const jsonrpc_discover_json = R"json(
           "$ref": "#/components/schemas/MemoryRangeConfig"
         }
       },
-      "TLBConfig": {
-        "title": "TLBConfig",
-        "type": "object",
-        "properties": {
-          "image_filename": {
-            "type": "string"
-          }
-        }
-      },
       "CLINTConfig": {
         "title": "CLINTConfig",
         "type": "object",
@@ -1478,6 +1860,18 @@ extern char const *const jsonrpc_discover_json = R"json(
       },
       "UarchProcessorConfig": {
         "title": "UarchProcessorConfig",
+        "type": "object",
+        "properties": {
+          "registers": {
+            "$ref": "#/components/schemas/UarchRegistersConfig"
+          },
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
+          }
+        }
+      },
+      "UarchRegistersConfig": {
+        "title": "UarchRegistersConfig",
         "type": "object",
         "properties": {
           "x0": {
@@ -1583,7 +1977,7 @@ extern char const *const jsonrpc_discover_json = R"json(
             "$ref": "#/components/schemas/UnsignedInteger"
           },
           "halt_flag": {
-            "type": "boolean"
+            "$ref": "#/components/schemas/UnsignedInteger"
           }
         }
       },
@@ -1594,8 +1988,8 @@ extern char const *const jsonrpc_discover_json = R"json(
           "length": {
             "$ref": "#/components/schemas/UnsignedInteger"
           },
-          "image_filename": {
-            "type": "string"
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
           }
         }
       },
@@ -1611,15 +2005,48 @@ extern char const *const jsonrpc_discover_json = R"json(
           }
         }
       },
-      "CmioConfig": {
-        "title": "CmioConfig",
+      "CMIOConfig": {
+        "title": "CMIOConfig",
         "type": "object",
         "properties": {
           "rx_buffer": {
-            "$ref": "#/components/schemas/CmioBufferConfig"
+            "$ref": "#/components/schemas/CMIOBufferConfig"
           },
           "tx_buffer": {
-            "$ref": "#/components/schemas/CmioBufferConfig"
+            "$ref": "#/components/schemas/CMIOBufferConfig"
+          }
+        }
+      },
+      "PMAsConfig": {
+        "title": "PMAsConfig",
+        "type": "object",
+        "properties": {
+          "backing_store": {
+            "$ref": "#/components/schemas/BackingStoreConfig"
+          }
+        }
+      },
+      "HashTreeConfig": {
+        "title": "HashTreeConfig",
+        "type": "object",
+        "properties": {
+          "shared": {
+            "type": "boolean"
+          },
+          "create": {
+            "type": "boolean"
+          },
+          "sht_filename": {
+            "type": "string"
+          },
+          "phtc_filename": {
+            "type": "string"
+          },
+          "phtc_size": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "hash_function": {
+            "$ref": "#/components/schemas/HashFunctionType"
           }
         }
       },
@@ -1646,9 +2073,6 @@ extern char const *const jsonrpc_discover_json = R"json(
           "flash_drive": {
             "$ref": "#/components/schemas/FlashDriveConfigs"
           },
-          "tlb": {
-            "$ref": "#/components/schemas/TLBConfig"
-          },
           "clint": {
             "$ref": "#/components/schemas/CLINTConfig"
           },
@@ -1658,17 +2082,27 @@ extern char const *const jsonrpc_discover_json = R"json(
           "htif": {
             "$ref": "#/components/schemas/HTIFConfig"
           },
+          "virtio": {
+            "$ref": "#/components/schemas/VirtIOConfigs"
+          },
+          "cmio": {
+            "$ref": "#/components/schemas/CMIOConfig"
+          },
+          "pmas": {
+            "$ref": "#/components/schemas/PMAsConfig"
+          },
           "uarch": {
             "$ref": "#/components/schemas/UarchConfig"
           },
-          "cmio": {
-            "$ref": "#/components/schemas/CmioConfig"
-          },
-          "virtio": {
-            "$ref": "#/components/schemas/VirtIOConfigs"
+          "hash_tree": {
+            "$ref": "#/components/schemas/HashTreeConfig"
           }
         },
         "required": ["ram"]
+      },
+      "HashFunctionType": {
+        "title": "HashFunctionType",
+        "enum": ["keccak256", "sha256"]
       },
       "InterpreterBreakReason": {
         "title": "InterpreterBreakReason",
@@ -1678,12 +2112,14 @@ extern char const *const jsonrpc_discover_json = R"json(
           "yielded_manually",
           "yielded_automatically",
           "yielded_softly",
-          "reached_target_mcycle"
+          "reached_target_mcycle",
+          "console_output",
+          "console_input"
         ]
       },
       "UarchInterpreterBreakReason": {
         "title": "UarchInterpreterBreakReason",
-        "enum": ["reached_target_cycle", "uarch_halted"]
+        "enum": ["reached_target_cycle", "uarch_halted", "cycle_overflow"]
       },
       "Base64String": {
         "title": "Base64String",
@@ -1845,6 +2281,10 @@ extern char const *const jsonrpc_discover_json = R"json(
         },
         "required": ["log_type", "accesses"]
       },
+      "SharingMode": {
+        "title": "SharingMode",
+        "enum": ["none", "config", "all"]
+      },
       "REG": {
         "title": "REG",
         "enum": [
@@ -1999,8 +2439,8 @@ extern char const *const jsonrpc_discover_json = R"json(
           "uarch_halt_flag"
         ]
       },
-      "MemoryRangeDescription": {
-        "title": "MemoryRangeDescription",
+      "AddressRangeDescription": {
+        "title": "AddressRangeDescription",
         "type": "object",
         "properties": {
           "start": {
@@ -2014,12 +2454,74 @@ extern char const *const jsonrpc_discover_json = R"json(
           }
         }
       },
-      "MemoryRangeDescriptionArray": {
-        "title": "MemoryRangeDescriptionArray",
+      "AddressRangeDescriptionArray": {
+        "title": "AddressRangeDescriptionArray",
         "type": "array",
         "items": {
-          "$ref": "#/components/schemas/MemoryRangeDescription"
+          "$ref": "#/components/schemas/AddressRangeDescription"
         }
+      },
+      "McycleRootHashes": {
+        "title": "McycleRootHashes",
+        "type": "object",
+        "properties": {
+          "hashes": {
+            "$ref": "#/components/schemas/Base64HashArray"
+          },
+          "mcycle_phase": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "break_reason": {
+            "$ref": "#/components/schemas/InterpreterBreakReason"
+          },
+          "back_tree": {
+            "$ref": "#/components/schemas/BackMerkleTree"
+          },
+          "console_io_error": {
+            "type": "string"
+          }
+        },
+        "required": ["hashes", "mcycle_phase", "break_reason"]
+      },
+      "UarchCycleRootHashes": {
+        "title": "UarchCycleRootHashes",
+        "type": "object",
+        "properties": {
+          "hashes": {
+            "$ref": "#/components/schemas/Base64HashArray"
+          },
+          "reset_indices": {
+            "$ref": "#/components/schemas/UnsignedIntegerArray"
+          },
+          "break_reason": {
+            "$ref": "#/components/schemas/InterpreterBreakReason"
+          }
+        },
+        "required": ["hashes", "reset_indices", "break_reason"]
+      },
+      "BackMerkleTree": {
+        "title": "BackMerkleTree",
+        "type": "object",
+        "properties": {
+          "log2_max_leaves": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "hash_function": {
+            "$ref": "#/components/schemas/HashFunctionType"
+          },
+          "leaf_count": {
+            "$ref": "#/components/schemas/UnsignedInteger"
+          },
+          "context": {
+            "$ref": "#/components/schemas/Base64HashArray"
+          }
+        },
+        "required": [
+          "log2_max_leaves",
+          "hash_function",
+          "leaf_count",
+          "context"
+        ]
       }
     }
   }

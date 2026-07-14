@@ -4,15 +4,18 @@ import type {
     CmioYieldCommand,
     CmioYieldReason,
     Reg,
+    SharingMode,
     UarchBreakReason,
 } from "../cartesi-machine.js";
 import { MachineError, MAX_MCYCLE } from "../cartesi-machine.js";
 import type {
     AccessLog,
     AccessLogType,
+    AddressRangeDescription,
+    HashTreeStats,
     MachineConfig,
     MachineRuntimeConfig,
-    MemoryRangeDescription,
+    MemoryRangeConfig,
     Proof,
 } from "../types.js";
 import { addon, type NativeMachine } from "./addon.js";
@@ -76,12 +79,14 @@ export class NodeCartesiMachine implements CartesiMachine {
     static createNew(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): CartesiMachine {
         return new NodeCartesiMachine(
             call(() =>
                 addon.machineCreateNew(
                     JSON.stringify(config),
                     runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+                    dir ?? null,
                 ),
             ),
         );
@@ -93,12 +98,14 @@ export class NodeCartesiMachine implements CartesiMachine {
     static loadNew(
         dir: string,
         runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
     ): CartesiMachine {
         return new NodeCartesiMachine(
             call(() =>
                 addon.machineLoadNew(
                     dir,
                     runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+                    sharing,
                 ),
             ),
         );
@@ -113,6 +120,13 @@ export class NodeCartesiMachine implements CartesiMachine {
      */
     static getLastError(): string {
         return addon.getLastErrorMessage();
+    }
+
+    /**
+     * Gets the emulator version as a number (major * 1000000 + minor * 1000 + patch)
+     */
+    static getVersion(): bigint {
+        return call(() => addon.getVersion());
     }
 
     /**
@@ -160,11 +174,13 @@ export class NodeCartesiMachine implements CartesiMachine {
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): CartesiMachine {
         call(() =>
             this.machine.create(
                 JSON.stringify(config),
                 runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+                dir ?? null,
             ),
         );
         return this;
@@ -173,11 +189,16 @@ export class NodeCartesiMachine implements CartesiMachine {
     /**
      * Loads a machine instance from a directory
      */
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): CartesiMachine {
+    load(
+        dir: string,
+        runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
+    ): CartesiMachine {
         call(() =>
             this.machine.load(
                 dir,
                 runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+                sharing,
             ),
         );
         return this;
@@ -186,9 +207,23 @@ export class NodeCartesiMachine implements CartesiMachine {
     /**
      * Stores the machine instance to a directory
      */
-    store(dir: string): CartesiMachine {
-        call(() => this.machine.store(dir));
+    store(dir: string, sharing?: SharingMode): CartesiMachine {
+        call(() => this.machine.store(dir, sharing));
         return this;
+    }
+
+    /**
+     * Clones a stored machine directory
+     */
+    cloneStored(fromDir: string, toDir: string): void {
+        call(() => this.machine.cloneStored(fromDir, toDir));
+    }
+
+    /**
+     * Removes a stored machine directory
+     */
+    removeStored(dir: string): void {
+        call(() => this.machine.removeStored(dir));
     }
 
     /**
@@ -219,19 +254,9 @@ export class NodeCartesiMachine implements CartesiMachine {
     /**
      * Replaces a memory range
      */
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename?: string,
-    ): void {
+    replaceMemoryRange(rangeConfig: MemoryRangeConfig): void {
         call(() =>
-            this.machine.replaceMemoryRange(
-                start,
-                length,
-                shared,
-                imageFilename || null,
-            ),
+            this.machine.replaceMemoryRange(JSON.stringify(rangeConfig)),
         );
     }
 
@@ -245,12 +270,12 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
-     * Gets memory ranges
+     * Gets address ranges
      */
-    getMemoryRanges(): MemoryRangeDescription[] {
+    getAddressRanges(): AddressRangeDescription[] {
         return JSON.parse(
-            call(() => this.machine.getMemoryRanges()),
-        ) as MemoryRangeDescription[];
+            call(() => this.machine.getAddressRanges()),
+        ) as AddressRangeDescription[];
     }
 
     /**
@@ -261,12 +286,19 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
-     * Gets a proof for a node in the Merkle tree
+     * Gets a proof for a node in the hash tree
      */
-    getProof(address: bigint, log2Size: number): Proof {
+    getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof {
         return JSON.parse(
-            call(() => this.machine.getProof(address, log2Size)),
+            call(() => this.machine.getProof(address, log2Size, log2RootSize)),
         ) as Proof;
+    }
+
+    /**
+     * Gets the hash of a node in the hash tree
+     */
+    getNodeHash(address: bigint, log2Size: number): Buffer {
+        return call(() => this.machine.getNodeHash(address, log2Size));
     }
 
     /**
@@ -274,6 +306,13 @@ export class NodeCartesiMachine implements CartesiMachine {
      */
     readWord(address: bigint): bigint {
         return call(() => this.machine.readWord(address));
+    }
+
+    /**
+     * Writes a word to memory
+     */
+    writeWord(address: bigint, value: bigint): void {
+        call(() => this.machine.writeWord(address, value));
     }
 
     /**
@@ -409,25 +448,6 @@ export class NodeCartesiMachine implements CartesiMachine {
     /**
      * Verifies a step
      */
-    verifyStep(
-        rootHashBefore: Buffer,
-        logFilename: string,
-        mcycleCount: bigint,
-        rootHashAfter: Buffer,
-    ): BreakReason {
-        return call(() =>
-            this.machine.verifyStep(
-                rootHashBefore,
-                logFilename,
-                mcycleCount,
-                rootHashAfter,
-            ),
-        );
-    }
-
-    /**
-     * Verifies a step
-     */
     static verifyStep(
         rootHashBefore: Buffer,
         logFilename: string,
@@ -555,16 +575,18 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
-     * Verifies Merkle tree integrity
+     * Verifies hash tree integrity
      */
-    verifyMerkleTree(): boolean {
-        return call(() => this.machine.verifyMerkleTree());
+    verifyHashTree(): boolean {
+        return call(() => this.machine.verifyHashTree());
     }
 
     /**
-     * Verifies dirty page maps integrity
+     * Gets hash tree statistics
      */
-    verifyDirtyPageMaps(): boolean {
-        return call(() => this.machine.verifyDirtyPageMaps());
+    getHashTreeStats(clear: boolean = false): HashTreeStats {
+        return JSON.parse(
+            call(() => this.machine.getHashTreeStats(clear)),
+        ) as HashTreeStats;
     }
 }
