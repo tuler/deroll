@@ -5,10 +5,12 @@ It can be created by using the following utility methods:
 
 ```ts
 // create a new machine from a configuration
-function create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): CartesiMachine;
+// if dir is provided, the machine is created with on-disk state at that directory
+function create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): CartesiMachine;
 
 // load machine snapshot saved to a directory
-function load(dir: string, runtimeConfig?: MachineRuntimeConfig): CartesiMachine;
+// sharing controls whether machine state is in-memory (default) or on-disk
+function load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): CartesiMachine;
 
 // create an empty machine, which later must be created or loaded
 function empty(): CartesiMachine;
@@ -29,11 +31,15 @@ import { create } from "@deroll/cm";
 const machine = create({
     ram: {
         length: 0x8000000, // 128MB of RAM
-        image_filename: "linux.bin",
+        backing_store: {
+            data_filename: "linux.bin",
+        },
     },
     flash_drive: [
         {
-            image_filename: "rootfs.ext2",
+            backing_store: {
+                data_filename: "rootfs.ext2",
+            },
         },
     ],
     dtb: {
@@ -55,11 +61,15 @@ import { BreakReason, create } from "@deroll/cm"; // [!code ++] // [!code focus]
 const machine = create({
     ram: {
         length: 0x8000000, // 128MB of RAM
-        image_filename: "linux.bin",
+        backing_store: {
+            data_filename: "linux.bin",
+        },
     },
     flash_drive: [
         {
-            image_filename: "rootfs.ext2",
+            backing_store: {
+                data_filename: "rootfs.ext2",
+            },
         },
     ],
     dtb: {
@@ -93,11 +103,15 @@ import { BreakReason, create } from "@deroll/cm";
 const machine = create({
     ram: {
         length: 0x8000000, // 128MB of RAM
-        image_filename: "linux.bin",
+        backing_store: {
+            data_filename: "linux.bin",
+        },
     },
     flash_drive: [
         {
-            image_filename: "rootfs.ext2",
+            backing_store: {
+                data_filename: "rootfs.ext2",
+            },
         },
     ],
     dtb: {

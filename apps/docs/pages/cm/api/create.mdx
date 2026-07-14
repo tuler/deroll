@@ -5,8 +5,10 @@ Creates a new local Cartesi machine instance from the given configuration and op
 ## Function Signature
 
 ```ts
-create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): CartesiMachine
+create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): CartesiMachine
 ```
+
+If `dir` is provided, the machine is created with on-disk state at that directory. Otherwise the machine is created in-memory.
 
 ## Example
 
@@ -16,11 +18,15 @@ import { create, BreakReason } from "@deroll/cm";
 const machine = create({
     ram: {
         length: 0x8000000, // 128MB of RAM
-        image_filename: "linux.bin",
+        backing_store: {
+            data_filename: "linux.bin",
+        },
     },
     flash_drive: [
         {
-            image_filename: "rootfs.ext2",
+            backing_store: {
+                data_filename: "rootfs.ext2",
+            },
         },
     ],
     dtb: {

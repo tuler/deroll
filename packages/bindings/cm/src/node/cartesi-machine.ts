@@ -4,6 +4,7 @@ import type {
     CartesiMachine,
     CmioYieldCommand,
     CmioYieldReason,
+    HashFunction,
     Reg,
     UarchBreakReason,
 } from "../cartesi-machine.js";
@@ -12,14 +13,19 @@ import {
     ErrorCode,
     MachineError,
     MAX_MCYCLE,
+    SharingMode,
 } from "../cartesi-machine.js";
 import type {
     AccessLog,
     AccessLogType,
+    AddressRangeDescription,
+    HashTreeStats,
     MachineConfig,
     MachineRuntimeConfig,
-    MemoryRangeDescription,
+    McycleRootHashes,
+    MemoryRangeConfig,
     Proof,
+    UarchCycleRootHashes,
 } from "../types.js";
 import { loadLibrary } from "./lib-loader.js";
 
@@ -36,6 +42,9 @@ koffi.opaque("cm_machine");
 // -----------------------------------------------------------------------------
 // Function signatures
 // -----------------------------------------------------------------------------
+
+/// Returns the machine emulator semantic version at runtime
+const cm_get_version = lib.func("uint64_t cm_get_version()");
 
 /// Returns the error message set by the very last C API call
 const cm_get_last_error_message = lib.func(
@@ -70,26 +79,38 @@ const cm_delete = lib.func("void cm_delete(cm_machine* m)");
 
 /// Creates a new machine instance from configuration
 const cm_create = lib.func(
-    "int cm_create(cm_machine* m, const char* config, const char* runtime_config)",
+    "int cm_create(cm_machine* m, const char* config, const char* runtime_config, const char* dir)",
 );
 
 /// Combines cm_new() and cm_create() for convenience
 const cm_create_new = lib.func(
-    "int cm_create_new(const char* config, const char* runtime_config, _Out_ cm_machine** new_m)",
+    "int cm_create_new(const char* config, const char* runtime_config, const char* dir, _Out_ cm_machine** new_m)",
 );
 
 /// Loads a new machine instance from a previously stored directory
 const cm_load = lib.func(
-    "int cm_load(cm_machine* m, const char* dir, const char* runtime_config)",
+    "int cm_load(cm_machine* m, const char* dir, const char* runtime_config, int sharing)",
 );
 
 /// Combines cm_new() and cm_load() for convenience
 const cm_load_new = lib.func(
-    "int cm_load_new(const char* dir, const char* runtime_config, _Out_ cm_machine** new_m)",
+    "int cm_load_new(const char* dir, const char* runtime_config, int sharing, _Out_ cm_machine** new_m)",
 );
 
 /// Stores a machine instance to a directory, serializing its entire state
-const cm_store = lib.func("int cm_store(const cm_machine* m, const char* dir)");
+const cm_store = lib.func(
+    "int cm_store(const cm_machine* m, const char* dir, int sharing)",
+);
+
+/// Clones a machine stored from source directory to destination directory
+const cm_clone_stored = lib.func(
+    "int cm_clone_stored(const cm_machine* m, const char* from_dir, const char* to_dir)",
+);
+
+/// Removes all files and the directory of a previously stored machine
+const cm_remove_stored = lib.func(
+    "int cm_remove_stored(const cm_machine* m, const char* dir)",
+);
 
 /// Destroy a machine instance and remove it from the object
 const cm_destroy = lib.func("int cm_destroy(cm_machine* m)");
@@ -106,7 +127,7 @@ const cm_get_runtime_config = lib.func(
 
 /// Replaces a memory range
 const cm_replace_memory_range = lib.func(
-    "int cm_replace_memory_range(cm_machine* m, uint64_t start, uint64_t length, bool shared, const char* image_filename)",
+    "int cm_replace_memory_range(cm_machine* m, const char* range_config)",
 );
 
 /// Returns a JSON object with the machine config used to initialize the machine
@@ -114,24 +135,34 @@ const cm_get_initial_config = lib.func(
     "int cm_get_initial_config(const cm_machine* m, _Out_ const char** config)",
 );
 
-/// Returns a list with all memory ranges in the machine
-const cm_get_memory_ranges = lib.func(
-    "int cm_get_memory_ranges(const cm_machine* m, _Out_ const char** ranges)",
+/// Returns a list with all address ranges in the machine
+const cm_get_address_ranges = lib.func(
+    "int cm_get_address_ranges(const cm_machine* m, _Out_ const char** ranges)",
 );
 
-/// Obtains the root hash of the Merkle tree
+/// Obtains the root hash of the hash tree
 const cm_get_root_hash = lib.func(
     "int cm_get_root_hash(const cm_machine* m, _Out_ uint8_t* hash)",
 );
 
-/// Obtains the proof for a node in the machine state Merkle tree
+/// Obtains the hash of a node in the hash tree
+const cm_get_node_hash = lib.func(
+    "int cm_get_node_hash(const cm_machine* m, uint64_t address, int32_t log2_size, _Out_ uint8_t* hash)",
+);
+
+/// Obtains the proof for a node in the machine state hash tree
 const cm_get_proof = lib.func(
-    "int cm_get_proof(const cm_machine* m, uint64_t address, int32_t log2_size, _Out_ const char** proof)",
+    "int cm_get_proof(const cm_machine* m, uint64_t address, int32_t log2_target_size, int log2_root_size, _Out_ const char** proof)",
 );
 
 /// Reads the value of a word in the machine state, by its physical address
 const cm_read_word = lib.func(
     "int cm_read_word(const cm_machine* m, uint64_t address, _Out_ uint64_t* val)",
+);
+
+/// Writes the value of a word in the machine state, by its physical address
+const cm_write_word = lib.func(
+    "int cm_write_word(cm_machine* m, uint64_t address, uint64_t val)",
 );
 
 /// Reads the value of a register
@@ -144,12 +175,12 @@ const cm_write_reg = lib.func(
     "int cm_write_reg(cm_machine* m, int reg, uint64_t val)",
 );
 
-/// Reads a chunk of data from a machine memory range, by its physical address
+/// Reads a chunk of data, by its target physical address and length
 const cm_read_memory = lib.func(
     "int cm_read_memory(const cm_machine* m, uint64_t address, uint8_t* data, uint64_t length)",
 );
 
-/// Writes a chunk of data to a machine memory range, by its physical address
+/// Writes a chunk of data to machine memory, by its target physical address and length
 const cm_write_memory = lib.func(
     "int cm_write_memory(cm_machine* m, uint64_t address, const uint8_t* data, uint64_t length)",
 );
@@ -169,14 +200,34 @@ const cm_translate_virtual_address = lib.func(
     "int cm_translate_virtual_address(const cm_machine* m, uint64_t vaddr, uint64_t* paddr)",
 );
 
+/// Reads and consumes data from the console output buffer
+const cm_read_console_output = lib.func(
+    "int cm_read_console_output(cm_machine* m, uint8_t* data, uint64_t max_length, _Out_ uint64_t* read_len)",
+);
+
+/// Writes data to the console input buffer
+const cm_write_console_input = lib.func(
+    "int cm_write_console_input(cm_machine* m, const uint8_t* data, uint64_t length, _Out_ uint64_t* written_len)",
+);
+
 /// Runs the machine until CM_REG_MCYCLE reaches mcycle_end, the machine yields, or halts
 const cm_run = lib.func(
     "int cm_run(cm_machine* m, uint64_t mcycle_end, _Out_ int* break_reason)",
 );
 
+/// Collects the root hashes after every mcycle_period machine cycles
+const cm_collect_mcycle_root_hashes = lib.func(
+    "int cm_collect_mcycle_root_hashes(cm_machine* m, uint64_t mcycle_end, uint64_t mcycle_period, uint64_t mcycle_phase, int32_t log2_bundle_mcycle_count, const char* previous_back_tree, _Out_ const char** result)",
+);
+
 /// Runs the machine microarchitecture until CM_REG_UARCH_CYCLE reaches uarch_cycle_end or it halts
 const cm_run_uarch = lib.func(
     "int cm_run_uarch(cm_machine* m, uint64_t uarch_cycle_end, _Out_ int* uarch_break_reason)",
+);
+
+/// Collects the root hashes after every uarch cycle
+const cm_collect_uarch_cycle_root_hashes = lib.func(
+    "int cm_collect_uarch_cycle_root_hashes(cm_machine* m, uint64_t mcycle_end, int32_t log2_bundle_uarch_cycle_count, _Out_ const char** result)",
 );
 
 /// Resets the entire microarchitecture state to pristine values
@@ -214,7 +265,7 @@ const cm_log_send_cmio_response = lib.func(
 
 /// Checks the validity of a step log file
 const cm_verify_step = lib.func(
-    "int cm_verify_step(const cm_machine* m, const uint8_t* root_hash_before, const char* log_filename, uint64_t mcycle_count, const uint8_t* root_hash_after, _Out_ int* break_reason)",
+    "int cm_verify_step(const uint8_t* root_hash_before, const char* log_filename, uint64_t mcycle_count, const uint8_t* root_hash_after, _Out_ int* break_reason)",
 );
 
 /// Checks the validity of a state transition produced by cm_log_step_uarch
@@ -232,14 +283,24 @@ const cm_verify_send_cmio_response = lib.func(
     "int cm_verify_send_cmio_response(const cm_machine* m, uint16_t reason, const uint8_t* data, uint64_t length, const uint8_t* root_hash_before, const char* log, const uint8_t* root_hash_after)",
 );
 
-/// Verifies integrity of Merkle tree against current machine state
-const cm_verify_merkle_tree = lib.func(
-    "int cm_verify_merkle_tree(cm_machine* m, _Out_ bool* result)",
+/// Verifies integrity of hash tree against current machine state
+const cm_verify_hash_tree = lib.func(
+    "int cm_verify_hash_tree(cm_machine* m, _Out_ bool* result)",
 );
 
-/// Verifies integrity of dirty page maps
-const cm_verify_dirty_page_maps = lib.func(
-    "int cm_verify_dirty_page_maps(cm_machine* m, _Out_ bool* result)",
+/// Obtains hash tree statistics
+const cm_get_hash_tree_stats = lib.func(
+    "int cm_get_hash_tree_stats(cm_machine* m, bool clear, _Out_ const char** stats)",
+);
+
+/// Gets the hash of data
+const cm_get_hash = lib.func(
+    "int cm_get_hash(int hash_function, const uint8_t* data, uint64_t length, _Out_ uint8_t* result)",
+);
+
+/// Gets the hash of a concatenation of two hashes
+const cm_get_concat_hash = lib.func(
+    "int cm_get_concat_hash(int hash_function, const uint8_t* left, const uint8_t* right, _Out_ uint8_t* result)",
 );
 
 /// Access log types
@@ -295,11 +356,13 @@ export class NodeCartesiMachine {
     static createNew(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): CartesiMachine {
         const machine = [null];
         const result = cm_create_new(
             JSON.stringify(config),
             runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+            dir || null,
             machine,
         );
         if (result !== ErrorCode.Ok) {
@@ -314,11 +377,13 @@ export class NodeCartesiMachine {
     static loadNew(
         dir: string,
         runtimeConfig?: MachineRuntimeConfig,
+        sharing: SharingMode = SharingMode.None,
     ): CartesiMachine {
         const machine = [null];
         const result = cm_load_new(
             dir,
             runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+            sharing,
             machine,
         );
         if (result !== ErrorCode.Ok) {
@@ -330,6 +395,14 @@ export class NodeCartesiMachine {
     constructor(machine: any) {
         this.machine = machine;
         machineFinalizer.register(this, machine);
+    }
+
+    /**
+     * Gets the machine emulator semantic version, encoded as
+     * (major * 1000000) + (minor * 1000) + patch
+     */
+    static getVersion(): bigint {
+        return BigInt(cm_get_version());
     }
 
     /**
@@ -405,11 +478,13 @@ export class NodeCartesiMachine {
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): CartesiMachine {
         const result = cm_create(
             this.machine,
             JSON.stringify(config),
             runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+            dir || null,
         );
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
@@ -420,11 +495,16 @@ export class NodeCartesiMachine {
     /**
      * Loads a machine instance from a directory
      */
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): CartesiMachine {
+    load(
+        dir: string,
+        runtimeConfig?: MachineRuntimeConfig,
+        sharing: SharingMode = SharingMode.None,
+    ): CartesiMachine {
         const result = cm_load(
             this.machine,
             dir,
             runtimeConfig ? JSON.stringify(runtimeConfig) : null,
+            sharing,
         );
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
@@ -435,12 +515,52 @@ export class NodeCartesiMachine {
     /**
      * Stores the machine instance to a directory
      */
-    store(dir: string): CartesiMachine {
-        const result = cm_store(this.machine, dir);
+    store(dir: string, sharing: SharingMode = SharingMode.All): CartesiMachine {
+        const result = cm_store(this.machine, dir, sharing);
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
         }
         return this;
+    }
+
+    /**
+     * Clones a stored machine from a source directory to a destination directory
+     */
+    cloneStored(fromDir: string, toDir: string): void {
+        const result = cm_clone_stored(this.machine, fromDir, toDir);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+    }
+
+    /**
+     * Clones a stored machine from a source directory to a destination directory
+     */
+    static cloneStored(fromDir: string, toDir: string): void {
+        const result = cm_clone_stored(null, fromDir, toDir);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+    }
+
+    /**
+     * Removes all files and the directory of a previously stored machine
+     */
+    removeStored(dir: string): void {
+        const result = cm_remove_stored(this.machine, dir);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+    }
+
+    /**
+     * Removes all files and the directory of a previously stored machine
+     */
+    static removeStored(dir: string): void {
+        const result = cm_remove_stored(null, dir);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
     }
 
     /**
@@ -481,18 +601,10 @@ export class NodeCartesiMachine {
     /**
      * Replaces a memory range
      */
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename?: string,
-    ): void {
+    replaceMemoryRange(rangeConfig: MemoryRangeConfig): void {
         const result = cm_replace_memory_range(
             this.machine,
-            start,
-            length,
-            shared,
-            imageFilename || null,
+            JSON.stringify(rangeConfig),
         );
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
@@ -512,15 +624,15 @@ export class NodeCartesiMachine {
     }
 
     /**
-     * Gets memory ranges
+     * Gets address ranges
      */
-    getMemoryRanges(): MemoryRangeDescription[] {
+    getAddressRanges(): AddressRangeDescription[] {
         const ranges: [string | null] = [null];
-        const result = cm_get_memory_ranges(this.machine, ranges);
+        const result = cm_get_address_ranges(this.machine, ranges);
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
         }
-        return JSON.parse(ranges[0] as string) as MemoryRangeDescription[];
+        return JSON.parse(ranges[0] as string) as AddressRangeDescription[];
     }
 
     /**
@@ -536,11 +648,33 @@ export class NodeCartesiMachine {
     }
 
     /**
-     * Gets a proof for a node in the Merkle tree
+     * Gets the hash of a node in the hash tree
      */
-    getProof(address: bigint, log2Size: number): Proof {
+    getNodeHash(address: bigint, log2Size: number): Buffer {
+        const hash = Buffer.alloc(Constant.HashSize);
+        const result = cm_get_node_hash(this.machine, address, log2Size, hash);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return hash;
+    }
+
+    /**
+     * Gets a proof for a node in the hash tree
+     */
+    getProof(
+        address: bigint,
+        log2TargetSize: number,
+        log2RootSize: number = Constant.HashTreeLog2RootSize,
+    ): Proof {
         const proof: [string | null] = [null];
-        const result = cm_get_proof(this.machine, address, log2Size, proof);
+        const result = cm_get_proof(
+            this.machine,
+            address,
+            log2TargetSize,
+            log2RootSize,
+            proof,
+        );
         if (result !== ErrorCode.Ok) {
             throw MachineError.fromCode(result);
         }
@@ -557,6 +691,16 @@ export class NodeCartesiMachine {
             throw MachineError.fromCode(result);
         }
         return value[0];
+    }
+
+    /**
+     * Writes a word to memory
+     */
+    writeWord(address: bigint, value: bigint): void {
+        const result = cm_write_word(this.machine, address, value);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
     }
 
     /**
@@ -653,6 +797,58 @@ export class NodeCartesiMachine {
     }
 
     /**
+     * Reads and consumes data from the console output buffer.
+     * If maxLength is not provided, reads all available data.
+     */
+    readConsoleOutput(maxLength?: bigint): Buffer {
+        let length = maxLength;
+        if (length === undefined) {
+            // query the available size
+            const available = [0n];
+            const result = cm_read_console_output(
+                this.machine,
+                null,
+                0n,
+                available,
+            );
+            if (result !== ErrorCode.Ok) {
+                throw MachineError.fromCode(result);
+            }
+            length = BigInt(available[0]);
+        }
+        const data = Buffer.alloc(Number(length));
+        const readLen = [0n];
+        const result = cm_read_console_output(
+            this.machine,
+            data,
+            length,
+            readLen,
+        );
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return data.subarray(0, Number(readLen[0]));
+    }
+
+    /**
+     * Writes data to the console input buffer.
+     * Returns the number of bytes actually written.
+     */
+    writeConsoleInput(data: Buffer): bigint {
+        const writtenLen = [0n];
+        const result = cm_write_console_input(
+            this.machine,
+            data,
+            BigInt(data.length),
+            writtenLen,
+        );
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return BigInt(writtenLen[0]);
+    }
+
+    /**
      * Runs the machine
      */
     run(mcycleEnd: bigint = MAX_MCYCLE): BreakReason {
@@ -665,6 +861,33 @@ export class NodeCartesiMachine {
     }
 
     /**
+     * Collects the root hashes after every mcyclePeriod machine cycles until
+     * mcycle reaches mcycleEnd, the machine yields, or halts
+     */
+    collectMcycleRootHashes(
+        mcycleEnd: bigint,
+        mcyclePeriod: bigint,
+        mcyclePhase: bigint = 0n,
+        log2BundleMcycleCount: number = 0,
+        previousBackTree?: unknown,
+    ): McycleRootHashes {
+        const collectResult: [string | null] = [null];
+        const result = cm_collect_mcycle_root_hashes(
+            this.machine,
+            mcycleEnd,
+            mcyclePeriod,
+            mcyclePhase,
+            log2BundleMcycleCount,
+            previousBackTree ? JSON.stringify(previousBackTree) : null,
+            collectResult,
+        );
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return JSON.parse(collectResult[0] as string) as McycleRootHashes;
+    }
+
+    /**
      * Runs the microarchitecture
      */
     runUarch(uarchCycleEnd: bigint): UarchBreakReason {
@@ -674,6 +897,27 @@ export class NodeCartesiMachine {
             throw MachineError.fromCode(result);
         }
         return breakReason[0];
+    }
+
+    /**
+     * Collects the root hashes after every uarch cycle until mcycle reaches
+     * mcycleEnd, the machine yields, or halts
+     */
+    collectUarchCycleRootHashes(
+        mcycleEnd: bigint,
+        log2BundleUarchCycleCount: number = 0,
+    ): UarchCycleRootHashes {
+        const collectResult: [string | null] = [null];
+        const result = cm_collect_uarch_cycle_root_hashes(
+            this.machine,
+            mcycleEnd,
+            log2BundleUarchCycleCount,
+            collectResult,
+        );
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return JSON.parse(collectResult[0] as string) as UarchCycleRootHashes;
     }
 
     /**
@@ -817,19 +1061,12 @@ export class NodeCartesiMachine {
         mcycleCount: bigint,
         rootHashAfter: Buffer,
     ): BreakReason {
-        const breakReason = [0];
-        const result = cm_verify_step(
-            this.machine,
+        return NodeCartesiMachine.verifyStep(
             rootHashBefore,
             logFilename,
             mcycleCount,
             rootHashAfter,
-            breakReason,
         );
-        if (result !== ErrorCode.Ok) {
-            throw MachineError.fromCode(result);
-        }
-        return breakReason[0];
     }
 
     /**
@@ -843,7 +1080,6 @@ export class NodeCartesiMachine {
     ): BreakReason {
         const breakReason = [0];
         const result = cm_verify_step(
-            null,
             rootHashBefore,
             logFilename,
             mcycleCount,
@@ -981,11 +1217,11 @@ export class NodeCartesiMachine {
     }
 
     /**
-     * Verifies Merkle tree integrity
+     * Verifies hash tree integrity
      */
-    verifyMerkleTree(): boolean {
+    verifyHashTree(): boolean {
         const result = [false];
-        const error = cm_verify_merkle_tree(this.machine, result);
+        const error = cm_verify_hash_tree(this.machine, result);
         if (error !== ErrorCode.Ok) {
             throw MachineError.fromCode(error);
         }
@@ -993,14 +1229,47 @@ export class NodeCartesiMachine {
     }
 
     /**
-     * Verifies dirty page maps integrity
+     * Gets hash tree statistics
      */
-    verifyDirtyPageMaps(): boolean {
-        const result = [false];
-        const error = cm_verify_dirty_page_maps(this.machine, result);
-        if (error !== ErrorCode.Ok) {
-            throw MachineError.fromCode(error);
+    getHashTreeStats(clear: boolean = false): HashTreeStats {
+        const stats: [string | null] = [null];
+        const result = cm_get_hash_tree_stats(this.machine, clear, stats);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
         }
-        return result[0];
+        return JSON.parse(stats[0] as string) as HashTreeStats;
+    }
+
+    /**
+     * Gets the hash of data
+     */
+    static getHash(hashFunction: HashFunction, data: Buffer): Buffer {
+        const hash = Buffer.alloc(Constant.HashSize);
+        const result = cm_get_hash(
+            hashFunction,
+            data,
+            BigInt(data.length),
+            hash,
+        );
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return hash;
+    }
+
+    /**
+     * Gets the hash of a concatenation of two hashes
+     */
+    static getConcatHash(
+        hashFunction: HashFunction,
+        left: Buffer,
+        right: Buffer,
+    ): Buffer {
+        const hash = Buffer.alloc(Constant.HashSize);
+        const result = cm_get_concat_hash(hashFunction, left, right, hash);
+        if (result !== ErrorCode.Ok) {
+            throw MachineError.fromCode(result);
+        }
+        return hash;
     }
 }

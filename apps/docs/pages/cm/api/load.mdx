@@ -5,8 +5,14 @@ Loads a Cartesi machine instance from a previously stored directory, with option
 ## Function Signature
 
 ```ts
-load(dir: string, runtimeConfig?: MachineRuntimeConfig): CartesiMachine
+load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): CartesiMachine
 ```
+
+The `sharing` parameter controls how the loaded machine state relates to the backing stores on disk:
+
+- `SharingMode.None` (default): machine state is fully in-memory
+- `SharingMode.Config`: machine state is on-disk for backing stores marked as shared in the machine configuration, in-memory for everything else
+- `SharingMode.All`: machine state is fully on-disk
 
 ## Example
 

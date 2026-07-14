@@ -74,7 +74,9 @@ async function demonstrateErrorHandling() {
             const _machine = create({
                 ram: {
                     length: 0x8000000,
-                    image_filename: "nonexistent.bin",
+                    backing_store: {
+                        data_filename: "nonexistent.bin",
+                    },
                 },
             });
         } catch (error) {

@@ -9,10 +9,12 @@ Descriptions for each method are in the following sections.
 export interface CartesiMachine {
     //// Machine Lifecycle
     isEmpty(): boolean;
-    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): void;
+    load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): void;
     cloneEmpty(): CartesiMachine;
-    store(dir: string): void;
+    store(dir: string, sharing?: SharingMode): void;
+    cloneStored(fromDir: string, toDir: string): void;
+    removeStored(dir: string): void;
     destroy(): void;
     
     //// Configuration
@@ -20,16 +22,12 @@ export interface CartesiMachine {
     getInitialConfig(): MachineConfig;
     setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
     getRuntimeConfig(): MachineRuntimeConfig;
-    getMemoryRanges(): MemoryRangeDescription[];
+    getAddressRanges(): AddressRangeDescription[];
 
     //// Memory Operations
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename?: string,
-    ): void;
+    replaceMemoryRange(rangeConfig: MemoryRangeConfig): void;
     readWord(address: bigint): bigint;
+    writeWord(address: bigint, value: bigint): void;
     readMemory(address: bigint, length: bigint): Buffer;
     writeMemory(address: bigint, data: Buffer): void;
     readVirtualMemory(address: bigint, length: bigint): Buffer;
@@ -41,16 +39,32 @@ export interface CartesiMachine {
     readReg(reg: Reg): bigint;
     writeReg(reg: Reg, value: bigint): void;
 
+    //// Console I/O
+    readConsoleOutput(maxLength?: bigint): Buffer;
+    writeConsoleInput(data: Buffer): bigint;
+
     //// Execution
     run(mcycleEnd?: bigint): BreakReason;
     runUarch(uarchCycleEnd: bigint): UarchBreakReason;
     resetUarch(): void;
+    collectMcycleRootHashes(
+        mcycleEnd: bigint,
+        mcyclePeriod: bigint,
+        mcyclePhase?: bigint,
+        log2BundleMcycleCount?: number,
+        previousBackTree?: unknown,
+    ): McycleRootHashes;
+    collectUarchCycleRootHashes(
+        mcycleEnd: bigint,
+        log2BundleUarchCycleCount?: number,
+    ): UarchCycleRootHashes;
 
-    //// Merkle Tree Operations
+    //// Hash Tree Operations
     getRootHash(): Buffer;
-    getProof(address: bigint, log2Size: number): Proof;
-    verifyMerkleTree(): boolean;
-    verifyDirtyPageMaps(): boolean;
+    getNodeHash(address: bigint, log2Size: number): Buffer;
+    getProof(address: bigint, log2TargetSize: number, log2RootSize?: number): Proof;
+    verifyHashTree(): boolean;
+    getHashTreeStats(clear?: boolean): HashTreeStats;
 
     //// Execution Log
     logStep(mcycleCount: bigint, logFilename: string): BreakReason;
@@ -100,18 +114,18 @@ isEmpty(): boolean;
 
 ## create
 
-Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty.
+Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty. If `dir` is provided, the machine is created with on-disk state at that directory; otherwise it is created in-memory.
 
 ```ts
-create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): void;
+create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): void;
 ```
 
 ## load
 
-Loads a machine instance from a previously stored directory, with optional runtime configuration. The machine object must be empty.
+Loads a machine instance from a previously stored directory, with optional runtime configuration. The machine object must be empty. The `sharing` mode controls whether the machine state is in-memory (`SharingMode.None`, the default), on-disk only for backing stores marked as shared in the configuration (`SharingMode.Config`), or fully on-disk (`SharingMode.All`).
 
 ```ts
-load(dir: string, runtimeConfig?: MachineRuntimeConfig): void;
+load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): void;
 ```
 
 ## cloneEmpty
@@ -124,10 +138,26 @@ cloneEmpty(): CartesiMachine;
 
 ## store
 
-Stores the current machine instance to a directory, serializing its entire state. Will not overwrite an existing directory.
+Stores the current machine instance to a directory, serializing its entire state. Will not overwrite an existing directory. The `sharing` mode specifies how machine changes are reflected in the new store: `SharingMode.All` (the default) stores the current machine state for all backing stores, `SharingMode.Config` stores the current state only for shared backing stores (others are copied from the initial state), and `SharingMode.None` copies backing stores from the initial machine state.
 
 ```ts
-store(dir: string): void;
+store(dir: string, sharing?: SharingMode): void;
+```
+
+## cloneStored
+
+Clones a stored machine from a source directory to a destination directory. Read-only files are copied using hard links, and writable files using reflinks, on filesystems that support them.
+
+```ts
+cloneStored(fromDir: string, toDir: string): void;
+```
+
+## removeStored
+
+Removes all files and the directory of a previously stored machine.
+
+```ts
+removeStored(dir: string): void;
 ```
 
 ## destroy
@@ -170,25 +200,33 @@ Returns the current machine runtime configuration.
 getRuntimeConfig(): MachineRuntimeConfig;
 ```
 
-## getMemoryRanges
+## getAddressRanges
 
-Returns a list of all memory ranges in the machine.
+Returns a list of all address ranges in the machine.
 
 ```ts
-getMemoryRanges(): MemoryRangeDescription[];
+getAddressRanges(): AddressRangeDescription[];
 ```
 
 ## replaceMemoryRange
 
-Replaces a memory range in the machine. The new range must match an existing range's start and length.
+Replaces a memory range in the machine. The new range must match an existing range's start, length, and read-only settings.
 
 ```ts
-replaceMemoryRange(
-    start: bigint,
-    length: bigint,
-    shared: boolean,
-    imageFilename?: string,
-): void;
+replaceMemoryRange(rangeConfig: MemoryRangeConfig): void;
+```
+
+Example:
+
+```ts
+machine.replaceMemoryRange({
+    start: 0x80000000000000,
+    length: 0x100000,
+    backing_store: {
+        data_filename: "drive.bin",
+        shared: false,
+    },
+});
 ```
 
 ## readWord
@@ -197,6 +235,14 @@ Reads a 64-bit word from memory at the given physical address.
 
 ```ts
 readWord(address: bigint): bigint;
+```
+
+## writeWord
+
+Writes a 64-bit word to memory at the given physical address.
+
+```ts
+writeWord(address: bigint, value: bigint): void;
 ```
 
 ## readMemory
@@ -263,6 +309,22 @@ Writes a value to a register.
 writeReg(reg: Reg, value: bigint): void;
 ```
 
+## readConsoleOutput
+
+Reads and consumes data from the console output buffer. Requires the runtime console output destination to be set to `to_buffer`. If `maxLength` is not provided, reads all available data.
+
+```ts
+readConsoleOutput(maxLength?: bigint): Buffer;
+```
+
+## writeConsoleInput
+
+Writes data to the console input buffer, returning the number of bytes actually written. Requires the runtime console input source to be set to `from_buffer`.
+
+```ts
+writeConsoleInput(data: Buffer): bigint;
+```
+
 ## run
 
 Runs the machine until the given cycle, or until it yields or halts. If no argument is provided, runs until `MAX_MCYCLE` (the maximum cycle value), which is equivalent to running until the machine yields or halts.
@@ -289,6 +351,31 @@ Resets the entire microarchitecture state to pristine values.
 resetUarch(): void;
 ```
 
+## collectMcycleRootHashes
+
+Collects the root hashes after every `mcyclePeriod` machine cycles until mcycle reaches `mcycleEnd`, the machine yields, or halts.
+
+```ts
+collectMcycleRootHashes(
+    mcycleEnd: bigint,
+    mcyclePeriod: bigint,
+    mcyclePhase?: bigint,
+    log2BundleMcycleCount?: number,
+    previousBackTree?: unknown,
+): McycleRootHashes;
+```
+
+## collectUarchCycleRootHashes
+
+Collects the root hashes after every microarchitecture cycle until mcycle reaches `mcycleEnd`, the machine yields, or halts, implicitly resetting the microarchitecture between machine cycles.
+
+```ts
+collectUarchCycleRootHashes(
+    mcycleEnd: bigint,
+    log2BundleUarchCycleCount?: number,
+): UarchCycleRootHashes;
+```
+
 ## getRootHash
 
 Obtains the root hash of the current machine state.
@@ -297,28 +384,36 @@ Obtains the root hash of the current machine state.
 getRootHash(): Buffer;
 ```
 
+## getNodeHash
+
+Obtains the hash of a node in the machine state hash tree.
+
+```ts
+getNodeHash(address: bigint, log2Size: number): Buffer;
+```
+
 ## getProof
 
-Obtains a Merkle proof for a range in the machine state.
+Obtains a proof for a node in the machine state hash tree. `log2RootSize` defaults to `Constant.HashTreeLog2RootSize` (the entire address space), and can be lowered to obtain a proof relative to a subtree root.
 
 ```ts
-getProof(address: bigint, log2Size: number): Proof;
+getProof(address: bigint, log2TargetSize: number, log2RootSize?: number): Proof;
 ```
 
-## verifyMerkleTree
+## verifyHashTree
 
-Verifies the integrity of the Merkle tree against the current machine state.
+Verifies the integrity of the hash tree against the current machine state.
 
 ```ts
-verifyMerkleTree(): boolean;
+verifyHashTree(): boolean;
 ```
 
-## verifyDirtyPageMaps
+## getHashTreeStats
 
-Verifies the integrity of the dirty page maps.
+Obtains hash tree statistics, optionally clearing them after retrieval.
 
 ```ts
-verifyDirtyPageMaps(): boolean;
+getHashTreeStats(clear?: boolean): HashTreeStats;
 ```
 
 ## logStep

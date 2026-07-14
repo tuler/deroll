@@ -9,6 +9,7 @@ import {
     ErrorCode,
     getDefaultConfig,
     getLastError,
+    getVersion,
     load,
     Reg,
 } from "../src/cartesi-machine";
@@ -56,6 +57,12 @@ describe("CartesiMachine", () => {
             const error = getLastError();
             expect(typeof error).toBe("string");
         });
+
+        it("should get emulator version", () => {
+            const version = getVersion();
+            // version 0.20.0 is encoded as 20000
+            expect(version).toBeGreaterThanOrEqual(20000n);
+        });
     });
 
     describe("Machine Lifecycle", () => {
@@ -68,8 +75,8 @@ describe("CartesiMachine", () => {
             expect(() => config).not.toThrow();
         });
 
-        it("should get memory ranges", () => {
-            const ranges = machine.getMemoryRanges();
+        it("should get address ranges", () => {
+            const ranges = machine.getAddressRanges();
             expect(() => ranges).not.toThrow();
         });
 
@@ -181,29 +188,38 @@ describe("CartesiMachine", () => {
         });
     });
 
-    describe("Merkle Tree Operations", () => {
+    describe("Hash Tree Operations", () => {
         it("should get root hash", () => {
             const rootHash = machine.getRootHash();
             expect(rootHash).toBeInstanceOf(Buffer);
             expect(rootHash.length).toBe(Constant.HashSize);
         });
 
+        it("should get node hash", () => {
+            const address = 0x80000000n;
+            const log2Size = Constant.HashTreeLog2PageSize;
+
+            const nodeHash = machine.getNodeHash(address, log2Size);
+            expect(nodeHash).toBeInstanceOf(Buffer);
+            expect(nodeHash.length).toBe(Constant.HashSize);
+        });
+
         it("should get proof for memory address", () => {
             const address = 0x80000000n;
-            const log2Size = Constant.TreeLog2WordSize;
+            const log2Size = Constant.HashTreeLog2WordSize;
 
             const proof = machine.getProof(address, log2Size);
             expect(() => proof).not.toThrow();
         });
 
-        it("should verify Merkle tree integrity", () => {
-            const isIntegrityValid = machine.verifyMerkleTree();
+        it("should verify hash tree integrity", () => {
+            const isIntegrityValid = machine.verifyHashTree();
             expect(typeof isIntegrityValid).toBe("boolean");
         });
 
-        it("should verify dirty page maps", () => {
-            const areDirtyMapsValid = machine.verifyDirtyPageMaps();
-            expect(typeof areDirtyMapsValid).toBe("boolean");
+        it("should get hash tree statistics", () => {
+            const stats = machine.getHashTreeStats();
+            expect(typeof stats).toBe("object");
         });
     });
 
@@ -337,9 +353,9 @@ describe("CartesiMachine", () => {
     describe("Constants and Enums", () => {
         it("should have correct constant values", () => {
             expect(Constant.HashSize).toBe(32);
-            expect(Constant.TreeLog2WordSize).toBe(5);
-            expect(Constant.TreeLog2PageSize).toBe(12);
-            expect(Constant.TreeLog2RootSize).toBe(64);
+            expect(Constant.HashTreeLog2WordSize).toBe(5);
+            expect(Constant.HashTreeLog2PageSize).toBe(12);
+            expect(Constant.HashTreeLog2RootSize).toBe(64);
         });
 
         it("should have correct error codes", () => {

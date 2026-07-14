@@ -1,4 +1,4 @@
-import type { CartesiMachine } from "./cartesi-machine.js";
+import type { CartesiMachine, SharingMode } from "./cartesi-machine.js";
 import { NodeRemoteCartesiMachine } from "./node/remote-cartesi-machine.js";
 import type { MachineConfig, MachineRuntimeConfig } from "./types.js";
 
@@ -33,13 +33,15 @@ export interface RemoteCartesiMachine extends CartesiMachine {
     load(
         dir: string,
         runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
     ): RemoteCartesiMachine;
     cloneEmpty(): RemoteCartesiMachine;
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): RemoteCartesiMachine;
-    store(dir: string): RemoteCartesiMachine;
+    store(dir: string, sharing?: SharingMode): RemoteCartesiMachine;
 }
 
 // -----------------------------------------------------------------------------

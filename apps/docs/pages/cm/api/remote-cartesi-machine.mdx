@@ -20,10 +20,10 @@ export interface RemoteCartesiMachine extends CartesiMachine {
     delayNextRequest(ms: number): void;
     getBoundAddress(): string | null;
     fork(): RemoteCartesiMachine;
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): RemoteCartesiMachine;
-    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): RemoteCartesiMachine;
+    load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): RemoteCartesiMachine;
+    create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): RemoteCartesiMachine;
     cloneEmpty(): RemoteCartesiMachine;
-    store(dir: string): RemoteCartesiMachine;
+    store(dir: string, sharing?: SharingMode): RemoteCartesiMachine;
 }
 ```
 
@@ -136,7 +136,7 @@ fork(): RemoteCartesiMachine;
 Loads a remote machine instance from a previously stored directory, with optional runtime configuration. Returns a `RemoteCartesiMachine` instance, allowing method chaining. Semantics are the same as for [CartesiMachine.load](/cm/api/cartesi-machine#load).
 
 ```ts
-load(dir: string, runtimeConfig?: MachineRuntimeConfig): RemoteCartesiMachine
+load(dir: string, runtimeConfig?: MachineRuntimeConfig, sharing?: SharingMode): RemoteCartesiMachine
 ```
 
 ## create
@@ -144,7 +144,7 @@ load(dir: string, runtimeConfig?: MachineRuntimeConfig): RemoteCartesiMachine
 Creates a new remote machine instance from the given configuration and optional runtime configuration. Returns a `RemoteCartesiMachine` instance, allowing method chaining. Semantics are the same as for [CartesiMachine.create](/cm/api/cartesi-machine#create).
 
 ```ts
-create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig): RemoteCartesiMachine
+create(config: MachineConfig, runtimeConfig?: MachineRuntimeConfig, dir?: string): RemoteCartesiMachine
 ```
 
 ## cloneEmpty
@@ -160,5 +160,5 @@ cloneEmpty(): RemoteCartesiMachine
 Stores the current remote machine instance to a directory, serializing its entire state. Returns a `RemoteCartesiMachine` instance, allowing method chaining. Semantics are the same as for [CartesiMachine.store](/cm/api/cartesi-machine#store).
 
 ```ts
-store(dir: string): RemoteCartesiMachine
+store(dir: string, sharing?: SharingMode): RemoteCartesiMachine
 ```

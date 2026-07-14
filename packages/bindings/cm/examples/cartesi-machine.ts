@@ -18,11 +18,15 @@ async function basicMachineExample() {
         const config = {
             ram: {
                 length: 0x8000000,
-                image_filename: "linux.bin",
+                backing_store: {
+                    data_filename: "linux.bin",
+                },
             },
             flash_drive: [
                 {
-                    image_filename: "rootfs.ext2",
+                    backing_store: {
+                        data_filename: "rootfs.ext2",
+                    },
                 },
             ],
             dtb: {
@@ -41,9 +45,9 @@ async function basicMachineExample() {
         const initialConfig = machine.getInitialConfig();
         console.log("Initial configuration:", initialConfig);
 
-        // Get memory ranges
-        const memoryRanges = machine.getMemoryRanges();
-        console.log("Memory ranges:", memoryRanges);
+        // Get address ranges
+        const addressRanges = machine.getAddressRanges();
+        console.log("Address ranges:", addressRanges);
 
         // Get root hash
         const rootHash = machine.getRootHash();
@@ -170,10 +174,10 @@ async function registerOperationsExample() {
 }
 
 /**
- * Example demonstrating Merkle tree operations
+ * Example demonstrating hash tree operations
  */
-async function merkleTreeExample() {
-    console.log("\n=== Merkle Tree Example ===");
+async function hashTreeExample() {
+    console.log("\n=== Hash Tree Example ===");
 
     try {
         // Create a machine
@@ -192,7 +196,7 @@ async function merkleTreeExample() {
 
         // Get proof for a memory address
         const address = 0x80000000n;
-        const log2Size = Constant.TreeLog2WordSize; // Word size
+        const log2Size = Constant.HashTreeLog2WordSize; // Word size
         console.log(
             `Getting proof for address 0x${address.toString(16)} with log2_size ${log2Size}...`,
         );
@@ -200,21 +204,18 @@ async function merkleTreeExample() {
         const proof = machine.getProof(address, log2Size);
         console.log("Proof:", proof);
 
-        // Verify Merkle tree integrity
-        console.log("Verifying Merkle tree integrity...");
-        const isIntegrityValid = machine.verifyMerkleTree();
+        // Verify hash tree integrity
+        console.log("Verifying hash tree integrity...");
+        const isIntegrityValid = machine.verifyHashTree();
         console.log(
-            "Merkle tree integrity:",
+            "Hash tree integrity:",
             isIntegrityValid ? "Valid" : "Invalid",
         );
 
-        // Verify dirty page maps
-        console.log("Verifying dirty page maps...");
-        const areDirtyMapsValid = machine.verifyDirtyPageMaps();
-        console.log(
-            "Dirty page maps:",
-            areDirtyMapsValid ? "Valid" : "Invalid",
-        );
+        // Get hash tree statistics
+        console.log("Getting hash tree statistics...");
+        const stats = machine.getHashTreeStats();
+        console.log("Hash tree stats:", stats);
     } catch (error) {
         console.error("Error:", error);
     }
@@ -320,7 +321,7 @@ async function main() {
     await basicMachineExample();
     await memoryOperationsExample();
     await registerOperationsExample();
-    await merkleTreeExample();
+    await hashTreeExample();
     await executionExample();
     await errorHandlingExample();
 
