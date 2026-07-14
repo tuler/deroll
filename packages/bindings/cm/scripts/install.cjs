@@ -4,7 +4,7 @@
 //    published @deroll/cm) is installed, there is nothing to build.
 // 2. Otherwise defer to node-gyp-build, which reuses a local prebuilds/ or
 //    build/ directory if present and compiles from source as a last resort
-//    (requires a C++20 compiler and boost headers).
+//    (requires a C++23 compiler and boost headers).
 "use strict";
 
 const { execFileSync, execSync } = require("node:child_process");

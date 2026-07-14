@@ -49,7 +49,7 @@ extern "C" {
 
 namespace {
 
-// The cmio rx/tx buffers are 2^21 bytes long (CM_PMA_CMIO_RX_BUFFER_LOG2_SIZE)
+// The cmio rx/tx buffers are 2^21 bytes long (CM_AR_CMIO_RX_BUFFER_LOG2_SIZE)
 constexpr size_t CMIO_BUFFER_SIZE = static_cast<size_t>(1) << 21;
 
 void throw_machine_error(Napi::Env env, cm_error code) {
@@ -198,7 +198,7 @@ private:
     Napi::Value GetRuntimeConfig(const Napi::CallbackInfo &info);
     Napi::Value ReplaceMemoryRange(const Napi::CallbackInfo &info);
     Napi::Value GetInitialConfig(const Napi::CallbackInfo &info);
-    Napi::Value GetMemoryRanges(const Napi::CallbackInfo &info);
+    Napi::Value GetAddressRanges(const Napi::CallbackInfo &info);
     Napi::Value GetRootHash(const Napi::CallbackInfo &info);
     Napi::Value GetProof(const Napi::CallbackInfo &info);
     Napi::Value ReadWord(const Napi::CallbackInfo &info);
@@ -218,12 +218,15 @@ private:
     Napi::Value LogStepUarch(const Napi::CallbackInfo &info);
     Napi::Value LogResetUarch(const Napi::CallbackInfo &info);
     Napi::Value LogSendCmioResponse(const Napi::CallbackInfo &info);
-    Napi::Value VerifyStep(const Napi::CallbackInfo &info);
     Napi::Value VerifyStepUarch(const Napi::CallbackInfo &info);
     Napi::Value VerifyResetUarch(const Napi::CallbackInfo &info);
     Napi::Value VerifySendCmioResponse(const Napi::CallbackInfo &info);
-    Napi::Value VerifyMerkleTree(const Napi::CallbackInfo &info);
-    Napi::Value VerifyDirtyPageMaps(const Napi::CallbackInfo &info);
+    Napi::Value VerifyHashTree(const Napi::CallbackInfo &info);
+    Napi::Value GetHashTreeStats(const Napi::CallbackInfo &info);
+    Napi::Value WriteWord(const Napi::CallbackInfo &info);
+    Napi::Value GetNodeHash(const Napi::CallbackInfo &info);
+    Napi::Value CloneStored(const Napi::CallbackInfo &info);
+    Napi::Value RemoveStored(const Napi::CallbackInfo &info);
     // jsonrpc-machine-c-api.h
     Napi::Value JsonrpcFork(const Napi::CallbackInfo &info);
     Napi::Value JsonrpcShutdownServer(const Napi::CallbackInfo &info);
@@ -285,11 +288,15 @@ Napi::Value Machine::Create(const Napi::CallbackInfo &info) {
     std::string config;
     std::string runtime_config;
     bool has_runtime_config = false;
+    std::string dir;
+    bool has_dir = false;
     if (!get_string(env, info[0], "config", &config) ||
-        !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config)) {
+        !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config) ||
+        !get_optional_string(env, info[2], "dir", &dir, &has_dir)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_create(machine_, config.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr));
+    CHECK_CM(env, cm_create(machine_, config.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr,
+                      has_dir ? dir.c_str() : nullptr));
     return env.Undefined();
 }
 
@@ -298,11 +305,14 @@ Napi::Value Machine::Load(const Napi::CallbackInfo &info) {
     std::string dir;
     std::string runtime_config;
     bool has_runtime_config = false;
+    int32_t sharing = CM_SHARING_NONE;
     if (!get_string(env, info[0], "dir", &dir) ||
-        !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config)) {
+        !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config) ||
+        (!info[2].IsUndefined() && !get_i32(env, info[2], "sharing", &sharing))) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_load(machine_, dir.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr));
+    CHECK_CM(env, cm_load(machine_, dir.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr,
+                      static_cast<cm_sharing_mode>(sharing)));
     return env.Undefined();
 }
 
@@ -316,10 +326,12 @@ Napi::Value Machine::CloneEmpty(const Napi::CallbackInfo &info) {
 Napi::Value Machine::Store(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     std::string dir;
-    if (!get_string(env, info[0], "dir", &dir)) {
+    int32_t sharing = CM_SHARING_ALL;
+    if (!get_string(env, info[0], "dir", &dir) ||
+        (!info[1].IsUndefined() && !get_i32(env, info[1], "sharing", &sharing))) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_store(machine_, dir.c_str()));
+    CHECK_CM(env, cm_store(machine_, dir.c_str(), static_cast<cm_sharing_mode>(sharing)));
     return env.Undefined();
 }
 
@@ -366,23 +378,11 @@ Napi::Value Machine::GetRuntimeConfig(const Napi::CallbackInfo &info) {
 
 Napi::Value Machine::ReplaceMemoryRange(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
-    uint64_t start = 0;
-    uint64_t length = 0;
-    if (!get_u64(env, info[0], "start", &start) || !get_u64(env, info[1], "length", &length)) {
+    std::string range_config;
+    if (!get_string(env, info[0], "rangeConfig", &range_config)) {
         return env.Undefined();
     }
-    if (!info[2].IsBoolean()) {
-        Napi::TypeError::New(env, "shared must be a boolean").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-    bool shared = info[2].As<Napi::Boolean>().Value();
-    std::string image_filename;
-    bool has_image_filename = false;
-    if (!get_optional_string(env, info[3], "imageFilename", &image_filename, &has_image_filename)) {
-        return env.Undefined();
-    }
-    CHECK_CM(env, cm_replace_memory_range(machine_, start, length, shared,
-                      has_image_filename ? image_filename.c_str() : nullptr));
+    CHECK_CM(env, cm_replace_memory_range(machine_, range_config.c_str()));
     return env.Undefined();
 }
 
@@ -393,10 +393,10 @@ Napi::Value Machine::GetInitialConfig(const Napi::CallbackInfo &info) {
     return Napi::String::New(env, config);
 }
 
-Napi::Value Machine::GetMemoryRanges(const Napi::CallbackInfo &info) {
+Napi::Value Machine::GetAddressRanges(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     const char *ranges = nullptr;
-    CHECK_CM(env, cm_get_memory_ranges(machine_, &ranges));
+    CHECK_CM(env, cm_get_address_ranges(machine_, &ranges));
     return Napi::String::New(env, ranges);
 }
 
@@ -414,8 +414,12 @@ Napi::Value Machine::GetProof(const Napi::CallbackInfo &info) {
     if (!get_u64(env, info[0], "address", &address) || !get_i32(env, info[1], "log2Size", &log2_size)) {
         return env.Undefined();
     }
+    int32_t log2_root_size = CM_HASH_TREE_LOG2_ROOT_SIZE;
+    if (!info[2].IsUndefined() && !get_i32(env, info[2], "log2RootSize", &log2_root_size)) {
+        return env.Undefined();
+    }
     const char *proof = nullptr;
-    CHECK_CM(env, cm_get_proof(machine_, address, log2_size, &proof));
+    CHECK_CM(env, cm_get_proof(machine_, address, log2_size, log2_root_size, &proof));
     return Napi::String::New(env, proof);
 }
 
@@ -624,7 +628,7 @@ Napi::Value Machine::LogSendCmioResponse(const Napi::CallbackInfo &info) {
 
 // Shared implementation for the instance methods and the module-level
 // functions (which pass m == nullptr).
-Napi::Value verify_step(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
+Napi::Value verify_step(Napi::Env env, const Napi::CallbackInfo &info, size_t base) {
     const cm_hash *root_hash_before = nullptr;
     std::string log_filename;
     uint64_t mcycle_count = 0;
@@ -637,7 +641,7 @@ Napi::Value verify_step(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &
     }
     cm_break_reason break_reason = CM_BREAK_REASON_FAILED;
     CHECK_CM(env,
-        cm_verify_step(m, root_hash_before, log_filename.c_str(), mcycle_count, root_hash_after, &break_reason));
+        cm_verify_step(root_hash_before, log_filename.c_str(), mcycle_count, root_hash_after, &break_reason));
     return Napi::Number::New(env, break_reason);
 }
 
@@ -685,10 +689,6 @@ Napi::Value verify_send_cmio_response(Napi::Env env, cm_machine *m, const Napi::
     return env.Undefined();
 }
 
-Napi::Value Machine::VerifyStep(const Napi::CallbackInfo &info) {
-    return verify_step(info.Env(), machine_, info, 0);
-}
-
 Napi::Value Machine::VerifyStepUarch(const Napi::CallbackInfo &info) {
     return verify_step_uarch(info.Env(), machine_, info, 0);
 }
@@ -701,18 +701,63 @@ Napi::Value Machine::VerifySendCmioResponse(const Napi::CallbackInfo &info) {
     return verify_send_cmio_response(info.Env(), machine_, info, 0);
 }
 
-Napi::Value Machine::VerifyMerkleTree(const Napi::CallbackInfo &info) {
+Napi::Value Machine::VerifyHashTree(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     bool result = false;
-    CHECK_CM(env, cm_verify_merkle_tree(machine_, &result));
+    CHECK_CM(env, cm_verify_hash_tree(machine_, &result));
     return Napi::Boolean::New(env, result);
 }
 
-Napi::Value Machine::VerifyDirtyPageMaps(const Napi::CallbackInfo &info) {
+Napi::Value Machine::GetHashTreeStats(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
-    bool result = false;
-    CHECK_CM(env, cm_verify_dirty_page_maps(machine_, &result));
-    return Napi::Boolean::New(env, result);
+    bool clear = info[0].IsBoolean() ? info[0].As<Napi::Boolean>().Value() : false;
+    const char *stats = nullptr;
+    CHECK_CM(env, cm_get_hash_tree_stats(machine_, clear, &stats));
+    return Napi::String::New(env, stats);
+}
+
+Napi::Value Machine::WriteWord(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    uint64_t address = 0;
+    uint64_t val = 0;
+    if (!get_u64(env, info[0], "address", &address) || !get_u64(env, info[1], "value", &val)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_write_word(machine_, address, val));
+    return env.Undefined();
+}
+
+Napi::Value Machine::GetNodeHash(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    uint64_t address = 0;
+    int32_t log2_size = 0;
+    if (!get_u64(env, info[0], "address", &address) || !get_i32(env, info[1], "log2Size", &log2_size)) {
+        return env.Undefined();
+    }
+    cm_hash hash{};
+    CHECK_CM(env, cm_get_node_hash(machine_, address, log2_size, &hash));
+    return Napi::Buffer<uint8_t>::Copy(env, hash, CM_HASH_SIZE);
+}
+
+Napi::Value Machine::CloneStored(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    std::string from_dir;
+    std::string to_dir;
+    if (!get_string(env, info[0], "fromDir", &from_dir) || !get_string(env, info[1], "toDir", &to_dir)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_clone_stored(machine_, from_dir.c_str(), to_dir.c_str()));
+    return env.Undefined();
+}
+
+Napi::Value Machine::RemoveStored(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    std::string dir;
+    if (!get_string(env, info[0], "dir", &dir)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_remove_stored(machine_, dir.c_str()));
+    return env.Undefined();
 }
 
 Napi::Value Machine::JsonrpcFork(const Napi::CallbackInfo &info) {
@@ -824,7 +869,7 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
             InstanceMethod<&Machine::GetRuntimeConfig>("getRuntimeConfig"),
             InstanceMethod<&Machine::ReplaceMemoryRange>("replaceMemoryRange"),
             InstanceMethod<&Machine::GetInitialConfig>("getInitialConfig"),
-            InstanceMethod<&Machine::GetMemoryRanges>("getMemoryRanges"),
+            InstanceMethod<&Machine::GetAddressRanges>("getAddressRanges"),
             InstanceMethod<&Machine::GetRootHash>("getRootHash"),
             InstanceMethod<&Machine::GetProof>("getProof"),
             InstanceMethod<&Machine::ReadWord>("readWord"),
@@ -844,12 +889,15 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
             InstanceMethod<&Machine::LogStepUarch>("logStepUarch"),
             InstanceMethod<&Machine::LogResetUarch>("logResetUarch"),
             InstanceMethod<&Machine::LogSendCmioResponse>("logSendCmioResponse"),
-            InstanceMethod<&Machine::VerifyStep>("verifyStep"),
             InstanceMethod<&Machine::VerifyStepUarch>("verifyStepUarch"),
             InstanceMethod<&Machine::VerifyResetUarch>("verifyResetUarch"),
             InstanceMethod<&Machine::VerifySendCmioResponse>("verifySendCmioResponse"),
-            InstanceMethod<&Machine::VerifyMerkleTree>("verifyMerkleTree"),
-            InstanceMethod<&Machine::VerifyDirtyPageMaps>("verifyDirtyPageMaps"),
+            InstanceMethod<&Machine::VerifyHashTree>("verifyHashTree"),
+            InstanceMethod<&Machine::GetHashTreeStats>("getHashTreeStats"),
+            InstanceMethod<&Machine::WriteWord>("writeWord"),
+            InstanceMethod<&Machine::GetNodeHash>("getNodeHash"),
+            InstanceMethod<&Machine::CloneStored>("cloneStored"),
+            InstanceMethod<&Machine::RemoveStored>("removeStored"),
             InstanceMethod<&Machine::JsonrpcFork>("jsonrpcFork"),
             InstanceMethod<&Machine::JsonrpcShutdownServer>("jsonrpcShutdownServer"),
             InstanceMethod<&Machine::JsonrpcRebindServer>("jsonrpcRebindServer"),
@@ -877,6 +925,10 @@ Napi::Value GetLastErrorMessage(const Napi::CallbackInfo &info) {
     return Napi::String::New(info.Env(), cm_get_last_error_message());
 }
 
+Napi::Value GetVersion(const Napi::CallbackInfo &info) {
+    return Napi::BigInt::New(info.Env(), cm_get_version());
+}
+
 Napi::Value MachineNew(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     cm_machine *new_m = nullptr;
@@ -893,8 +945,14 @@ Napi::Value MachineCreateNew(const Napi::CallbackInfo &info) {
         !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config)) {
         return env.Undefined();
     }
+    std::string dir;
+    bool has_dir = false;
+    if (!get_optional_string(env, info[2], "dir", &dir, &has_dir)) {
+        return env.Undefined();
+    }
     cm_machine *new_m = nullptr;
-    CHECK_CM(env, cm_create_new(config.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr, &new_m));
+    CHECK_CM(env, cm_create_new(config.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr,
+                      has_dir ? dir.c_str() : nullptr, &new_m));
     return Machine::NewInstance(env, new_m);
 }
 
@@ -907,8 +965,13 @@ Napi::Value MachineLoadNew(const Napi::CallbackInfo &info) {
         !get_optional_string(env, info[1], "runtimeConfig", &runtime_config, &has_runtime_config)) {
         return env.Undefined();
     }
+    int32_t sharing = CM_SHARING_NONE;
+    if (!info[2].IsUndefined() && !get_i32(env, info[2], "sharing", &sharing)) {
+        return env.Undefined();
+    }
     cm_machine *new_m = nullptr;
-    CHECK_CM(env, cm_load_new(dir.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr, &new_m));
+    CHECK_CM(env, cm_load_new(dir.c_str(), has_runtime_config ? runtime_config.c_str() : nullptr,
+                      static_cast<cm_sharing_mode>(sharing), &new_m));
     return Machine::NewInstance(env, new_m);
 }
 
@@ -931,7 +994,7 @@ Napi::Value GetRegAddress(const Napi::CallbackInfo &info) {
 }
 
 Napi::Value VerifyStep(const Napi::CallbackInfo &info) {
-    return verify_step(info.Env(), nullptr, info, 0);
+    return verify_step(info.Env(), info, 0);
 }
 
 Napi::Value VerifyStepUarch(const Napi::CallbackInfo &info) {
@@ -1015,6 +1078,7 @@ Napi::Value JsonrpcConnectServer(const Napi::CallbackInfo &info) {
 Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
     Machine::Init(env, exports);
     exports.Set("getLastErrorMessage", Napi::Function::New(env, GetLastErrorMessage));
+    exports.Set("getVersion", Napi::Function::New(env, GetVersion));
     exports.Set("machineNew", Napi::Function::New(env, MachineNew));
     exports.Set("machineCreateNew", Napi::Function::New(env, MachineCreateNew));
     exports.Set("machineLoadNew", Napi::Function::New(env, MachineLoadNew));

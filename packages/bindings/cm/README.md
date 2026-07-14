@@ -14,7 +14,7 @@ The `optionalDependencies` are injected at publish time (`scripts/inject-platfor
 
 On platforms without a prebuilt package, the install script compiles from source, which requires:
 
-- a C++20 compiler (gcc 12+ or clang 15+)
+- a C++23 compiler (gcc 13+ or clang 16+ / Xcode 15+)
 - Boost headers (`libboost-dev` on Debian/Ubuntu, `brew install boost` on macOS; the usage is header-only, nothing is linked). Set `BOOST_INC` if they live in a non-standard location.
 - the `deps/machine-emulator` submodule checked out (`git submodule update --init`) when building from a git checkout; the npm tarball already contains the needed sources.
 
@@ -22,7 +22,7 @@ On platforms without a prebuilt package, the install script compiles from source
 
 The emulator build normally generates a few files that are committed here so consumers never need a RISC-V toolchain:
 
-- `uarch-pristine-ram.c` — generated from the **official** `uarch-ram.bin` shipped in the `cartesi/machine-emulator` 0.19.0 release. These bytes are consensus-relevant (they are part of the machine root hash) and must never be rebuilt with a different toolchain.
+- `uarch-pristine-ram.c` — generated from the **official** `uarch-ram.bin` shipped in the `cartesi/machine-emulator` 0.20.0 release. These bytes are consensus-relevant (they are part of the machine root hash) and must never be rebuilt with a different toolchain.
 - `uarch-pristine-hash.c` — computed from the RAM image above with the emulator's `compute-uarch-pristine-hash` tool, and cross-checked against the hash embedded in the official release binaries.
 - `machine-c-version.h`, `interpret-jump-table.h`, `jsonrpc-discover.cpp` — deterministically generated from the submodule sources (`make -C src machine-c-version.h interpret-jump-table.h`, plus the `jsonrpc-discover.cpp` recipe in `src/Makefile`).
 

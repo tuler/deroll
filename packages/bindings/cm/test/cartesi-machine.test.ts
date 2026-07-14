@@ -11,6 +11,7 @@ import {
     getLastError,
     load,
     Reg,
+    verifyStep,
 } from "../src/cartesi-machine";
 import { NodeCartesiMachine } from "../src/node/cartesi-machine";
 
@@ -69,7 +70,7 @@ describe("CartesiMachine", () => {
         });
 
         it("should get memory ranges", () => {
-            const ranges = machine.getMemoryRanges();
+            const ranges = machine.getAddressRanges();
             expect(() => ranges).not.toThrow();
         });
 
@@ -196,14 +197,14 @@ describe("CartesiMachine", () => {
             expect(() => proof).not.toThrow();
         });
 
-        it("should verify Merkle tree integrity", () => {
-            const isIntegrityValid = machine.verifyMerkleTree();
+        it("should verify hash tree integrity", () => {
+            const isIntegrityValid = machine.verifyHashTree();
             expect(typeof isIntegrityValid).toBe("boolean");
         });
 
-        it("should verify dirty page maps", () => {
-            const areDirtyMapsValid = machine.verifyDirtyPageMaps();
-            expect(typeof areDirtyMapsValid).toBe("boolean");
+        it("should get hash tree stats", () => {
+            const stats = machine.getHashTreeStats();
+            expect(typeof stats).toBe("object");
         });
     });
 
@@ -274,7 +275,7 @@ describe("CartesiMachine", () => {
             machine.logStep(mcycleCount, logFilename);
 
             const rootHashAfter = machine.getRootHash();
-            const breakReason = machine.verifyStep(
+            const breakReason = verifyStep(
                 rootHashBefore,
                 logFilename,
                 mcycleCount,

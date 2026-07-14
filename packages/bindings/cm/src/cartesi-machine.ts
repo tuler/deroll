@@ -2,9 +2,11 @@ import { NodeCartesiMachine } from "./node/cartesi-machine.js";
 import type {
     AccessLog,
     AccessLogType,
+    AddressRangeDescription,
+    HashTreeStats,
     MachineConfig,
     MachineRuntimeConfig,
-    MemoryRangeDescription,
+    MemoryRangeConfig,
     Proof,
 } from "./types.js";
 
@@ -102,13 +104,23 @@ export enum BreakReason {
     YieldedAutomatically,
     YieldedSoftly,
     ReachedTargetMcycle,
+    ConsoleOutput,
+    ConsoleInput,
 }
 
 /// Reasons for the machine to break from call to cm_run_uarch
 export enum UarchBreakReason {
     ReachedTargetCycle,
     UarchHalted,
+    CycleOverflow,
     Failed,
+}
+
+/// Backing stores sharing mode for load/store operations
+export enum SharingMode {
+    None = 0, ///< Machine state fully in-memory
+    Config = 1, ///< On-disk for backing stores marked shared in the config
+    All = 2, ///< Machine state fully on-disk
 }
 
 /// Yield device commands
@@ -297,26 +309,30 @@ export interface CartesiMachine {
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): CartesiMachine;
-    load(dir: string, runtimeConfig?: MachineRuntimeConfig): CartesiMachine;
+    load(
+        dir: string,
+        runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
+    ): CartesiMachine;
     cloneEmpty(): CartesiMachine;
-    store(dir: string): CartesiMachine;
+    store(dir: string, sharing?: SharingMode): CartesiMachine;
+    cloneStored(fromDir: string, toDir: string): void;
+    removeStored(dir: string): void;
     destroy(): void;
     getDefaultConfig(): MachineConfig;
     setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
     getRuntimeConfig(): MachineRuntimeConfig;
-    replaceMemoryRange(
-        start: bigint,
-        length: bigint,
-        shared: boolean,
-        imageFilename?: string,
-    ): void;
+    replaceMemoryRange(rangeConfig: MemoryRangeConfig): void;
     getInitialConfig(): MachineConfig;
-    getMemoryRanges(): MemoryRangeDescription[];
+    getAddressRanges(): AddressRangeDescription[];
     getRegAddress(reg: Reg): bigint;
     getRootHash(): Buffer;
-    getProof(address: bigint, log2Size: number): Proof;
+    getNodeHash(address: bigint, log2Size: number): Buffer;
+    getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof;
     readWord(address: bigint): bigint;
+    writeWord(address: bigint, value: bigint): void;
     readReg(reg: Reg): bigint;
     writeReg(reg: Reg, value: bigint): void;
     readMemory(address: bigint, length: bigint): Buffer;
@@ -341,12 +357,6 @@ export interface CartesiMachine {
         data: Buffer,
         logType: AccessLogType,
     ): string;
-    verifyStep(
-        rootHashBefore: Buffer,
-        logFilename: string,
-        mcycleCount: bigint,
-        rootHashAfter: Buffer,
-    ): BreakReason;
     verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
@@ -357,8 +367,8 @@ export interface CartesiMachine {
         log: AccessLog,
         rootHashAfter: Buffer,
     ): void;
-    verifyMerkleTree(): boolean;
-    verifyDirtyPageMaps(): boolean;
+    verifyHashTree(): boolean;
+    getHashTreeStats(clear?: boolean): HashTreeStats;
 }
 
 export function empty(): CartesiMachine {
@@ -381,6 +391,10 @@ export function load(
 
 export function getLastError(): string {
     return NodeCartesiMachine.getLastError();
+}
+
+export function getVersion(): bigint {
+    return NodeCartesiMachine.getVersion();
 }
 
 export function getDefaultConfig(): MachineConfig {

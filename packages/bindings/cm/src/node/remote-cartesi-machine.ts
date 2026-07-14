@@ -1,3 +1,4 @@
+import type { SharingMode } from "../cartesi-machine.js";
 import { MachineError } from "../cartesi-machine.js";
 import type { CleanupCall } from "../remote-cartesi-machine.js";
 import type { MachineConfig, MachineRuntimeConfig } from "../types.js";
@@ -117,8 +118,9 @@ export class NodeRemoteCartesiMachine extends NodeCartesiMachine {
     load(
         dir: string,
         runtimeConfig?: MachineRuntimeConfig,
+        sharing?: SharingMode,
     ): NodeRemoteCartesiMachine {
-        super.load(dir, runtimeConfig);
+        super.load(dir, runtimeConfig, sharing);
         return this;
     }
 
@@ -130,13 +132,14 @@ export class NodeRemoteCartesiMachine extends NodeCartesiMachine {
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
+        dir?: string,
     ): NodeRemoteCartesiMachine {
-        super.create(config, runtimeConfig);
+        super.create(config, runtimeConfig, dir);
         return this;
     }
 
-    store(dir: string): NodeRemoteCartesiMachine {
-        super.store(dir);
+    store(dir: string, sharing?: SharingMode): NodeRemoteCartesiMachine {
+        super.store(dir, sharing);
         return this;
     }
 }
