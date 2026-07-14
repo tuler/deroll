@@ -1,21 +1,18 @@
 # Cartesi Machine + Node.js
 
-The [Cartesi machine emulator](https://github.com/cartesi/machine-emulator) is distributed as a C dynamic library, and can be used from any programming language that provides some kind of C code integration. Node.js is no exception, and this library provides a binding using FFI through the [koffi](https://koffi.dev) library.
+The [Cartesi machine emulator](https://github.com/cartesi/machine-emulator) is a C++ library with a C API. This package binds it to Node.js as a native N-API addon: the emulator (currently [0.20.0](https://github.com/cartesi/machine-emulator/releases/tag/v0.20.0)) is compiled into the addon from sources vendored as a git submodule, so **no system-wide emulator installation is required**. The build also produces the `cartesi-jsonrpc-machine` server executable, used automatically by [spawn](/cm/api/spawn).
 
 It provides a fully typed and ergonomic TypeScript API for the Cartesi Machine C API and the Cartesi Machine JSON-RPC API, which allows you to create, manage, and interact with local or remote Cartesi machines from TypeScript/JavaScript applications.
 
 ## Features
 
+- **Self-contained**: prebuilt binaries per platform, no emulator installation needed;
 - **Comprehensive**: Complete API, for any use case, including [local](/cm/local) and [remote](/cm/remote) machines;
 - **Full Type Safety**: Complete TypeScript definitions for all C API functions and types;
 - **High-Level Wrapper**: Easy-to-use [CartesiMachine](/cm/api/cartesi-machine) and [RemoteCartesiMachine](/cm/api/remote-cartesi-machine) interfaces that wraps the C API;
 - **Error Handling**: Easy [error handling](/cm/error-handling) with detailed error messages.
 
 ## Installation
-
-Make sure you install the Cartesi Machine [0.19.0](https://github.com/cartesi/machine-emulator/releases/tag/v0.19.0) library in your system by following the official [instructions](https://github.com/cartesi/machine-emulator?tab=readme-ov-file#installation).
-
-Then install this package
 
 :::code-group
 
@@ -32,5 +29,8 @@ yarn add @deroll/cm
 ```
 :::
 
-The library supports both Linux and macOS, and searches for the Cartesi dynamic libraries in a few standard places.
+On Linux (x64, arm64) and macOS (x64, arm64) this installs a prebuilt platform package (`@deroll/cm-<platform>-<arch>`) containing the native addon and the JSON-RPC server executable — no compiler needed.
+
+On other platforms the install script compiles the emulator from source, which requires a C++23 compiler (gcc 13+ or clang 16+) and Boost headers (`libboost-dev` on Debian/Ubuntu, `brew install boost` on macOS).
+
 Check the [troubleshooting](./troubleshooting) section in case of problems.

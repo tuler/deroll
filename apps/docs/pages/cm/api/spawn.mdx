@@ -2,6 +2,8 @@
 
 Spawns a new remote Cartesi machine server process, binding it to a specified address. Returns a [RemoteCartesiMachine](/cm/api/remote-cartesi-machine) instance that can be used to interact with the remote server. This is the main entry point for starting a new remote machine server from your application.
 
+The server executable (`cartesi-jsonrpc-machine`) ships with the package, so no emulator installation is needed. Set the `CARTESI_JSONRPC_MACHINE` environment variable to use a different executable, or see [troubleshooting](/cm/troubleshooting) for the full resolution order.
+
 ## Function Signature
 
 ```ts

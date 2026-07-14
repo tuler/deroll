@@ -4,11 +4,11 @@ import { BreakReason, create } from "@deroll/cm";
 const machine = create({
     ram: {
         length: 0x8000000, // 128MB of RAM
-        image_filename: "linux.bin",
+        backing_store: { data_filename: "linux.bin" },
     },
     flash_drive: [
         {
-            image_filename: "rootfs.ext2",
+            backing_store: { data_filename: "rootfs.ext2" },
         },
     ],
     dtb: {

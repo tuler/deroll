@@ -1,44 +1,29 @@
 # Troubleshooting
 
-## Can't find dynamic library
+## No native binding available
 
-This library works on Linux and macOS.
-It needs the following dynamic libraries to be installed in the system:
+The library loads its native binding in the following order:
 
-:::code-group
+1. a local source build (`build/Release`), present when the addon was compiled on install;
+2. the prebuilt platform package `@deroll/cm-<platform>-<arch>` (an `optionalDependency` of published releases).
 
-```bash [Linux]
-libcartesi.so
-libcartesi_jsonrpc.so
-```
+If neither is found, loading fails with `@deroll/cm: no native binding available`. This usually means the platform has no prebuilt package **and** the source build failed (or install scripts were disabled, e.g. `--ignore-scripts`).
 
-```bash [macOS]
-libcartesi.dylib
-libcartesi_jsonrpc.dylib
-```
-:::
+To compile from source you need:
 
-The libraries above are searched in the following directories by default:
-
-```ts
-const defaultPaths = [
-    // System library paths
-    "/usr/lib",
-    "/usr/local/lib",
-    "/opt/homebrew/lib", // macOS Homebrew
-    "/opt/local/lib", // macOS MacPorts
-    // Current directory
-    ".",
-    // Relative to current working directory
-    join(process.cwd(), "lib"),
-    join(process.cwd(), "build"),
-];
-```
-
-On Linux it also uses the `LD_LIBRARY_PATH` environment variable, which is expected to be a list of directories separated by `:`.
-On macOS the environment variable names used are `DYLD_LIBRARY_PATH` and `DYLD_FALLBACK_LIBRARY_PATH`.
+- a C++23 compiler (gcc 13+ or clang 16+ / Xcode 15+);
+- Boost headers: `apt install libboost-dev` (Debian/Ubuntu) or `brew install boost` (macOS). If they live in a non-standard location, set `BOOST_INC` to the include directory;
+- when installing from a git checkout: the `machine-emulator` submodule (`git submodule update --init`).
 
 ## Error spawning server
 
-The address does not support DNS.
+[spawn](/cm/api/spawn) launches the `cartesi-jsonrpc-machine` executable. It is resolved in the following order:
+
+1. the `CARTESI_JSONRPC_MACHINE` environment variable, if set;
+2. the executable bundled with a source build or with the prebuilt platform package;
+3. `cartesi-jsonrpc-machine` on the `PATH`.
+
+If the spawn fails with a "no such file" flavored error, none of the above resolved — set `CARTESI_JSONRPC_MACHINE` to the full path of the executable, or install the [emulator](https://github.com/cartesi/machine-emulator) so it is on the `PATH`.
+
+Also note the server address does not support DNS.
 So addresses like `localhost:0` are not supported, use `127.0.0.1:0` instead.
