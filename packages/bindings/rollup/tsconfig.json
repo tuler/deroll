@@ -1,0 +1,9 @@
+{
+    "extends": "@deroll/tsconfig/base.json",
+    "compilerOptions": {
+        "noUncheckedIndexedAccess": true,
+        "types": ["node"]
+    },
+    "include": ["."],
+    "exclude": ["dist", "node_modules", "build"]
+}

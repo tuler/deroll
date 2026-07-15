@@ -1,0 +1,81 @@
+{
+    "name": "@deroll/rollup",
+    "version": "0.0.0",
+    "description": "Cartesi Machine rollup binding with the libcmt protocol implemented in pure JavaScript",
+    "keywords": [
+        "cartesi",
+        "rollups",
+        "libcmt",
+        "riscv64"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "sideEffects": false,
+    "license": "Apache-2.0",
+    "files": [
+        "dist/**",
+        "shim/**",
+        "binding.gyp",
+        "scripts/install.mjs",
+        "prebuilds/**"
+    ],
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "require": "./dist/index.cjs"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "scripts": {
+        "build": "tsup",
+        "build:shim": "node-gyp rebuild",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf build",
+        "dev": "tsup --watch",
+        "install": "node scripts/install.mjs",
+        "lint": "biome check",
+        "prebuild:shim": "prebuildify --napi --strip",
+        "prepack": "run-s build",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@noble/hashes": "^1.8.0",
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "catalog:",
+        "@deroll/cmio": "workspace:*",
+        "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^26.0.0",
+        "node-gyp": "^13.0.0",
+        "npm-run-all": "^4",
+        "prebuildify": "^6.0.1",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.3",
+        "viem": "^2.53.1",
+        "vitest": "^4.1.9"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "binary": {
+        "napi_versions": [
+            8
+        ]
+    }
+}
