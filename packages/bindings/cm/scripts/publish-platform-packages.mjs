@@ -5,25 +5,47 @@
 // exist by the time the @deroll/cm version referencing them goes live.
 // Idempotent: already-published versions and scaffolds without binaries are
 // skipped, so re-runs and Version-PR builds are no-ops.
+//
+// The dist-tag mirrors what `changeset publish` uses for the workspace
+// packages: the changesets pre-mode tag when active (npm also refuses to
+// publish a prerelease version without an explicit --tag), "latest"
+// otherwise.
+//
+// Auth follows the ambient npm configuration (OIDC trusted publishing in
+// CI). Trusted publishing cannot create packages that do not exist on npm
+// yet; for such first-time publishes set NPM_TOKEN and it is used for these
+// packages only.
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
+const repoRoot = path.resolve(root, "..", "..", "..");
 const version = JSON.parse(
     readFileSync(path.join(root, "package.json"), "utf8"),
 ).version;
 
-const isPublished = (name) => {
+const distTag = () => {
     try {
-        execFileSync("npm", ["view", `${name}@${version}`, "version"], {
-            stdio: "pipe",
-        });
-        return true;
+        const pre = JSON.parse(
+            readFileSync(path.join(repoRoot, ".changeset", "pre.json"), "utf8"),
+        );
+        if (pre.mode === "pre" && pre.tag) {
+            return pre.tag;
+        }
     } catch {
-        return false;
+        // not in pre mode
     }
+    // fallback: derive from the version's prerelease identifier
+    return version.split("-")[1]?.split(".")[0] ?? "latest";
 };
+const tag = distTag();
+
+const publishEnv = { ...process.env };
+if (process.env.NPM_TOKEN) {
+    publishEnv["npm_config_//registry.npmjs.org/:_authToken"] =
+        process.env.NPM_TOKEN;
+}
 
 for (const entry of readdirSync(path.join(root, "npm"), {
     withFileTypes: true,
@@ -41,13 +63,19 @@ for (const entry of readdirSync(path.join(root, "npm"), {
     // version lockstep with @deroll/cm (idempotent re-stamp)
     pkg.version = version;
     writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 4)}\n`);
-    if (isPublished(pkg.name)) {
+    try {
+        execFileSync("npm", ["view", `${pkg.name}@${version}`, "version"], {
+            stdio: "pipe",
+        });
         console.log(`skip ${pkg.name}@${version}: already published`);
         continue;
+    } catch {
+        // not published yet
     }
-    console.log(`publishing ${pkg.name}@${version}`);
-    execFileSync("npm", ["publish", "--access", "public"], {
+    console.log(`publishing ${pkg.name}@${version} (tag: ${tag})`);
+    execFileSync("npm", ["publish", "--access", "public", "--tag", tag], {
         cwd: dir,
         stdio: "inherit",
+        env: publishEnv,
     });
 }
