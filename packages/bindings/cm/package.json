@@ -60,13 +60,9 @@
         "dist",
         "binding.gyp",
         "src/addon.cc",
+        "src/slirp-stubs.c",
         "scripts/install.cjs",
-        "gen/",
-        "deps/machine-emulator/src/",
-        "deps/machine-emulator/third-party/tiny_sha3/",
-        "deps/machine-emulator/third-party/nlohmann-json/",
-        "deps/machine-emulator/third-party/llvm-flang-uint128/",
-        "deps/machine-emulator/COPYING"
+        "scripts/find-cartesi.cjs"
     ],
     "binary": {
         "napi_versions": [

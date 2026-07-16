@@ -2,7 +2,7 @@
 
 Node.js bindings for the [Cartesi Machine](https://github.com/cartesi/machine-emulator) emulator.
 
-The package is a native N-API addon: `libcartesi` (and the JSON-RPC client, `libcartesi_jsonrpc`) are compiled from the `machine-emulator` sources vendored as a git submodule at `deps/machine-emulator`, so no system-wide emulator installation is required. The build also produces the `cartesi-jsonrpc-machine` server executable, which `spawn()` uses automatically (override with the `CARTESI_JSONRPC_MACHINE` environment variable).
+The package is a native N-API addon linked against the static libraries (`libcartesi.a`, `libcartesi_jsonrpc.a`) of the official [machine-emulator](https://github.com/cartesi/machine-emulator) distribution. Prebuilt platform packages also bundle the distribution's `cartesi-jsonrpc-machine` server executable, which `spawn()` uses automatically (override with the `CARTESI_JSONRPC_MACHINE` environment variable).
 
 ## Prebuilt platform packages
 
@@ -12,21 +12,16 @@ The `optionalDependencies` are injected at publish time (`scripts/inject-platfor
 
 ## Build requirements
 
-On platforms without a prebuilt package, the install script compiles from source, which requires:
+On platforms without a prebuilt package, the install script compiles the addon from source, which requires:
 
-- a C++23 compiler (gcc 13+ or clang 16+ / Xcode 15+)
-- Boost headers (`libboost-dev` on Debian/Ubuntu, `brew install boost` on macOS; the usage is header-only, nothing is linked). Set `BOOST_INC` if they live in a non-standard location.
-- the `deps/machine-emulator` submodule checked out (`git submodule update --init`) when building from a git checkout; the npm tarball already contains the needed sources.
+- a C++ compiler and the usual node-gyp toolchain;
+- an installed cartesi-machine emulator **0.20.x** distribution providing the C API headers and static libraries: the `machine-emulator` `.deb` from the [official releases](https://github.com/cartesi/machine-emulator/releases) on Debian/Ubuntu, or `brew install cartesi-machine-emulator` on macOS. Non-standard locations can be pointed at with the `CARTESI_INC` / `CARTESI_LIB` environment variables.
 
-## Generated files (`gen/`)
+Linking against the official static libraries (instead of compiling the emulator from source) keeps the binding independent of the emulator's build system, and means the consensus-relevant bits (uarch pristine state, hash tree) are exactly the official release's.
 
-The emulator build normally generates a few files that are committed here so consumers never need a RISC-V toolchain:
+### slirp
 
-- `uarch-pristine-ram.c` — generated from the **official** `uarch-ram.bin` shipped in the `cartesi/machine-emulator` 0.20.0 release. These bytes are consensus-relevant (they are part of the machine root hash) and must never be rebuilt with a different toolchain.
-- `uarch-pristine-hash.c` — computed from the RAM image above with the emulator's `compute-uarch-pristine-hash` tool, and cross-checked against the hash embedded in the official release binaries.
-- `machine-c-version.h`, `interpret-jump-table.h`, `jsonrpc-discover.cpp` — deterministically generated from the submodule sources (`make -C src machine-c-version.h interpret-jump-table.h`, plus the `jsonrpc-discover.cpp` recipe in `src/Makefile`).
-
-When bumping the submodule to a new emulator version, regenerate all of them (the uarch files from the matching release artifacts, e.g. the `add-generated-files.diff` release asset).
+The official `libcartesi.a` is built with libslirp support (virtio net-user networking). By default the addon stubs those symbols out, so it has no libslirp dependency and machines configured with a `net-user` virtio device fail at runtime. Build with `CARTESI_SLIRP=yes` to link the real libslirp instead.
 
 ## Usage
 
@@ -55,6 +50,8 @@ bun run package:platform  # assemble npm/<platform>-<arch> prebuilt package
 bun run test:integration
 ```
 
+The native build links against an installed emulator distribution (see build requirements above).
+
 ## License
 
-Licensed under [Apache-2](./LICENSE). The vendored machine-emulator sources are licensed under [LGPL-3.0-or-later](./deps/machine-emulator/COPYING); the addon compiles and statically links them, and the full corresponding source is included in the published package.
+Licensed under [Apache-2](./LICENSE). The machine-emulator static libraries the addon links against are licensed under LGPL-3.0-or-later; their source is available at [cartesi/machine-emulator](https://github.com/cartesi/machine-emulator), and the addon source shipped in this package allows relinking against a modified version.

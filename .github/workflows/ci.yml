@@ -16,11 +16,13 @@ concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
-# Used by the riscv64 cross-build. Keep in sync with the machine-guest-tools
-# submodule (its Makefile LINUX_HEADERS_* variables).
+# LINUX_*: used by the riscv64 cross-build. Keep in sync with the
+# machine-guest-tools submodule (its Makefile LINUX_HEADERS_* variables).
+# CARTESI_MACHINE_VERSION: emulator distribution cm's addon links against.
 env:
     LINUX_IMAGE_VERSION: v0.20.0
     LINUX_VERSION: 6.5.13-ctsi-1
+    CARTESI_MACHINE_VERSION: 0.20.0
 
 jobs:
     build:
@@ -45,9 +47,11 @@ jobs:
 
             # ubuntu-latest already ships gcc/g++/make/python3, which node-gyp
             # needs to compile the cmio/cm addons on install. cm additionally
-            # needs boost headers (header-only usage) to compile libcartesi.
-            - name: Install boost
-              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+            # links against the installed emulator's static libcartesi.
+            - name: Install cartesi-machine emulator
+              run: |
+                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
+                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
 
             - name: Install Dependencies
               run: bun install --frozen-lockfile
@@ -85,10 +89,11 @@ jobs:
               with:
                   platforms: riscv64
 
-            # boost headers: cm's addon compiles from the machine-emulator
-            # submodule during `bun install`
-            - name: Install boost
-              run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libboost-dev
+            # cm's addon links against the installed emulator during `bun install`
+            - name: Install cartesi-machine emulator
+              run: |
+                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
+                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
 
             # bun (not npm) — the workspace uses bun's `catalog:` protocol.
             - run: bun install --frozen-lockfile

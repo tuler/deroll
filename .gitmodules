@@ -1,6 +1,3 @@
 [submodule "packages/bindings/cmio/deps/machine-guest-tools"]
 	path = packages/bindings/cmio/deps/machine-guest-tools
 	url = https://github.com/cartesi/machine-guest-tools
-[submodule "packages/bindings/cm/deps/machine-emulator"]
-	path = packages/bindings/cm/deps/machine-emulator
-	url = https://github.com/cartesi/machine-emulator

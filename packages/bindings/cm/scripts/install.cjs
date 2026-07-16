@@ -3,11 +3,12 @@
 // 1. If the platform-specific prebuilt package (an optionalDependency of the
 //    published @deroll/cm) is installed, there is nothing to build.
 // 2. Otherwise defer to node-gyp-build, which reuses a local prebuilds/ or
-//    build/ directory if present and compiles from source as a last resort
-//    (requires a C++23 compiler and boost headers).
+//    build/ directory if present and compiles the addon as a last resort,
+//    linking against the static libraries of an installed cartesi-machine
+//    emulator distribution.
 "use strict";
 
-const { execFileSync, execSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const { existsSync } = require("node:fs");
 const path = require("node:path");
 
@@ -28,47 +29,30 @@ const compiled =
     existsSync(path.join(root, "prebuilds"));
 
 if (!compiled) {
-    // Preflight the two most common source-build failures with actionable
-    // errors instead of a wall of compiler output.
-    const emulatorDir =
-        process.env.MACHINE_EMULATOR_DIR ||
-        path.join(root, "deps", "machine-emulator");
-    if (!existsSync(path.join(emulatorDir, "src", "machine.cpp"))) {
+    // Preflight the most common source-build failure — no emulator
+    // installation — with an actionable error instead of compiler output.
+    const run = (kind) =>
+        execFileSync(
+            process.execPath,
+            [path.join(__dirname, "find-cartesi.cjs"), kind],
+            { stdio: ["ignore", "pipe", "inherit"] },
+        )
+            .toString()
+            .trim();
+    const inc = run("include");
+    const lib = run("lib");
+    if (
+        !existsSync(path.join(inc, "machine-c-api.h")) ||
+        !existsSync(path.join(lib, "libcartesi.a"))
+    ) {
         console.error(
-            `@deroll/cm: machine-emulator sources not found at ${emulatorDir}.\n` +
-                "If this is a git checkout, run: git submodule update --init",
-        );
-        process.exit(1);
-    }
-
-    const boostCandidates = [
-        process.env.BOOST_INC,
-        "/usr/include",
-        "/usr/local/include",
-        "/opt/homebrew/include",
-        "/opt/local/include",
-    ].filter(Boolean);
-    if (process.platform === "darwin") {
-        try {
-            const brewPrefix = execSync("brew --prefix", {
-                stdio: ["ignore", "pipe", "ignore"],
-            })
-                .toString()
-                .trim();
-            boostCandidates.push(path.join(brewPrefix, "include"));
-        } catch {
-            // no homebrew
-        }
-    }
-    const hasBoost = boostCandidates.some((dir) =>
-        existsSync(path.join(dir, "boost", "version.hpp")),
-    );
-    if (!hasBoost) {
-        console.error(
-            "@deroll/cm: boost headers not found (looked in: " +
-                `${boostCandidates.join(", ")}).\n` +
-                "Install them (Debian/Ubuntu: apt install libboost-dev; " +
-                "macOS: brew install boost) or set BOOST_INC to the include directory.",
+            "@deroll/cm: cartesi-machine emulator installation not found " +
+                `(looked for headers in ${inc} and libcartesi.a in ${lib}).\n` +
+                "Install the emulator first:\n" +
+                "  Debian/Ubuntu: the machine-emulator .deb from " +
+                "https://github.com/cartesi/machine-emulator/releases\n" +
+                "  macOS: brew install cartesi-machine-emulator\n" +
+                "or point CARTESI_INC / CARTESI_LIB at the installation.",
         );
         process.exit(1);
     }
