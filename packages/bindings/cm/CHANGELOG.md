@@ -1,5 +1,22 @@
 # @tuler/node-cartesi-machine
 
+## 0.2.0-alpha.3
+
+### Minor Changes
+
+- f91ed1f: Upgrade the machine-emulator to v0.20.0. The C API surface changed with the emulator's address-range/hash-tree refactor, and the binding follows it:
+
+  - `create()`/`load()`/`store()` gain the new emulator parameters: `create(config, runtimeConfig?, dir?)` (backing store directory), `load(dir, runtimeConfig?, sharing?)` and `store(dir, sharing?)` with the new `SharingMode` enum (defaults match the upstream Lua binding: load `None`, store `All`).
+  - `replaceMemoryRange(rangeConfig)` now takes a `MemoryRangeConfig` object; `getMemoryRanges()` is now `getAddressRanges()`; `verifyMerkleTree()` is now `verifyHashTree()`; `verifyDirtyPageMaps()` was removed upstream (see `getHashTreeStats()`); the instance `verifyStep()` was removed upstream (use the module-level `verifyStep()`); `getProof()` accepts an optional `log2RootSize`.
+  - New APIs: `getVersion()`, `writeWord()`, `getNodeHash()`, `cloneStored()`, `removeStored()`, `getHashTreeStats()`.
+  - `UarchBreakReason` values changed order upstream (`CycleOverflow` added before `Failed`); `BreakReason` gains `ConsoleOutput`/`ConsoleInput`.
+  - Machine configs follow the new schema: `image_filename`/`shared` are replaced by `backing_store` objects, processor registers move under `processor.registers`, `tlb` is replaced by `pmas`, and the runtime config gains `console`/`no_reserve` (dropping `htif`/`skip_root_hash_*`).
+  - Building from source now requires a C++23 compiler (gcc 13+ / clang 16+).
+
+- 053e2f5: Link the addon against the static libraries of the official machine-emulator distribution instead of compiling libcartesi from a vendored submodule. Source builds now require an installed emulator (the `machine-emulator` `.deb` on Debian/Ubuntu, `brew install cartesi-machine-emulator` on macOS; override locations with `CARTESI_INC`/`CARTESI_LIB`) instead of Boost headers and a C++23 compiler — and the consensus-relevant bits are exactly the official release binaries'. The machine-emulator submodule and the committed generated files are gone, keeping the binding independent of the emulator's build system. libslirp symbols referenced by the official library are stubbed out by default (no runtime dependency; virtio net-user fails at runtime) — build with `CARTESI_SLIRP=yes` to link the real library. Prebuilt platform packages bundle the distribution's `cartesi-jsonrpc-machine` server, so nothing changes for prebuild users.
+- d9164b6: Replace the koffi FFI binding with a native N-API addon compiled through node-gyp from a `machine-emulator` git submodule (pinned at v0.19.0). The package no longer requires a system-wide emulator installation: libcartesi and the JSON-RPC client are compiled into the addon, and the `cartesi-jsonrpc-machine` server executable is built alongside it and used automatically by `spawn()` (override with `CARTESI_JSONRPC_MACHINE`). Building from source requires a C++20 compiler and Boost headers. Also fixes the `MAX_MCYCLE` constant to be `UINT64_MAX` (previously a 72-bit value that only worked through implicit truncation).
+- 29425fd: Ship prebuilt binaries as per-platform packages (`@deroll/cm-{linux,darwin}-{x64,arm64}`), installed via `optionalDependencies` so consumers download only their platform's binaries and never need a C++ toolchain. Each platform package carries both the N-API addon and the `cartesi-jsonrpc-machine` server executable, so `spawn()` keeps working out of the box. Source compilation remains as the fallback for unsupported platforms.
+
 ## 0.2.0-alpha.2
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @deroll/docs
 
+## 1.0.0-alpha.8
+
+### Patch Changes
+
+- Updated dependencies [f91ed1f]
+- Updated dependencies [053e2f5]
+- Updated dependencies [d9164b6]
+- Updated dependencies [29425fd]
+  - @deroll/cm@0.2.0-alpha.3
+
 ## 1.0.0-alpha.7
 
 ### Patch Changes
