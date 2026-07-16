@@ -7,7 +7,7 @@ The library loads its native binding in the following order:
 1. a local source build (`build/Release`), present when the addon was compiled on install;
 2. the prebuilt platform package `@deroll/cm-<platform>-<arch>` (an `optionalDependency` of published releases).
 
-If neither is found, loading fails with `@deroll/cm: no native binding available`. This usually means the platform has no prebuilt package **and** the source build failed (or install scripts were disabled, e.g. `--ignore-scripts`).
+If neither is found, loading fails with `@deroll/cm: no native binding available`. This usually means the platform has no prebuilt package **and** the source build was skipped or failed (or install scripts were disabled, e.g. `--ignore-scripts`). Note the install itself does not fail when no emulator installation is found — it prints a warning and skips the native build, so environments that only need the package's types (documentation builds, monorepo siblings) keep working; the error surfaces when the binding is actually loaded.
 
 To compile from source you need:
 
