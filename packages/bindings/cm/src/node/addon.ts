@@ -179,7 +179,7 @@ const loadAddon = (): NativeAddon => {
             return require_(platformPackage) as NativeAddon;
         } catch {
             throw new Error(
-                `@deroll/cm: no native binding available; expected the ${platformPackage} package (unsupported platform?) or a source build (requires a C++23 compiler and boost headers)`,
+                `@deroll/cm: no native binding available; expected the ${platformPackage} package (unsupported platform?) or a source build (requires an installed cartesi-machine emulator distribution)`,
                 { cause: buildError },
             );
         }
@@ -195,36 +195,31 @@ export const addon = loadAddon();
 /**
  * cm_jsonrpc_spawn_server() launches the executable named by the
  * CARTESI_JSONRPC_MACHINE environment variable, falling back to
- * `cartesi-jsonrpc-machine` on the PATH. Both a source build and the
- * platform-specific prebuilt package bundle the server executable; point the
- * environment variable at it so spawn works out of the box.
+ * `cartesi-jsonrpc-machine` on the PATH. The prebuilt platform package
+ * bundles the server executable; point the environment variable at it so
+ * spawn works out of the box. Source builds rely on the emulator
+ * installation the addon was linked against, whose server is on the PATH.
  */
 export function ensureJsonrpcServerBinary(): void {
     if (process.env.CARTESI_JSONRPC_MACHINE) {
         return;
     }
-    const candidates = [
-        join(packageRoot, "build", "Release", "cartesi-jsonrpc-machine"),
-    ];
     try {
         const platformPackageDir = dirname(
             require_.resolve(`${platformPackage}/package.json`),
         );
-        candidates.push(join(platformPackageDir, "cartesi-jsonrpc-machine"));
-    } catch {
-        // platform package not installed
-    }
-    for (const candidate of candidates) {
-        if (existsSync(candidate)) {
+        const bundled = join(platformPackageDir, "cartesi-jsonrpc-machine");
+        if (existsSync(bundled)) {
             try {
                 // some installers do not preserve the executable bit
-                chmodSync(candidate, 0o755);
+                chmodSync(bundled, 0o755);
             } catch {
                 // best effort: spawn fails later with a clearer error
             }
-            process.env.CARTESI_JSONRPC_MACHINE = candidate;
-            return;
+            process.env.CARTESI_JSONRPC_MACHINE = bundled;
         }
+    } catch {
+        // platform package not installed:
+        // cm_jsonrpc_spawn_server searches the PATH
     }
-    // fall through: cm_jsonrpc_spawn_server searches the PATH
 }

@@ -1,6 +1,6 @@
 # Cartesi Machine + Node.js
 
-The [Cartesi machine emulator](https://github.com/cartesi/machine-emulator) is a C++ library with a C API. This package binds it to Node.js as a native N-API addon: the emulator (currently [0.20.0](https://github.com/cartesi/machine-emulator/releases/tag/v0.20.0)) is compiled into the addon from sources vendored as a git submodule, so **no system-wide emulator installation is required**. The build also produces the `cartesi-jsonrpc-machine` server executable, used automatically by [spawn](/cm/api/spawn).
+The [Cartesi machine emulator](https://github.com/cartesi/machine-emulator) is a C++ library with a C API. This package binds it to Node.js as a native N-API addon linked against the static libraries of the official emulator distribution (currently [0.20.0](https://github.com/cartesi/machine-emulator/releases/tag/v0.20.0)). Prebuilt platform packages bundle everything — including the `cartesi-jsonrpc-machine` server executable used by [spawn](/cm/api/spawn) — so **no emulator installation is required** for the supported platforms.
 
 It provides a fully typed and ergonomic TypeScript API for the Cartesi Machine C API and the Cartesi Machine JSON-RPC API, which allows you to create, manage, and interact with local or remote Cartesi machines from TypeScript/JavaScript applications.
 
@@ -31,6 +31,6 @@ yarn add @deroll/cm
 
 On Linux (x64, arm64) and macOS (x64, arm64) this installs a prebuilt platform package (`@deroll/cm-<platform>-<arch>`) containing the native addon and the JSON-RPC server executable — no compiler needed.
 
-On other platforms the install script compiles the emulator from source, which requires a C++23 compiler (gcc 13+ or clang 16+) and Boost headers (`libboost-dev` on Debian/Ubuntu, `brew install boost` on macOS).
+On other platforms the install script compiles the addon from source, which requires a C++ compiler and an installed cartesi-machine emulator distribution (the `machine-emulator` `.deb` from the [official releases](https://github.com/cartesi/machine-emulator/releases) on Debian/Ubuntu, or `brew install cartesi-machine-emulator` on macOS).
 
 Check the [troubleshooting](./troubleshooting) section in case of problems.
