@@ -6,6 +6,13 @@
 //    build/ directory if present and compiles the addon as a last resort,
 //    linking against the static libraries of an installed cartesi-machine
 //    emulator distribution.
+//
+// When no usable emulator installation is found the native build is SKIPPED
+// with a warning instead of failing the install: workspace siblings (docs,
+// explorer) and type-only consumers never load the binding, and builds in
+// environments without the emulator (e.g. Vercel) must not break. Actually
+// loading @deroll/cm without a binding fails at require() time with a clear
+// error.
 "use strict";
 
 const { execFileSync } = require("node:child_process");
@@ -48,16 +55,18 @@ if (!compiled) {
         !existsSync(path.join(inc, "machine-c-api.h")) ||
         !existsSync(path.join(lib, "libcartesi.a"))
     ) {
-        console.error(
+        console.warn(
             "@deroll/cm: cartesi-machine emulator installation not found " +
-                `(looked for headers in ${inc} and libcartesi.a in ${lib}).\n` +
-                "Install the emulator first:\n" +
+                `(looked for headers in ${inc} and libcartesi.a in ${lib}); ` +
+                "skipping the native build — the binding will not be loadable.\n" +
+                "To use @deroll/cm, install the emulator first:\n" +
                 "  Debian/Ubuntu: the machine-emulator .deb from " +
                 "https://github.com/cartesi/machine-emulator/releases\n" +
                 "  macOS: brew install cartesi/tap/cartesi-machine-emulator\n" +
-                "or point CARTESI_INC / CARTESI_LIB at the installation.",
+                "or point CARTESI_INC / CARTESI_LIB at the installation, " +
+                "and reinstall.",
         );
-        process.exit(1);
+        process.exit(0);
     }
 
     // The binding targets a specific emulator series; catch mismatched
@@ -69,13 +78,14 @@ if (!compiled) {
         const minor = header.match(/#define CM_VERSION_MINOR (\d+)/)?.[1];
         const series = `${major}.${minor}`;
         if (major !== undefined && series !== CARTESI_MACHINE_SERIES) {
-            console.error(
+            console.warn(
                 `@deroll/cm: found cartesi-machine emulator ${series}.x in ${inc}, ` +
-                    `but this version of the binding requires ${CARTESI_MACHINE_SERIES}.x.\n` +
+                    `but this version of the binding requires ${CARTESI_MACHINE_SERIES}.x; ` +
+                    "skipping the native build — the binding will not be loadable.\n" +
                     "Upgrade the emulator installation, or point CARTESI_INC / " +
-                    "CARTESI_LIB at a matching one.",
+                    "CARTESI_LIB at a matching one, and reinstall.",
             );
-            process.exit(1);
+            process.exit(0);
         }
     }
 }

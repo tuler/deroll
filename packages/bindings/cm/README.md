@@ -17,6 +17,8 @@ On platforms without a prebuilt package, the install script compiles the addon f
 - a C++ compiler and the usual node-gyp toolchain;
 - an installed cartesi-machine emulator **0.20.x** distribution providing the C API headers and static libraries: the `machine-emulator` `.deb` from the [official releases](https://github.com/cartesi/machine-emulator/releases) on Debian/Ubuntu, or `brew install cartesi/tap/cartesi-machine-emulator` on macOS. Non-standard locations can be pointed at with the `CARTESI_INC` / `CARTESI_LIB` environment variables.
 
+When no usable emulator installation is found, the install prints a warning and **skips** the native build instead of failing — type-only consumers and workspace siblings (docs, explorer) stay installable anywhere; loading the binding without it fails at require() time with a clear error.
+
 Linking against the official static libraries (instead of compiling the emulator from source) keeps the binding independent of the emulator's build system, and means the consensus-relevant bits (uarch pristine state, hash tree) are exactly the official release's.
 
 ### slirp
