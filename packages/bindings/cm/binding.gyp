@@ -31,7 +31,8 @@
             ],
             "conditions": [
                 ["cartesi_slirp=='yes'", {
-                    "libraries": ["-lslirp"]
+                    # brew/system libslirp lives next to libcartesi.a
+                    "libraries": ["-L<(cartesi_lib)", "-lslirp"]
                 }, {
                     "sources": ["src/slirp-stubs.c"]
                 }],

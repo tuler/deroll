@@ -9,8 +9,11 @@
 "use strict";
 
 const { execFileSync } = require("node:child_process");
-const { existsSync } = require("node:fs");
+const { existsSync, readFileSync } = require("node:fs");
 const path = require("node:path");
+
+// emulator version series the binding targets
+const CARTESI_MACHINE_SERIES = "0.20";
 
 const platformPackage = `@deroll/cm-${process.platform}-${process.arch}`;
 try {
@@ -51,10 +54,29 @@ if (!compiled) {
                 "Install the emulator first:\n" +
                 "  Debian/Ubuntu: the machine-emulator .deb from " +
                 "https://github.com/cartesi/machine-emulator/releases\n" +
-                "  macOS: brew install cartesi-machine-emulator\n" +
+                "  macOS: brew install cartesi/tap/cartesi-machine-emulator\n" +
                 "or point CARTESI_INC / CARTESI_LIB at the installation.",
         );
         process.exit(1);
+    }
+
+    // The binding targets a specific emulator series; catch mismatched
+    // installations (e.g. an older brew formula) before the compiler does.
+    const versionHeader = path.join(inc, "machine-c-version.h");
+    if (existsSync(versionHeader)) {
+        const header = readFileSync(versionHeader, "utf8");
+        const major = header.match(/#define CM_VERSION_MAJOR (\d+)/)?.[1];
+        const minor = header.match(/#define CM_VERSION_MINOR (\d+)/)?.[1];
+        const series = `${major}.${minor}`;
+        if (major !== undefined && series !== CARTESI_MACHINE_SERIES) {
+            console.error(
+                `@deroll/cm: found cartesi-machine emulator ${series}.x in ${inc}, ` +
+                    `but this version of the binding requires ${CARTESI_MACHINE_SERIES}.x.\n` +
+                    "Upgrade the emulator installation, or point CARTESI_INC / " +
+                    "CARTESI_LIB at a matching one.",
+            );
+            process.exit(1);
+        }
     }
 }
 

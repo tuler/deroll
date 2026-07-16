@@ -92,7 +92,15 @@ jobs:
                   sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
             - name: Install cartesi-machine emulator (macos)
               if: runner.os == 'macOS'
-              run: brew install cartesi-machine-emulator
+              # The 0.20.0 formula is still under review (cartesi/homebrew-tap
+              # branch feature/emulator-0.20.0); the tap's main branch ships
+              # 0.19.0. Once it merges, simplify to a plain
+              # `brew install cartesi/tap/cartesi-machine-emulator`.
+              run: |
+                  brew tap cartesi/tap
+                  git -C "$(brew --repository cartesi/tap)" fetch origin feature/emulator-0.20.0
+                  git -C "$(brew --repository cartesi/tap)" checkout FETCH_HEAD
+                  brew install --build-from-source cartesi/tap/cartesi-machine-emulator
             # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
             # npm can't resolve. Install at the repo root, then prebuild in cmio.
             - run: bun install --frozen-lockfile
@@ -183,7 +191,15 @@ jobs:
                   sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
             - name: Install cartesi-machine emulator (macos)
               if: runner.os == 'macOS'
-              run: brew install cartesi-machine-emulator
+              # The 0.20.0 formula is still under review (cartesi/homebrew-tap
+              # branch feature/emulator-0.20.0); the tap's main branch ships
+              # 0.19.0. Once it merges, simplify to a plain
+              # `brew install cartesi/tap/cartesi-machine-emulator`.
+              run: |
+                  brew tap cartesi/tap
+                  git -C "$(brew --repository cartesi/tap)" fetch origin feature/emulator-0.20.0
+                  git -C "$(brew --repository cartesi/tap)" checkout FETCH_HEAD
+                  brew install --build-from-source cartesi/tap/cartesi-machine-emulator
             # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
             # npm can't resolve. The cm install script compiles the addon here.
             - run: bun install --frozen-lockfile
