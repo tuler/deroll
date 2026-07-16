@@ -292,10 +292,3 @@ jobs:
                   publish: bun run release
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  # Only needed for the FIRST publish of a @deroll/cm-<platform>
-                  # package: npm trusted publishing (OIDC) cannot create
-                  # packages that do not exist yet. Once all four exist and
-                  # have trusted publishers configured, the secret can be
-                  # removed; publish-platform-packages.mjs uses it only for
-                  # those packages, everything else keeps using OIDC.
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

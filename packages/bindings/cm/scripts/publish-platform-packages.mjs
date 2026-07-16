@@ -12,9 +12,7 @@
 // otherwise.
 //
 // Auth follows the ambient npm configuration (OIDC trusted publishing in
-// CI). Trusted publishing cannot create packages that do not exist on npm
-// yet; for such first-time publishes set NPM_TOKEN and it is used for these
-// packages only.
+// CI; all four platform packages have trusted publishers configured).
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -40,12 +38,6 @@ const distTag = () => {
     return version.split("-")[1]?.split(".")[0] ?? "latest";
 };
 const tag = distTag();
-
-const publishEnv = { ...process.env };
-if (process.env.NPM_TOKEN) {
-    publishEnv["npm_config_//registry.npmjs.org/:_authToken"] =
-        process.env.NPM_TOKEN;
-}
 
 for (const entry of readdirSync(path.join(root, "npm"), {
     withFileTypes: true,
@@ -76,6 +68,5 @@ for (const entry of readdirSync(path.join(root, "npm"), {
     execFileSync("npm", ["publish", "--access", "public", "--tag", tag], {
         cwd: dir,
         stdio: "inherit",
-        env: publishEnv,
     });
 }
