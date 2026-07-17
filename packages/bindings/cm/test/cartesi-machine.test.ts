@@ -275,14 +275,14 @@ describe("CartesiMachine", () => {
             machine.logStep(mcycleCount, logFilename);
 
             const rootHashAfter = machine.getRootHash();
-            const breakReason = verifyStep(
+            const obtainedRootHash = verifyStep(
                 rootHashBefore,
                 logFilename,
                 mcycleCount,
                 rootHashAfter,
             );
 
-            expect(typeof breakReason).toBe("number");
+            expect(obtainedRootHash.equals(rootHashAfter)).toBe(true);
             fs.rmSync(logFilename, { force: true });
         });
 

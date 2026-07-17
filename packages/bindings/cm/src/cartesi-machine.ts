@@ -19,22 +19,65 @@ import type {
  */
 export const MAX_MCYCLE = 0xffffffffffffffffn;
 
+/**
+ * The maximum value for uarch_cycle
+ * ((1 << CM_ROLLUP_LOG2_MAX_UARCH_CYCLES_PER_MCYCLE) - 1)
+ */
+export const MAX_UARCH_CYCLE = (1n << 20n) - 1n;
+
 /// Constants
 export enum Constant {
     HashSize = 32,
     TreeLog2WordSize = 5,
     TreeLog2PageSize = 12,
     TreeLog2RootSize = 64,
+    RollupLog2MaxMcyclesPerAdvanceState = 48,
+    RollupLog2MaxUarchCyclesPerMcycle = 20,
+    RollupLog2MaxOutputCount = 63,
+    RollupLog2MaxAdvanceStatesPerEpoch = 24,
+    FlashDriveMax = 8, ///< Maximum number of flash drives
+    // biome-ignore lint/suspicious/noDuplicateEnumValues: mirrors cm_constant in cm.h
+    NvramMax = 8, ///< Maximum number of NVRAMs
+    MemoryRangeLabelMax = 31, ///< Maximum length of a memory range user label
+    RtcFreqDiv = 8192, ///< mtime increments once per this many mcycle increments
 }
 
 /// Physical memory addresses
 export const PmaConstant = {
     CmioRxBufferStart: 0x60000000n,
     CmioRxBufferLog2Size: 21,
+    CmioRxBufferLength: 0x200000n,
     CmioTxBufferStart: 0x60800000n,
     CmioTxBufferLog2Size: 21,
+    CmioTxBufferLength: 0x200000n,
     RamStart: 0x80000000n,
+    ClintStart: 0x2000000n,
+    ClintLength: 0xc0000n,
+    HtifStart: 0x40008000n,
+    HtifLength: 0x1000n,
+    FirstVirtioStart: 0x40010000n,
+    LastVirtioEnd: 0x40020000n,
+    PlicStart: 0x40100000n,
+    PlicLength: 0x00400000n,
+    DtbStart: 0x7ff00000n,
+    DtbLength: 0x100000n,
 } as const;
+
+/// Driver IDs for PMA entries
+export enum PmaDriverId {
+    Empty = 0,
+    Memory = 1,
+    ShadowState = 2,
+    FlashDrive = 3,
+    Clint = 4,
+    Htif = 5,
+    Plic = 6,
+    CmioRxBuffer = 7,
+    CmioTxBuffer = 8,
+    ShadowUarchState = 9,
+    Virtio = 10,
+    Nvram = 11,
+}
 
 /// Error codes returned from the C API
 export enum ErrorCode {
@@ -48,20 +91,18 @@ export enum ErrorCode {
     RangeError = -7,
     OverflowError = -8,
     UnderflowError = -9,
-    RegexError = -10,
-    SystemError = -11,
-    BadTypeid = -12,
-    BadCast = -13,
-    BadAnyCast = -14,
-    BadOptionalAccess = -15,
-    BadWeakPtr = -16,
-    BadFunctionCall = -17,
-    BadAlloc = -18,
-    BadArrayNewLength = -19,
-    BadException = -20,
-    BadVariantAccess = -21,
-    Exception = -22,
-    Unknown = -23,
+    BadTypeid = -10,
+    BadCast = -11,
+    BadAnyCast = -12,
+    BadOptionalAccess = -13,
+    BadWeakPtr = -14,
+    BadFunctionCall = -15,
+    BadAlloc = -16,
+    BadArrayNewLength = -17,
+    BadException = -18,
+    BadVariantAccess = -19,
+    Exception = -20,
+    Unknown = -21,
 }
 
 /**
@@ -106,13 +147,14 @@ export enum BreakReason {
     ReachedTargetMcycle,
     ConsoleOutput,
     ConsoleInput,
+    McycleOverflow,
 }
 
 /// Reasons for the machine to break from call to cm_run_uarch
 export enum UarchBreakReason {
-    ReachedTargetCycle,
+    ReachedTargetUarchCycle,
     UarchHalted,
-    CycleOverflow,
+    UarchCycleOverflow,
     Failed,
 }
 
@@ -123,14 +165,21 @@ export enum SharingMode {
     All = 2, ///< Machine state fully on-disk
 }
 
-/// Yield device commands
-export enum CmioYieldCommand {
+/// HTIF device identifiers (DEV field of tohost/fromhost)
+export enum HtifDevice {
+    Halt = 0, ///< Halts the machine
+    Console = 1, ///< Console input and output
+    Yield = 2, ///< Yield control back to the host
+}
+
+/// Yield device commands (CM_HTIF_YIELD_CMD_*, formerly CM_CMIO_YIELD_COMMAND_*)
+export enum HtifYieldCommand {
     Automatic,
     Manual,
 }
 
-/// Yield reasons
-export enum CmioYieldReason {
+/// Yield reasons (CM_HTIF_YIELD_*_REASON_*, formerly CM_CMIO_YIELD_*_REASON_*)
+export enum HtifYieldReason {
     AutomaticProgress = 1, ///< Progress is available
     AutomaticTxOutput = 2, ///< Output is available in tx buffer
     AutomaticTxReport = 4, ///< Report is available in tx buffer
@@ -244,6 +293,7 @@ export enum Reg {
     IflagsY,
     IflagsH,
     Iunrep,
+    Imcyclemax,
     // Device registers
     ClintMtimecmp,
     PlicGirqpend,
@@ -288,7 +338,7 @@ export enum Reg {
     UarchX31,
     UarchPc,
     UarchCycle,
-    UarchHaltFlag,
+    UarchHalt,
     // Views of registers
     HtifToHostDev,
     HtifToHostCmd,
@@ -328,7 +378,10 @@ export interface CartesiMachine {
     getInitialConfig(): MachineConfig;
     getAddressRanges(): AddressRangeDescription[];
     getRegAddress(reg: Reg): bigint;
+    getAddressName(paddr: bigint): string;
     getRootHash(): Buffer;
+    readRevertRootHash(): Buffer;
+    writeRevertRootHash(hash: Buffer): void;
     getNodeHash(address: bigint, log2Size: number): Buffer;
     getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof;
     readWord(address: bigint): bigint;
@@ -344,29 +397,34 @@ export interface CartesiMachine {
     runUarch(uarchCycleEnd: bigint): UarchBreakReason;
     resetUarch(): void;
     receiveCmioRequest(): {
-        cmd: CmioYieldCommand;
-        reason: CmioYieldReason;
+        cmd: HtifYieldCommand;
+        reason: HtifYieldReason;
         data: Buffer;
     };
-    sendCmioResponse(reason: CmioYieldReason, data: Buffer): void;
+    sendCmioResponse(
+        reason: HtifYieldReason,
+        data: Buffer,
+        revertRootHash?: Buffer,
+    ): void;
     logStep(mcycleCount: bigint, logFilename: string): BreakReason;
     logStepUarch(logType: AccessLogType): AccessLog;
     logResetUarch(logType: AccessLogType): AccessLog;
     logSendCmioResponse(
-        reason: CmioYieldReason,
+        reason: HtifYieldReason,
         data: Buffer,
         logType: AccessLogType,
+        revertRootHash?: Buffer,
     ): string;
     verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void;
+        rootHashAfter?: Buffer,
+    ): Buffer;
     verifyResetUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void;
+        rootHashAfter?: Buffer,
+    ): Buffer;
     verifyHashTree(): boolean;
     getHashTreeStats(clear?: boolean): HashTreeStats;
 }
@@ -405,12 +463,16 @@ export function getRegAddress(reg: Reg): bigint {
     return NodeCartesiMachine.getRegAddress(reg);
 }
 
+export function getAddressName(paddr: bigint): string {
+    return NodeCartesiMachine.getAddressName(paddr);
+}
+
 export function verifyStep(
     rootHashBefore: Buffer,
     logFilename: string,
     mcycleCount: bigint,
-    rootHashAfter: Buffer,
-): BreakReason {
+    rootHashAfter?: Buffer,
+): Buffer {
     return NodeCartesiMachine.verifyStep(
         rootHashBefore,
         logFilename,
@@ -422,27 +484,37 @@ export function verifyStep(
 export function verifyStepUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter: Buffer,
-) {
-    NodeCartesiMachine.verifyStepUarch(rootHashBefore, log, rootHashAfter);
+    rootHashAfter?: Buffer,
+): Buffer {
+    return NodeCartesiMachine.verifyStepUarch(
+        rootHashBefore,
+        log,
+        rootHashAfter,
+    );
 }
 
 export function verifyResetUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter: Buffer,
-): void {
-    NodeCartesiMachine.verifyResetUarch(rootHashBefore, log, rootHashAfter);
+    rootHashAfter?: Buffer,
+): Buffer {
+    return NodeCartesiMachine.verifyResetUarch(
+        rootHashBefore,
+        log,
+        rootHashAfter,
+    );
 }
 
 export function verifySendCmioResponse(
-    reason: CmioYieldReason,
+    revertRootHash: Buffer,
+    reason: HtifYieldReason,
     data: Buffer,
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter: Buffer,
-) {
-    NodeCartesiMachine.verifySendCmioResponse(
+    rootHashAfter?: Buffer,
+): Buffer {
+    return NodeCartesiMachine.verifySendCmioResponse(
+        revertRootHash,
         reason,
         data,
         rootHashBefore,

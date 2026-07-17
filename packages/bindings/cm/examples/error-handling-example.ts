@@ -84,9 +84,6 @@ async function demonstrateErrorHandling() {
                     `   Is it an invalid argument? ${error.code === ErrorCode.InvalidArgument}`,
                 );
                 console.log(
-                    `   Is it a system error? ${error.code === ErrorCode.SystemError}`,
-                );
-                console.log(
                     `   Is it a runtime error? ${error.code === ErrorCode.RuntimeError}`,
                 );
 
@@ -94,11 +91,6 @@ async function demonstrateErrorHandling() {
                 switch (error.code) {
                     case ErrorCode.InvalidArgument:
                         console.log("   → This is an invalid argument error");
-                        break;
-                    case ErrorCode.SystemError:
-                        console.log(
-                            "   → This is a system error (likely file not found)",
-                        );
                         break;
                     case ErrorCode.RuntimeError:
                         console.log("   → This is a runtime error");

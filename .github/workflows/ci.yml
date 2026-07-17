@@ -22,7 +22,7 @@ concurrency:
 env:
     LINUX_IMAGE_VERSION: v0.20.0
     LINUX_VERSION: 6.5.13-ctsi-1
-    CARTESI_MACHINE_VERSION: 0.20.0
+    CARTESI_MACHINE_VERSION: 0.21.0-test5
 
 jobs:
     build:

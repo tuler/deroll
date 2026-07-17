@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 // Locates the installed cartesi-machine emulator distribution, which provides
-// the C API headers (machine-c-api.h, jsonrpc-machine-c-api.h), the static
-// libraries (libcartesi.a, libcartesi_jsonrpc.a) and the
-// cartesi-jsonrpc-machine server executable.
+// the C API headers (cm.h, cm-jsonrpc.h), the static libraries (libcartesi.a,
+// libcartesi_jsonrpc.a) and the cartesi-jsonrpc-machine server executable.
 //
 // Usage: node find-cartesi.cjs include|lib|omp
-//   include -> directory containing machine-c-api.h (override: CARTESI_INC)
+//   include -> directory containing cm.h (override: CARTESI_INC)
 //   lib     -> directory containing libcartesi.a (override: CARTESI_LIB)
 //   omp     -> extra OpenMP linker flags for macOS (brew libomp), or nothing
 "use strict";
@@ -46,7 +45,7 @@ switch (kind) {
                     "/usr/include/cartesi-machine",
                     "/opt/local/include/cartesi-machine",
                 ],
-                "machine-c-api.h",
+                "cm.h",
             ),
         );
         break;

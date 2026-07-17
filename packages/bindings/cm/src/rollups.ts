@@ -1,6 +1,6 @@
 import {
     BreakReason,
-    CmioYieldReason,
+    HtifYieldReason,
     type CartesiMachine,
 } from "./cartesi-machine.js";
 import { NodeRemoteCartesiMachine } from "./node/remote-cartesi-machine.js";
@@ -182,7 +182,7 @@ abstract class RollupsMachineImpl implements RollupsMachine {
             const machine = this.startTransaction();
 
             // write input
-            machine.sendCmioResponse(CmioYieldReason.AdvanceState, input);
+            machine.sendCmioResponse(HtifYieldReason.AdvanceState, input);
 
             while (true) {
                 // run machine until it yields or halts
@@ -192,18 +192,18 @@ abstract class RollupsMachineImpl implements RollupsMachine {
                     case BreakReason.YieldedManually: {
                         const { reason, data } = machine.receiveCmioRequest();
                         switch (reason) {
-                            case CmioYieldReason.ManualRxAccepted: {
+                            case HtifYieldReason.ManualRxAccepted: {
                                 // input was accepted
                                 // shutdown the backup fork if it exists
                                 this.commitTransaction(machine);
                                 return data;
                             }
-                            case CmioYieldReason.ManualRxRejected: {
+                            case HtifYieldReason.ManualRxRejected: {
                                 // input was rejected
                                 this.rollbackTransaction(machine);
                                 throw new RollupsInputRejectedError();
                             }
-                            case CmioYieldReason.ManualTxException: {
+                            case HtifYieldReason.ManualTxException: {
                                 // exception
                                 this.rollbackTransaction(machine);
 
@@ -221,7 +221,7 @@ abstract class RollupsMachineImpl implements RollupsMachine {
                     case BreakReason.YieldedAutomatically: {
                         const { reason, data } = machine.receiveCmioRequest();
                         switch (reason) {
-                            case CmioYieldReason.AutomaticProgress: {
+                            case HtifYieldReason.AutomaticProgress: {
                                 try {
                                     const progress = data.readUInt32LE();
                                     yield {
@@ -233,11 +233,11 @@ abstract class RollupsMachineImpl implements RollupsMachine {
                                 }
                                 break;
                             }
-                            case CmioYieldReason.AutomaticTxOutput: {
+                            case HtifYieldReason.AutomaticTxOutput: {
                                 yield { type: "output", data };
                                 break;
                             }
-                            case CmioYieldReason.AutomaticTxReport: {
+                            case HtifYieldReason.AutomaticTxReport: {
                                 yield { type: "report", data };
                                 break;
                             }
@@ -286,7 +286,7 @@ abstract class RollupsMachineImpl implements RollupsMachine {
             const machine = this.startTransaction();
 
             // write query
-            machine.sendCmioResponse(CmioYieldReason.InspectState, query);
+            machine.sendCmioResponse(HtifYieldReason.InspectState, query);
 
             while (true) {
                 // run machine until it yields or halts
@@ -296,17 +296,17 @@ abstract class RollupsMachineImpl implements RollupsMachine {
                     case BreakReason.YieldedManually: {
                         const { reason, data } = machine.receiveCmioRequest();
                         switch (reason) {
-                            case CmioYieldReason.ManualRxAccepted: {
+                            case HtifYieldReason.ManualRxAccepted: {
                                 // input was accepted
                                 this.rollbackTransaction(machine);
                                 return;
                             }
-                            case CmioYieldReason.ManualRxRejected: {
+                            case HtifYieldReason.ManualRxRejected: {
                                 // input was rejected
                                 this.rollbackTransaction(machine);
                                 throw new RollupsInputRejectedError();
                             }
-                            case CmioYieldReason.ManualTxException: {
+                            case HtifYieldReason.ManualTxException: {
                                 // exception
                                 this.rollbackTransaction(machine);
                                 const description = data.toString("utf-8"); // XXX: is this correct?
@@ -323,15 +323,15 @@ abstract class RollupsMachineImpl implements RollupsMachine {
                     case BreakReason.YieldedAutomatically: {
                         const { reason, data } = machine.receiveCmioRequest();
                         switch (reason) {
-                            case CmioYieldReason.AutomaticProgress: {
+                            case HtifYieldReason.AutomaticProgress: {
                                 // ignore progress
                                 break;
                             }
-                            case CmioYieldReason.AutomaticTxOutput: {
+                            case HtifYieldReason.AutomaticTxOutput: {
                                 // ignore output
                                 break;
                             }
-                            case CmioYieldReason.AutomaticTxReport: {
+                            case HtifYieldReason.AutomaticTxReport: {
                                 // yield report
                                 yield data;
                                 break;

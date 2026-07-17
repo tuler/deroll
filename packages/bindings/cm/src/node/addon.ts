@@ -34,6 +34,9 @@ export interface NativeMachine {
     getInitialConfig(): string;
     getAddressRanges(): string;
     getRootHash(): Buffer;
+    readRevertRootHash(): Buffer;
+    writeRevertRootHash(hash: Uint8Array): void;
+    getAddressName(paddr: bigint): string;
     getNodeHash(address: bigint, log2Size: number): Buffer;
     getProof(address: bigint, log2Size: number, log2RootSize?: number): string;
     readWord(address: bigint): bigint;
@@ -49,11 +52,16 @@ export interface NativeMachine {
     runUarch(uarchCycleEnd: bigint): number;
     resetUarch(): void;
     receiveCmioRequest(): { cmd: number; reason: number; data: Buffer };
-    sendCmioResponse(reason: number, data: Uint8Array): void;
+    sendCmioResponse(
+        revertRootHash: Uint8Array,
+        reason: number,
+        data: Uint8Array,
+    ): void;
     logStep(mcycleCount: bigint, logFilename: string): number;
     logStepUarch(logType: number): string;
     logResetUarch(logType: number): string;
     logSendCmioResponse(
+        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
         logType: number,
@@ -61,20 +69,21 @@ export interface NativeMachine {
     verifyStepUarch(
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifyResetUarch(
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifySendCmioResponse(
+        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifyHashTree(): boolean;
     getHashTreeStats(clear: boolean): string;
     jsonrpcFork(): { machine: NativeMachine; address: string; pid: number };
@@ -106,29 +115,31 @@ export interface NativeAddon {
     ): NativeMachine;
     getDefaultConfig(): string;
     getRegAddress(reg: number): bigint;
+    getAddressName(paddr: bigint): string;
     verifyStep(
         rootHashBefore: Uint8Array,
         logFilename: string,
         mcycleCount: bigint,
-        rootHashAfter: Uint8Array,
-    ): number;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifyStepUarch(
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifyResetUarch(
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     verifySendCmioResponse(
+        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array,
-    ): void;
+        rootHashAfter: Uint8Array | null,
+    ): Buffer;
     jsonrpcSpawnServer(
         address: string,
         spawnTimeoutMs: number,
