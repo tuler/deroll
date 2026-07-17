@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-// N-API binding for the Cartesi Machine emulator C API (machine-c-api.h and
-// jsonrpc-machine-c-api.h), compiled together with libcartesi from the
+// N-API binding for the Cartesi Machine emulator C API (cm.h and
+// cm-jsonrpc.h), compiled together with libcartesi from the
 // machine-emulator submodule.
 //
 // The whole API is synchronous on purpose: the TypeScript layer drives the
@@ -43,14 +43,14 @@
 #include <napi.h>
 
 extern "C" {
-#include "jsonrpc-machine-c-api.h"
-#include "machine-c-api.h"
+#include "cm-jsonrpc.h"
+#include "cm.h"
 }
 
 namespace {
 
 // The cmio rx/tx buffers are 2^21 bytes long (CM_AR_CMIO_RX_BUFFER_LOG2_SIZE)
-constexpr size_t CMIO_BUFFER_SIZE = static_cast<size_t>(1) << 21;
+constexpr size_t CMIO_BUFFER_SIZE = static_cast<size_t>(CM_AR_CMIO_RX_BUFFER_LENGTH);
 
 void throw_machine_error(Napi::Env env, cm_error code) {
     const char *description = cm_get_last_error_message();
@@ -138,6 +138,15 @@ bool get_hash(Napi::Env env, const Napi::Value &value, const char *name, const c
     return true;
 }
 
+// An optional 32-byte hash argument (null/undefined become "absent").
+bool get_optional_hash(Napi::Env env, const Napi::Value &value, const char *name, const cm_hash **hash) {
+    if (value.IsUndefined() || value.IsNull()) {
+        *hash = nullptr;
+        return true;
+    }
+    return get_hash(env, value, name, hash);
+}
+
 // A required UTF-8 string argument, copied into out.
 bool get_string(Napi::Env env, const Napi::Value &value, const char *name, std::string *out) {
     if (!value.IsString()) {
@@ -200,6 +209,9 @@ private:
     Napi::Value GetInitialConfig(const Napi::CallbackInfo &info);
     Napi::Value GetAddressRanges(const Napi::CallbackInfo &info);
     Napi::Value GetRootHash(const Napi::CallbackInfo &info);
+    Napi::Value ReadRevertRootHash(const Napi::CallbackInfo &info);
+    Napi::Value WriteRevertRootHash(const Napi::CallbackInfo &info);
+    Napi::Value GetAddressName(const Napi::CallbackInfo &info);
     Napi::Value GetProof(const Napi::CallbackInfo &info);
     Napi::Value ReadWord(const Napi::CallbackInfo &info);
     Napi::Value ReadReg(const Napi::CallbackInfo &info);
@@ -407,6 +419,34 @@ Napi::Value Machine::GetRootHash(const Napi::CallbackInfo &info) {
     return Napi::Buffer<uint8_t>::Copy(env, hash, CM_HASH_SIZE);
 }
 
+Napi::Value Machine::ReadRevertRootHash(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    cm_hash hash{};
+    CHECK_CM(env, cm_read_revert_root_hash(machine_, &hash));
+    return Napi::Buffer<uint8_t>::Copy(env, hash, CM_HASH_SIZE);
+}
+
+Napi::Value Machine::WriteRevertRootHash(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    const cm_hash *hash = nullptr;
+    if (!get_hash(env, info[0], "hash", &hash)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_write_revert_root_hash(machine_, hash));
+    return env.Undefined();
+}
+
+Napi::Value Machine::GetAddressName(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    uint64_t paddr = 0;
+    if (!get_u64(env, info[0], "paddr", &paddr)) {
+        return env.Undefined();
+    }
+    const char *name = nullptr;
+    CHECK_CM(env, cm_get_address_name(machine_, paddr, &name));
+    return Napi::String::New(env, name);
+}
+
 Napi::Value Machine::GetProof(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     uint64_t address = 0;
@@ -567,13 +607,15 @@ Napi::Value Machine::ReceiveCmioRequest(const Napi::CallbackInfo &info) {
 
 Napi::Value Machine::SendCmioResponse(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
+    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
-    if (!get_i32(env, info[0], "reason", &reason) || !get_bytes(env, info[1], "data", &data, &length)) {
+    if (!get_hash(env, info[0], "revertRootHash", &revert_root_hash) || !get_i32(env, info[1], "reason", &reason) ||
+        !get_bytes(env, info[2], "data", &data, &length)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_send_cmio_response(machine_, static_cast<uint16_t>(reason), data, length));
+    CHECK_CM(env, cm_send_cmio_response(machine_, revert_root_hash, static_cast<uint16_t>(reason), data, length));
     return env.Undefined();
 }
 
@@ -613,21 +655,25 @@ Napi::Value Machine::LogResetUarch(const Napi::CallbackInfo &info) {
 
 Napi::Value Machine::LogSendCmioResponse(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
+    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
     int32_t log_type = 0;
-    if (!get_i32(env, info[0], "reason", &reason) || !get_bytes(env, info[1], "data", &data, &length) ||
-        !get_i32(env, info[2], "logType", &log_type)) {
+    if (!get_hash(env, info[0], "revertRootHash", &revert_root_hash) || !get_i32(env, info[1], "reason", &reason) ||
+        !get_bytes(env, info[2], "data", &data, &length) || !get_i32(env, info[3], "logType", &log_type)) {
         return env.Undefined();
     }
     const char *log = nullptr;
-    CHECK_CM(env, cm_log_send_cmio_response(machine_, static_cast<uint16_t>(reason), data, length, log_type, &log));
+    CHECK_CM(env, cm_log_send_cmio_response(machine_, revert_root_hash, static_cast<uint16_t>(reason), data, length,
+                      log_type, &log));
     return Napi::String::New(env, log);
 }
 
 // Shared implementation for the instance methods and the module-level
 // functions (which pass m == nullptr).
+// The verify functions check root_hash_after when given (null/undefined skips
+// the check) and return the root hash obtained after the operation.
 Napi::Value verify_step(Napi::Env env, const Napi::CallbackInfo &info, size_t base) {
     const cm_hash *root_hash_before = nullptr;
     std::string log_filename;
@@ -636,13 +682,13 @@ Napi::Value verify_step(Napi::Env env, const Napi::CallbackInfo &info, size_t ba
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
         !get_string(env, info[base + 1], "logFilename", &log_filename) ||
         !get_u64(env, info[base + 2], "mcycleCount", &mcycle_count) ||
-        !get_hash(env, info[base + 3], "rootHashAfter", &root_hash_after)) {
+        !get_optional_hash(env, info[base + 3], "rootHashAfter", &root_hash_after)) {
         return env.Undefined();
     }
-    cm_break_reason break_reason = CM_BREAK_REASON_FAILED;
+    cm_hash obtained_root_hash{};
     CHECK_CM(env,
-        cm_verify_step(root_hash_before, log_filename.c_str(), mcycle_count, root_hash_after, &break_reason));
-    return Napi::Number::New(env, break_reason);
+        cm_verify_step(root_hash_before, log_filename.c_str(), mcycle_count, root_hash_after, &obtained_root_hash));
+    return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_step_uarch(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
@@ -651,11 +697,12 @@ Napi::Value verify_step_uarch(Napi::Env env, cm_machine *m, const Napi::Callback
     const cm_hash *root_hash_after = nullptr;
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
         !get_string(env, info[base + 1], "log", &log) ||
-        !get_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
+        !get_optional_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_verify_step_uarch(m, root_hash_before, log.c_str(), root_hash_after));
-    return env.Undefined();
+    cm_hash obtained_root_hash{};
+    CHECK_CM(env, cm_verify_step_uarch(m, root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_reset_uarch(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
@@ -664,29 +711,33 @@ Napi::Value verify_reset_uarch(Napi::Env env, cm_machine *m, const Napi::Callbac
     const cm_hash *root_hash_after = nullptr;
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
         !get_string(env, info[base + 1], "log", &log) ||
-        !get_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
+        !get_optional_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_verify_reset_uarch(m, root_hash_before, log.c_str(), root_hash_after));
-    return env.Undefined();
+    cm_hash obtained_root_hash{};
+    CHECK_CM(env, cm_verify_reset_uarch(m, root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_send_cmio_response(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
+    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
     const cm_hash *root_hash_before = nullptr;
     std::string log;
     const cm_hash *root_hash_after = nullptr;
-    if (!get_i32(env, info[base + 0], "reason", &reason) || !get_bytes(env, info[base + 1], "data", &data, &length) ||
-        !get_hash(env, info[base + 2], "rootHashBefore", &root_hash_before) ||
-        !get_string(env, info[base + 3], "log", &log) ||
-        !get_hash(env, info[base + 4], "rootHashAfter", &root_hash_after)) {
+    if (!get_hash(env, info[base + 0], "revertRootHash", &revert_root_hash) ||
+        !get_i32(env, info[base + 1], "reason", &reason) || !get_bytes(env, info[base + 2], "data", &data, &length) ||
+        !get_hash(env, info[base + 3], "rootHashBefore", &root_hash_before) ||
+        !get_string(env, info[base + 4], "log", &log) ||
+        !get_optional_hash(env, info[base + 5], "rootHashAfter", &root_hash_after)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_verify_send_cmio_response(m, static_cast<uint16_t>(reason), data, length, root_hash_before,
-                      log.c_str(), root_hash_after));
-    return env.Undefined();
+    cm_hash obtained_root_hash{};
+    CHECK_CM(env, cm_verify_send_cmio_response(m, revert_root_hash, static_cast<uint16_t>(reason), data, length,
+                      root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value Machine::VerifyStepUarch(const Napi::CallbackInfo &info) {
@@ -871,6 +922,9 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
             InstanceMethod<&Machine::GetInitialConfig>("getInitialConfig"),
             InstanceMethod<&Machine::GetAddressRanges>("getAddressRanges"),
             InstanceMethod<&Machine::GetRootHash>("getRootHash"),
+            InstanceMethod<&Machine::ReadRevertRootHash>("readRevertRootHash"),
+            InstanceMethod<&Machine::WriteRevertRootHash>("writeRevertRootHash"),
+            InstanceMethod<&Machine::GetAddressName>("getAddressName"),
             InstanceMethod<&Machine::GetProof>("getProof"),
             InstanceMethod<&Machine::ReadWord>("readWord"),
             InstanceMethod<&Machine::ReadReg>("readReg"),
@@ -993,6 +1047,17 @@ Napi::Value GetRegAddress(const Napi::CallbackInfo &info) {
     return Napi::BigInt::New(env, val);
 }
 
+Napi::Value GetAddressName(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    uint64_t paddr = 0;
+    if (!get_u64(env, info[0], "paddr", &paddr)) {
+        return env.Undefined();
+    }
+    const char *name = nullptr;
+    CHECK_CM(env, cm_get_address_name(nullptr, paddr, &name));
+    return Napi::String::New(env, name);
+}
+
 Napi::Value VerifyStep(const Napi::CallbackInfo &info) {
     return verify_step(info.Env(), info, 0);
 }
@@ -1084,6 +1149,7 @@ Napi::Object InitModule(Napi::Env env, Napi::Object exports) {
     exports.Set("machineLoadNew", Napi::Function::New(env, MachineLoadNew));
     exports.Set("getDefaultConfig", Napi::Function::New(env, GetDefaultConfig));
     exports.Set("getRegAddress", Napi::Function::New(env, GetRegAddress));
+    exports.Set("getAddressName", Napi::Function::New(env, GetAddressName));
     exports.Set("verifyStep", Napi::Function::New(env, VerifyStep));
     exports.Set("verifyStepUarch", Napi::Function::New(env, VerifyStepUarch));
     exports.Set("verifyResetUarch", Napi::Function::New(env, VerifyResetUarch));

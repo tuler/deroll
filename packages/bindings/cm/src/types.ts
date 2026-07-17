@@ -59,6 +59,7 @@ export interface MachineRuntimeConfig {
 export interface BackingStoreConfig {
     data_filename?: string;
     dht_filename?: string;
+    dpt_filename?: string;
     shared?: boolean;
     create?: boolean;
     truncate?: boolean;
@@ -169,6 +170,7 @@ export interface RegistersConfig {
     iflags_Y?: UnsignedInteger;
     iflags_H?: UnsignedInteger;
     iunrep?: UnsignedInteger;
+    imcyclemax?: UnsignedInteger;
 }
 
 // Processor Configuration
@@ -196,6 +198,7 @@ export interface MemoryRangeConfig {
     start?: UnsignedInteger;
     length?: UnsignedInteger;
     read_only?: boolean;
+    label?: string;
     backing_store?: BackingStoreConfig;
 }
 
@@ -204,6 +207,14 @@ export interface AddressRangeDescription {
     start?: UnsignedInteger;
     length?: UnsignedInteger;
     description?: string;
+    driver_id?: UnsignedInteger;
+    is_device?: boolean;
+    is_executable?: boolean;
+    is_memory?: boolean;
+    is_read_idempotent?: boolean;
+    is_readable?: boolean;
+    is_write_idempotent?: boolean;
+    is_writeable?: boolean;
 }
 
 // Proof
@@ -255,8 +266,12 @@ export interface AccessLog {
     brackets?: Bracket[];
 }
 
+// Memory Range Configurations (flash drives, NVRAMs)
+export type MemoryRangeConfigs = MemoryRangeConfig[];
+
 // Flash Drive Configurations (array of memory ranges)
-export type FlashDriveConfigs = MemoryRangeConfig[];
+/** @deprecated renamed to MemoryRangeConfigs in cartesi-machine 0.21 */
+export type FlashDriveConfigs = MemoryRangeConfigs;
 
 // PMAs Configuration
 export interface PMAsConfig {
@@ -353,7 +368,7 @@ export interface UarchRegistersConfig {
     // Program counter and control
     pc?: UnsignedInteger;
     cycle?: UnsignedInteger;
-    halt_flag?: boolean;
+    halt?: UnsignedInteger;
 }
 
 // Microarchitecture Processor Configuration
@@ -411,7 +426,8 @@ export interface MachineConfig {
     processor?: ProcessorConfig;
     ram: RAMConfig; // Required
     dtb?: DTBConfig;
-    flash_drive?: FlashDriveConfigs;
+    flash_drive?: MemoryRangeConfigs;
+    nvram?: MemoryRangeConfigs;
     pmas?: PMAsConfig;
     hash_tree?: HashTreeConfig;
     clint?: CLINTConfig;

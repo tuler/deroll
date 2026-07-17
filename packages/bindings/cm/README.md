@@ -15,7 +15,7 @@ The `optionalDependencies` are injected at publish time (`scripts/inject-platfor
 On platforms without a prebuilt package, the install script compiles the addon from source, which requires:
 
 - a C++ compiler and the usual node-gyp toolchain;
-- an installed cartesi-machine emulator **0.20.x** distribution providing the C API headers and static libraries: the `machine-emulator` `.deb` from the [official releases](https://github.com/cartesi/machine-emulator/releases) on Debian/Ubuntu, or `brew install cartesi/tap/cartesi-machine-emulator` on macOS. Non-standard locations can be pointed at with the `CARTESI_INC` / `CARTESI_LIB` environment variables.
+- an installed cartesi-machine emulator **0.21.x** distribution providing the C API headers and static libraries: the `machine-emulator` `.deb` from the [official releases](https://github.com/cartesi/machine-emulator/releases) on Debian/Ubuntu, or `brew install cartesi/tap/cartesi-machine-emulator` on macOS. Non-standard locations can be pointed at with the `CARTESI_INC` / `CARTESI_LIB` environment variables.
 
 When no usable emulator installation is found, the install prints a warning and **skips** the native build instead of failing — type-only consumers and workspace siblings (docs, explorer) stay installable anywhere; loading the binding without it fails at require() time with a clear error.
 

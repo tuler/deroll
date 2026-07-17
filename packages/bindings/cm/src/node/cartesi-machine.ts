@@ -1,8 +1,8 @@
 import type {
     BreakReason,
     CartesiMachine,
-    CmioYieldCommand,
-    CmioYieldReason,
+    HtifYieldCommand,
+    HtifYieldReason,
     Reg,
     SharingMode,
     UarchBreakReason,
@@ -162,6 +162,20 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
+     * Gets a description of what is at a given target physical address
+     */
+    getAddressName(paddr: bigint): string {
+        return call(() => this.machine.getAddressName(paddr));
+    }
+
+    /**
+     * Gets a description of what is at a given target physical address
+     */
+    static getAddressName(paddr: bigint): string {
+        return call(() => addon.getAddressName(paddr));
+    }
+
+    /**
      * Checks if the machine is empty
      */
     isEmpty(): boolean {
@@ -286,6 +300,20 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
+     * Reads the revert root hash from the shadow state
+     */
+    readRevertRootHash(): Buffer {
+        return call(() => this.machine.readRevertRootHash());
+    }
+
+    /**
+     * Writes the revert root hash to the shadow state
+     */
+    writeRevertRootHash(hash: Buffer): void {
+        call(() => this.machine.writeRevertRootHash(hash));
+    }
+
+    /**
      * Gets a proof for a node in the hash tree
      */
     getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof {
@@ -389,18 +417,26 @@ export class NodeCartesiMachine implements CartesiMachine {
      * Receives a CMIO request
      */
     receiveCmioRequest(): {
-        cmd: CmioYieldCommand;
-        reason: CmioYieldReason;
+        cmd: HtifYieldCommand;
+        reason: HtifYieldReason;
         data: Buffer;
     } {
         return call(() => this.machine.receiveCmioRequest());
     }
 
     /**
-     * Sends a CMIO response
+     * Sends a CMIO response.
+     * The revert root hash is the machine root hash to revert to in case the
+     * response is eventually rejected; it defaults to the current root hash,
+     * which is the value the emulator requires for advance-state responses.
      */
-    sendCmioResponse(reason: CmioYieldReason, data: Buffer): void {
-        call(() => this.machine.sendCmioResponse(reason, data));
+    sendCmioResponse(
+        reason: HtifYieldReason,
+        data: Buffer,
+        revertRootHash?: Buffer,
+    ): void {
+        const hash = revertRootHash ?? this.getRootHash();
+        call(() => this.machine.sendCmioResponse(hash, reason, data));
     }
 
     /**
@@ -429,15 +465,20 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
-     * Logs CMIO response
+     * Logs CMIO response.
+     * The revert root hash defaults to the current root hash (unlike
+     * sendCmioResponse, the emulator does not check it here).
      */
     logSendCmioResponse(
-        reason: CmioYieldReason,
+        reason: HtifYieldReason,
         data: Buffer,
         logType: AccessLogType,
+        revertRootHash?: Buffer,
     ): string {
+        const hash = revertRootHash ?? this.getRootHash();
         return call(() =>
             this.machine.logSendCmioResponse(
+                hash,
                 reason,
                 data,
                 accessLogType(logType),
@@ -446,130 +487,137 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
-     * Verifies a step
+     * Verifies a step; returns the root hash obtained after the step.
+     * When rootHashAfter is given it is checked against the obtained hash.
      */
     static verifyStep(
         rootHashBefore: Buffer,
         logFilename: string,
         mcycleCount: bigint,
-        rootHashAfter: Buffer,
-    ): BreakReason {
+        rootHashAfter?: Buffer,
+    ): Buffer {
         return call(() =>
             addon.verifyStep(
                 rootHashBefore,
                 logFilename,
                 mcycleCount,
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies a uarch step
+     * Verifies a uarch step; returns the root hash obtained after the step
      */
     verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             this.machine.verifyStepUarch(
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies a uarch step
+     * Verifies a uarch step; returns the root hash obtained after the step
      */
     static verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             addon.verifyStepUarch(
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies uarch reset
+     * Verifies uarch reset; returns the root hash obtained after the reset
      */
     verifyResetUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             this.machine.verifyResetUarch(
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies uarch reset
+     * Verifies uarch reset; returns the root hash obtained after the reset
      */
     static verifyResetUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             addon.verifyResetUarch(
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies CMIO response
+     * Verifies CMIO response; returns the root hash obtained after the
+     * response
      */
     verifySendCmioResponse(
-        reason: CmioYieldReason,
+        revertRootHash: Buffer,
+        reason: HtifYieldReason,
         data: Buffer,
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             this.machine.verifySendCmioResponse(
+                revertRootHash,
                 reason,
                 data,
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }
 
     /**
-     * Verifies CMIO response
+     * Verifies CMIO response; returns the root hash obtained after the
+     * response
      */
     static verifySendCmioResponse(
-        reason: CmioYieldReason,
+        revertRootHash: Buffer,
+        reason: HtifYieldReason,
         data: Buffer,
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void {
-        call(() =>
+        rootHashAfter?: Buffer,
+    ): Buffer {
+        return call(() =>
             addon.verifySendCmioResponse(
+                revertRootHash,
                 reason,
                 data,
                 rootHashBefore,
                 JSON.stringify(log),
-                rootHashAfter,
+                rootHashAfter ?? null,
             ),
         );
     }

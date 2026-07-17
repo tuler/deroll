@@ -54,6 +54,8 @@ export interface CartesiMachine {
 
     //// Hash Tree Operations
     getRootHash(): Buffer;
+    readRevertRootHash(): Buffer;
+    writeRevertRootHash(hash: Buffer): void;
     getNodeHash(address: bigint, log2Size: number): Buffer;
     getProof(address: bigint, log2Size: number, log2RootSize?: number): Proof;
     verifyHashTree(): boolean;
@@ -64,30 +66,38 @@ export interface CartesiMachine {
     logStepUarch(logType: AccessLogType): AccessLog;
     logResetUarch(logType: AccessLogType): AccessLog;
     logSendCmioResponse(
-        reason: CmioYieldReason,
+        reason: HtifYieldReason,
         data: Buffer,
         logType: AccessLogType,
+        revertRootHash?: Buffer,
     ): string;
 
     //// Verification
     verifyStepUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void;
+        rootHashAfter?: Buffer,
+    ): Buffer;
     verifyResetUarch(
         rootHashBefore: Buffer,
         log: AccessLog,
-        rootHashAfter: Buffer,
-    ): void;
+        rootHashAfter?: Buffer,
+    ): Buffer;
 
     //// CMIO Operations
-    sendCmioResponse(reason: CmioYieldReason, data: Buffer): void;
+    sendCmioResponse(
+        reason: HtifYieldReason,
+        data: Buffer,
+        revertRootHash?: Buffer,
+    ): void;
     receiveCmioRequest(): {
-        cmd: CmioYieldCommand;
-        reason: CmioYieldReason;
+        cmd: HtifYieldCommand;
+        reason: HtifYieldReason;
         data: Buffer;
     };
+
+    //// Address Introspection
+    getAddressName(paddr: bigint): string;
 }
 ```
 
@@ -383,13 +393,14 @@ logResetUarch(logType: AccessLogType): AccessLog;
 
 ## logSendCmioResponse
 
-Sends a cmio response and returns a log of state accesses.
+Sends a cmio response and returns a log of state accesses. The revert root hash is recorded as part of the logged input; it defaults to the machine's current root hash.
 
 ```ts
 logSendCmioResponse(
-    reason: CmioYieldReason,
+    reason: HtifYieldReason,
     data: Buffer,
     logType: AccessLogType,
+    revertRootHash?: Buffer,
 ): string;
 ```
 
@@ -404,38 +415,42 @@ verifyStep(
     rootHashBefore,
     logFilename,
     mcycleCount,
-    rootHashAfter,
-); // returns BreakReason
+    rootHashAfter, // optional; checked against the obtained root hash when given
+); // returns the obtained root hash after the step
 ```
 
-Checks the validity of a state transition produced by a microarchitecture step log.
+Checks the validity of a state transition produced by a microarchitecture step log and returns the root hash obtained after the step. When `rootHashAfter` is given, it is checked against the obtained hash.
 
 ```ts
 verifyStepUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter: Buffer,
-): void;
+    rootHashAfter?: Buffer,
+): Buffer;
 ```
 
 ## verifyResetUarch
 
-Checks the validity of a state transition produced by a microarchitecture reset log.
+Checks the validity of a state transition produced by a microarchitecture reset log and returns the root hash obtained after the reset.
 
 ```ts
 verifyResetUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter: Buffer,
-): void;
+    rootHashAfter?: Buffer,
+): Buffer;
 ```
 
 ## sendCmioResponse
 
-Sends a cmio response. Should only be called as a response to cmio requests with manual yield command.
+Sends a cmio response. Should only be called as a response to cmio requests with manual yield command. The revert root hash is the machine root hash to revert to in case the response is eventually rejected; it defaults to the machine's current root hash, which is the value the emulator requires for advance-state responses.
 
 ```ts
-sendCmioResponse(reason: CmioYieldReason, data: Buffer): void;
+sendCmioResponse(
+    reason: HtifYieldReason,
+    data: Buffer,
+    revertRootHash?: Buffer,
+): void;
 ```
 
 ## receiveCmioRequest
@@ -444,8 +459,25 @@ Receives a cmio request, including the yield command, reason, and data.
 
 ```ts
 receiveCmioRequest(): {
-    cmd: CmioYieldCommand;
-    reason: CmioYieldReason;
+    cmd: HtifYieldCommand;
+    reason: HtifYieldReason;
     data: Buffer;
 };
+```
+
+## readRevertRootHash / writeRevertRootHash
+
+Reads and writes the revert root hash recorded in the shadow state — the root hash verifiers accept for a rejected rollup input.
+
+```ts
+readRevertRootHash(): Buffer;
+writeRevertRootHash(hash: Buffer): void;
+```
+
+## getAddressName
+
+Gets a description of what is at a given target physical address (also available as a module-level function).
+
+```ts
+getAddressName(paddr: bigint): string;
 ```

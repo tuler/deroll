@@ -434,18 +434,18 @@
                 },
                 {
                     "name": "root_hash_after",
-                    "description": "State hash after transition described by access log",
-                    "required": true,
+                    "description": "State hash to check against the state after transition",
+                    "required": false,
                     "schema": {
                         "$ref": "#/components/schemas/Base64Hash"
                     }
                 }
             ],
             "result": {
-                "name": "status",
-                "description": "True when operation succeeded",
+                "name": "hash",
+                "description": "State hash after transition described by access log",
                 "schema": {
-                    "type": "boolean"
+                    "$ref": "#/components/schemas/Base64Hash"
                 }
             }
         },
@@ -471,18 +471,18 @@
                 },
                 {
                     "name": "root_hash_after",
-                    "description": "State hash after transition described by access log",
-                    "required": true,
+                    "description": "State hash to check against the state after transition",
+                    "required": false,
                     "schema": {
                         "$ref": "#/components/schemas/Base64Hash"
                     }
                 }
             ],
             "result": {
-                "name": "status",
-                "description": "True when operation succeeded",
+                "name": "hash",
+                "description": "State hash after transition described by access log",
                 "schema": {
-                    "type": "boolean"
+                    "$ref": "#/components/schemas/Base64Hash"
                 }
             }
         },
@@ -495,6 +495,39 @@
                 "description": "Root hash",
                 "schema": {
                     "$ref": "#/components/schemas/Base64Hash"
+                }
+            }
+        },
+        {
+            "name": "machine.read_revert_root_hash",
+            "summary": "Reads the revert root hash from the shadow state",
+            "params": [],
+            "result": {
+                "name": "hash",
+                "description": "Revert root hash",
+                "schema": {
+                    "$ref": "#/components/schemas/Base64Hash"
+                }
+            }
+        },
+        {
+            "name": "machine.write_revert_root_hash",
+            "summary": "Writes the revert root hash to the shadow state",
+            "params": [
+                {
+                    "name": "hash",
+                    "description": "Revert root hash to store",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "True on success",
+                "schema": {
+                    "type": "boolean"
                 }
             }
         },
@@ -957,6 +990,27 @@
             }
         },
         {
+            "name": "machine.get_address_name",
+            "summary": "Returns a description of what is at a given target physical address",
+            "params": [
+                {
+                    "name": "paddr",
+                    "description": "Target physical address of interest",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "name",
+                "description": "Description of what is at that address",
+                "schema": {
+                    "type": "string"
+                }
+            }
+        },
+        {
             "name": "machine.verify_hash_tree",
             "summary": "Verifies sanity of hash tree",
             "params": [],
@@ -984,6 +1038,14 @@
             "name": "machine.send_cmio_response",
             "summary": "Sends cmio response.",
             "params": [
+                {
+                    "name": "revert_root_hash",
+                    "description": "Machine root hash to revert to in case the response is eventually rejected",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
                 {
                     "name": "reason",
                     "description": "Reason for sending response",
@@ -1013,6 +1075,14 @@
             "name": "machine.log_send_cmio_response",
             "summary": "Sends cmio response and returns an access log",
             "params": [
+                {
+                    "name": "revert_root_hash",
+                    "description": "Machine root hash to revert to in case the response is eventually rejected",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
                 {
                     "name": "reason",
                     "description": "Reason for sending response",
@@ -1051,6 +1121,14 @@
             "summary": "Verifies a state transition caused by log_send_cmio_response",
             "params": [
                 {
+                    "name": "revert_root_hash",
+                    "description": "The revert root hash recorded when the log was generated",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Base64Hash"
+                    }
+                },
+                {
                     "name": "reason",
                     "description": "Reason for sending response",
                     "required": true,
@@ -1084,18 +1162,18 @@
                 },
                 {
                     "name": "root_hash_after",
-                    "description": "State hash after response was sent.",
-                    "required": true,
+                    "description": "State hash to check against the state after response was sent.",
+                    "required": false,
                     "schema": {
                         "$ref": "#/components/schemas/Base64Hash"
                     }
                 }
             ],
             "result": {
-                "name": "status",
-                "description": "True when operation succeeded",
+                "name": "hash",
+                "description": "State hash after response was sent.",
                 "schema": {
-                    "type": "boolean"
+                    "$ref": "#/components/schemas/Base64Hash"
                 }
             }
         },
@@ -1158,18 +1236,18 @@
                 },
                 {
                     "name": "root_hash_after",
-                    "description": "State hash after step",
-                    "required": true,
+                    "description": "State hash to check against the state after step",
+                    "required": false,
                     "schema": {
                         "$ref": "#/components/schemas/Base64Hash"
                     }
                 }
             ],
             "result": {
-                "name": "status",
-                "description": "True when operation succeeded",
+                "name": "hash",
+                "description": "State hash after step",
                 "schema": {
-                    "type": "boolean"
+                    "$ref": "#/components/schemas/Base64Hash"
                 }
             }
         }
@@ -1670,6 +1748,9 @@
                     },
                     "iunrep": {
                         "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "imcyclemax": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
                     }
                 }
             },
@@ -1708,6 +1789,9 @@
                 "title": "MemoryRangeConfig",
                 "type": "object",
                 "properties": {
+                    "label": {
+                        "type": "string"
+                    },
                     "start": {
                         "$ref": "#/components/schemas/UnsignedInteger"
                     },
@@ -1730,6 +1814,9 @@
                         "type": "string"
                     },
                     "dht_filename": {
+                        "type": "string"
+                    },
+                    "dpt_filename": {
                         "type": "string"
                     },
                     "shared": {
@@ -1806,8 +1893,8 @@
                     }
                 }
             },
-            "FlashDriveConfigs": {
-                "title": "FlashDriveConfigs",
+            "MemoryRangeConfigs": {
+                "title": "MemoryRangeConfigs",
                 "type": "array",
                 "items": {
                     "$ref": "#/components/schemas/MemoryRangeConfig"
@@ -1973,7 +2060,7 @@
                     "cycle": {
                         "$ref": "#/components/schemas/UnsignedInteger"
                     },
-                    "halt_flag": {
+                    "halt": {
                         "$ref": "#/components/schemas/UnsignedInteger"
                     }
                 }
@@ -2068,7 +2155,10 @@
                         "$ref": "#/components/schemas/DTBConfig"
                     },
                     "flash_drive": {
-                        "$ref": "#/components/schemas/FlashDriveConfigs"
+                        "$ref": "#/components/schemas/MemoryRangeConfigs"
+                    },
+                    "nvram": {
+                        "$ref": "#/components/schemas/MemoryRangeConfigs"
                     },
                     "clint": {
                         "$ref": "#/components/schemas/CLINTConfig"
@@ -2111,15 +2201,16 @@
                     "yielded_softly",
                     "reached_target_mcycle",
                     "console_output",
-                    "console_input"
+                    "console_input",
+                    "mcycle_overflow"
                 ]
             },
             "UarchInterpreterBreakReason": {
                 "title": "UarchInterpreterBreakReason",
                 "enum": [
-                    "reached_target_cycle",
+                    "reached_target_uarch_cycle",
                     "uarch_halted",
-                    "cycle_overflow"
+                    "uarch_cycle_overflow"
                 ]
             },
             "Base64String": {
@@ -2387,6 +2478,7 @@
                     "iflags_Y",
                     "iflags_H",
                     "iunrep",
+                    "imcyclemax",
                     "clint_mtimecmp",
                     "plic_girqpend",
                     "plic_girqsrvd",
@@ -2437,7 +2529,7 @@
                     "uarch_x31",
                     "uarch_pc",
                     "uarch_cycle",
-                    "uarch_halt_flag"
+                    "uarch_halt"
                 ]
             },
             "AddressRangeDescription": {
@@ -2452,6 +2544,30 @@
                     },
                     "description": {
                         "type": "string"
+                    },
+                    "is_memory": {
+                        "type": "boolean"
+                    },
+                    "is_device": {
+                        "type": "boolean"
+                    },
+                    "is_readable": {
+                        "type": "boolean"
+                    },
+                    "is_writeable": {
+                        "type": "boolean"
+                    },
+                    "is_executable": {
+                        "type": "boolean"
+                    },
+                    "is_read_idempotent": {
+                        "type": "boolean"
+                    },
+                    "is_write_idempotent": {
+                        "type": "boolean"
+                    },
+                    "driver_id": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
                     }
                 }
             },

@@ -20,7 +20,7 @@ const { existsSync, readFileSync } = require("node:fs");
 const path = require("node:path");
 
 // emulator version series the binding targets
-const CARTESI_MACHINE_SERIES = "0.20";
+const CARTESI_MACHINE_SERIES = "0.21";
 
 const platformPackage = `@deroll/cm-${process.platform}-${process.arch}`;
 try {
@@ -52,7 +52,7 @@ if (!compiled) {
     const inc = run("include");
     const lib = run("lib");
     if (
-        !existsSync(path.join(inc, "machine-c-api.h")) ||
+        !existsSync(path.join(inc, "cm.h")) ||
         !existsSync(path.join(lib, "libcartesi.a"))
     ) {
         console.warn(
@@ -71,7 +71,7 @@ if (!compiled) {
 
     // The binding targets a specific emulator series; catch mismatched
     // installations (e.g. an older brew formula) before the compiler does.
-    const versionHeader = path.join(inc, "machine-c-version.h");
+    const versionHeader = path.join(inc, "cm-version.h");
     if (existsSync(versionHeader)) {
         const header = readFileSync(versionHeader, "utf8");
         const major = header.match(/#define CM_VERSION_MAJOR (\d+)/)?.[1];
