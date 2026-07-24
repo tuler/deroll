@@ -194,8 +194,9 @@ public:
     }
 
 private:
-    // machine-c-api.h
+    // cm.h
     Napi::Value IsEmpty(const Napi::CallbackInfo &info);
+    Napi::Value IsJsonrpcMachine(const Napi::CallbackInfo &info);
     Napi::Value Create(const Napi::CallbackInfo &info);
     Napi::Value Load(const Napi::CallbackInfo &info);
     Napi::Value CloneEmpty(const Napi::CallbackInfo &info);
@@ -239,7 +240,8 @@ private:
     Napi::Value GetNodeHash(const Napi::CallbackInfo &info);
     Napi::Value CloneStored(const Napi::CallbackInfo &info);
     Napi::Value RemoveStored(const Napi::CallbackInfo &info);
-    // jsonrpc-machine-c-api.h
+    Napi::Value SyncStored(const Napi::CallbackInfo &info);
+    // cm-jsonrpc.h
     Napi::Value JsonrpcFork(const Napi::CallbackInfo &info);
     Napi::Value JsonrpcShutdownServer(const Napi::CallbackInfo &info);
     Napi::Value JsonrpcRebindServer(const Napi::CallbackInfo &info);
@@ -292,6 +294,13 @@ Napi::Value Machine::IsEmpty(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     bool yes = false;
     CHECK_CM(env, cm_is_empty(machine_, &yes));
+    return Napi::Boolean::New(env, yes);
+}
+
+Napi::Value Machine::IsJsonrpcMachine(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    bool yes = false;
+    CHECK_CM(env, cm_is_jsonrpc_machine(machine_, &yes));
     return Napi::Boolean::New(env, yes);
 }
 
@@ -811,6 +820,16 @@ Napi::Value Machine::RemoveStored(const Napi::CallbackInfo &info) {
     return env.Undefined();
 }
 
+Napi::Value Machine::SyncStored(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    std::string dir;
+    if (!get_string(env, info[0], "dir", &dir)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_sync_stored(machine_, dir.c_str()));
+    return env.Undefined();
+}
+
 Napi::Value Machine::JsonrpcFork(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     cm_machine *forked_m = nullptr;
@@ -909,6 +928,7 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "Machine",
         {
             InstanceMethod<&Machine::IsEmpty>("isEmpty"),
+            InstanceMethod<&Machine::IsJsonrpcMachine>("isJsonrpcMachine"),
             InstanceMethod<&Machine::Create>("create"),
             InstanceMethod<&Machine::Load>("load"),
             InstanceMethod<&Machine::CloneEmpty>("cloneEmpty"),
@@ -952,6 +972,7 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
             InstanceMethod<&Machine::GetNodeHash>("getNodeHash"),
             InstanceMethod<&Machine::CloneStored>("cloneStored"),
             InstanceMethod<&Machine::RemoveStored>("removeStored"),
+            InstanceMethod<&Machine::SyncStored>("syncStored"),
             InstanceMethod<&Machine::JsonrpcFork>("jsonrpcFork"),
             InstanceMethod<&Machine::JsonrpcShutdownServer>("jsonrpcShutdownServer"),
             InstanceMethod<&Machine::JsonrpcRebindServer>("jsonrpcRebindServer"),

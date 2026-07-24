@@ -352,10 +352,13 @@ export enum Reg {
     Unknown_,
     First_,
     Last_,
+    UarchFirst_,
+    UarchLast_,
 }
 
 export interface CartesiMachine {
     isEmpty(): boolean;
+    isJsonrpcMachine(): boolean;
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
@@ -370,6 +373,7 @@ export interface CartesiMachine {
     store(dir: string, sharing?: SharingMode): CartesiMachine;
     cloneStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
+    syncStored(dir: string): void;
     destroy(): void;
     getDefaultConfig(): MachineConfig;
     setRuntimeConfig(runtimeConfig: MachineRuntimeConfig): void;
