@@ -182,46 +182,6 @@ export default defineConfig({
                             text: "createERC1155BatchTransferVoucher",
                             link: "/app/wallet/create-erc1155-batch-transfer-voucher",
                         },
-                        {
-                            text: "isEtherDeposit",
-                            link: "/app/wallet/is-ether-deposit",
-                        },
-                        {
-                            text: "isERC20Deposit",
-                            link: "/app/wallet/is-erc20-deposit",
-                        },
-                        {
-                            text: "isERC721Deposit",
-                            link: "/app/wallet/is-erc721-deposit",
-                        },
-                        {
-                            text: "isERC1155SingleDeposit",
-                            link: "/app/wallet/is-erc1155-single-deposit",
-                        },
-                        {
-                            text: "isERC1155BatchDeposit",
-                            link: "/app/wallet/is-erc1155-batch-deposit",
-                        },
-                        {
-                            text: "parseEtherDeposit",
-                            link: "/app/wallet/parse-ether-deposit",
-                        },
-                        {
-                            text: "parseERC20Deposit",
-                            link: "/app/wallet/parse-erc20-deposit",
-                        },
-                        {
-                            text: "parseERC721Deposit",
-                            link: "/app/wallet/parse-erc721-deposit",
-                        },
-                        {
-                            text: "parseERC1155SingleDeposit",
-                            link: "/app/wallet/parse-erc1155-single-deposit",
-                        },
-                        {
-                            text: "parseERC1155BatchDeposit",
-                            link: "/app/wallet/parse-erc1155-batch-deposit",
-                        },
                     ],
                 },
                 {

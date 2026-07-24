@@ -10,6 +10,7 @@
         "preview": "vocs preview"
     },
     "dependencies": {
+        "@cartesi/codec": "1.0.0-alpha.1",
         "@deroll/app": "workspace:*",
         "@deroll/cm": "workspace:*",
         "@deroll/cmio": "workspace:*",

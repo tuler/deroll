@@ -1,20 +1,19 @@
-import type { AdvanceRequestData } from "@deroll/core";
 import {
-    type Hex,
-    concat,
-    encodeAbiParameters,
-    encodePacked,
-    parseAbiParameters,
-} from "viem";
-import { describe, expect, test } from "vitest";
-
-import {
-    erc1155BatchPortalAddress,
-    erc1155SinglePortalAddress,
+    encodeErc20Deposit,
+    encodeErc721Deposit,
+    encodeErc1155BatchDeposit,
+    encodeErc1155SingleDeposit,
+    encodeEtherDeposit,
     erc20PortalAddress,
     erc721PortalAddress,
+    erc1155BatchPortalAddress,
+    erc1155SinglePortalAddress,
     etherPortalAddress,
-} from "@cartesi/viem/abi";
+} from "@cartesi/codec";
+import type { AdvanceRequestData } from "@deroll/core";
+import type { Hex } from "viem";
+import { describe, expect, test } from "vitest";
+
 import { createWallet } from "../src/index.js";
 
 // build a libcmt-shaped advance request from the portal sender and a hex payload
@@ -48,7 +47,11 @@ describe("transfer", () => {
         const transfer = 1n;
 
         // deposit 1 wei to "from"
-        const payload = encodePacked(["address", "uint256"], [from, value]);
+        const payload = encodeEtherDeposit({
+            sender: from,
+            value,
+            execLayerData: "0x",
+        });
         const response = await wallet.handler(
             advance(etherPortalAddress, payload),
         );
@@ -79,10 +82,12 @@ describe("transfer", () => {
         const transfer = 1n;
 
         // deposit 1 wei to "from"
-        const payload = encodePacked(
-            ["address", "address", "uint256"],
-            [token, from, value],
-        );
+        const payload = encodeErc20Deposit({
+            token,
+            sender: from,
+            value,
+            execLayerData: "0x",
+        });
         const response = await wallet.handler(
             advance(erc20PortalAddress, payload),
         );
@@ -115,10 +120,13 @@ describe("transfer", () => {
         const tokenId = 1n;
 
         // deposit 1 to "from"
-        const payload = encodePacked(
-            ["address", "address", "uint256"],
-            [token, from, tokenId],
-        );
+        const payload = encodeErc721Deposit({
+            token,
+            sender: from,
+            tokenId,
+            baseLayerData: "0x",
+            execLayerData: "0x",
+        });
         const response = await wallet.handler(
             advance(erc721PortalAddress, payload),
         );
@@ -153,10 +161,14 @@ describe("transfer", () => {
         const transfer = 1n;
 
         // deposit 1 wei to "from"
-        const payload = encodePacked(
-            ["address", "address", "uint256", "uint256"],
-            [token, from, tokenId, value],
-        );
+        const payload = encodeErc1155SingleDeposit({
+            token,
+            sender: from,
+            tokenId,
+            value,
+            baseLayerData: "0x",
+            execLayerData: "0x",
+        });
         const response = await wallet.handler(
             advance(erc1155SinglePortalAddress, payload),
         );
@@ -207,13 +219,16 @@ describe("transfer", () => {
         const transfers = [1n, 2n];
 
         // deposit 1 wei to "from"
-        const payload = encodePacked(["address", "address"], [token, from]);
-        const rest = encodeAbiParameters(
-            parseAbiParameters("uint256[], uint256[]"),
-            [tokenIds, values],
-        );
+        const payload = encodeErc1155BatchDeposit({
+            token,
+            sender: from,
+            tokenIds,
+            values,
+            baseLayerData: "0x",
+            execLayerData: "0x",
+        });
         const response = await wallet.handler(
-            advance(erc1155BatchPortalAddress, concat([payload, rest])),
+            advance(erc1155BatchPortalAddress, payload),
         );
         expect(response).toBeTruthy();
         expect(wallet.erc1155BalanceOf(token, from, tokenIds[0])).toEqual(
