@@ -15,6 +15,7 @@ import nodeGypBuild from "node-gyp-build";
  */
 export interface NativeMachine {
     isEmpty(): boolean;
+    isJsonrpcMachine(): boolean;
     create(
         config: string,
         runtimeConfig: string | null,
@@ -25,6 +26,7 @@ export interface NativeMachine {
     store(dir: string, sharing?: number): void;
     cloneStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
+    syncStored(dir: string): void;
     destroy(): void;
     getDefaultConfig(): string;
     getRegAddress(reg: number): bigint;

@@ -183,6 +183,14 @@ export class NodeCartesiMachine implements CartesiMachine {
     }
 
     /**
+     * Checks if the machine is a remote machine controlled via the JSON-RPC
+     * API
+     */
+    isJsonrpcMachine(): boolean {
+        return call(() => this.machine.isJsonrpcMachine());
+    }
+
+    /**
      * Creates a new machine instance from configuration
      */
     create(
@@ -238,6 +246,13 @@ export class NodeCartesiMachine implements CartesiMachine {
      */
     removeStored(dir: string): void {
         call(() => this.machine.removeStored(dir));
+    }
+
+    /**
+     * Flushes all files of a previously stored machine to permanent storage
+     */
+    syncStored(dir: string): void {
+        call(() => this.machine.syncStored(dir));
     }
 
     /**

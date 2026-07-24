@@ -276,6 +276,27 @@
             }
         },
         {
+            "name": "machine.sync_stored",
+            "summary": "Flushes a stored machine instance in a directory to permanent storage",
+            "params": [
+                {
+                    "name": "dir",
+                    "description": "Directory to stored machine instance",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "status",
+                "description": "True when operation succeeded",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
             "name": "machine.run",
             "summary": "Runs the emulator until a given cycle",
             "params": [
@@ -309,8 +330,8 @@
                     }
                 },
                 {
-                    "name": "mcycle_period",
-                    "description": "Number of machine cycles between root hashes to collect",
+                    "name": "log2_mcycle_period",
+                    "description": "Log base 2 of the number of machine cycles between root hashes to collect",
                     "required": true,
                     "schema": {
                         "$ref": "#/components/schemas/UnsignedInteger"
@@ -330,6 +351,14 @@
                     "required": true,
                     "schema": {
                         "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                },
+                {
+                    "name": "previous_partial_bundle",
+                    "description": "Partial bundle returned by the previous call",
+                    "required": false,
+                    "schema": {
+                        "$ref": "#/components/schemas/PartialBundle"
                     }
                 }
             ],
@@ -1035,6 +1064,27 @@
             }
         },
         {
+            "name": "machine.receive_cmio_request",
+            "summary": "Receives a cmio request.",
+            "params": [
+                {
+                    "name": "length",
+                    "description": "Maximum data length to return, or zero to return only the available length",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            ],
+            "result": {
+                "name": "request",
+                "description": "Yield command, reason, available length, and requested data of the cmio request",
+                "schema": {
+                    "$ref": "#/components/schemas/CmioRequest"
+                }
+            }
+        },
+        {
             "name": "machine.send_cmio_response",
             "summary": "Sends cmio response.",
             "params": [
@@ -1268,6 +1318,25 @@
                     },
                     "pid": {
                         "$ref": "#/components/schemas/UnsignedInteger"
+                    }
+                }
+            },
+            "CmioRequest": {
+                "title": "CmioRequest",
+                "type": "object",
+                "required": ["cmd", "reason", "available_length", "data"],
+                "properties": {
+                    "cmd": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "reason": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "available_length": {
+                        "$ref": "#/components/schemas/UnsignedInteger"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Base64String"
                     }
                 }
             },
@@ -2591,8 +2660,8 @@
                     "break_reason": {
                         "$ref": "#/components/schemas/InterpreterBreakReason"
                     },
-                    "back_tree": {
-                        "$ref": "#/components/schemas/BackMerkleTree"
+                    "partial_bundle": {
+                        "$ref": "#/components/schemas/PartialBundle"
                     },
                     "console_io_error": {
                         "type": "string"
@@ -2607,17 +2676,17 @@
                     "hashes": {
                         "$ref": "#/components/schemas/Base64HashArray"
                     },
-                    "reset_indices": {
+                    "mcycle_hash_offsets": {
                         "$ref": "#/components/schemas/UnsignedIntegerArray"
                     },
                     "break_reason": {
                         "$ref": "#/components/schemas/InterpreterBreakReason"
                     }
                 },
-                "required": ["hashes", "reset_indices", "break_reason"]
+                "required": ["hashes", "mcycle_hash_offsets", "break_reason"]
             },
-            "BackMerkleTree": {
-                "title": "BackMerkleTree",
+            "PartialBundle": {
+                "title": "PartialBundle",
                 "type": "object",
                 "properties": {
                     "log2_max_leaves": {

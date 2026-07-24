@@ -9,6 +9,7 @@ Descriptions for each method are in the following sections.
 export interface CartesiMachine {
     //// Machine Lifecycle
     isEmpty(): boolean;
+    isJsonrpcMachine(): boolean;
     create(
         config: MachineConfig,
         runtimeConfig?: MachineRuntimeConfig,
@@ -23,6 +24,7 @@ export interface CartesiMachine {
     store(dir: string, sharing?: SharingMode): void;
     cloneStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
+    syncStored(dir: string): void;
     destroy(): void;
     
     //// Configuration
@@ -109,6 +111,14 @@ Checks if the machine object is empty (does not hold a machine instance).
 isEmpty(): boolean;
 ```
 
+## isJsonrpcMachine
+
+Checks if the machine object is a remote machine controlled via the JSON-RPC API.
+
+```ts
+isJsonrpcMachine(): boolean;
+```
+
 ## create
 
 Creates a new machine instance from the given configuration and optional runtime configuration. The machine object must be empty. The optional `dir` sets the directory for on-disk backing stores.
@@ -163,6 +173,14 @@ Removes a stored machine directory.
 
 ```ts
 removeStored(dir: string): void;
+```
+
+## syncStored
+
+Flushes all files of a previously stored machine to permanent storage. The expected usage is to sync after the machine using the stored files has been closed.
+
+```ts
+syncStored(dir: string): void;
 ```
 
 ## destroy
