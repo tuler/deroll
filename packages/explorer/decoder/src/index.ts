@@ -23,8 +23,9 @@
 // A decoder exports one method per payload source it understands (input,
 // deposit, output, report, withdrawalAccount, withdrawalOutput) — all
 // optional. The API record types (Input, Output, Report, Withdrawal, …) are
-// re-exported from @cartesi/rpc, the typed client for the node's JSON-RPC
-// API — that package is the source of truth for everything the node serves.
+// re-exported from @cartesi/viem, the typed toolkit for the node that the
+// explorer's data layer is built on — the source of truth for everything the
+// node serves.
 //
 // See README.md for the authoring and build/host workflow.
 
@@ -50,7 +51,7 @@ export type {
     ERC721Deposit,
     ERC1155SingleDeposit,
     ERC1155BatchDeposit,
-    // API records (from @cartesi/rpc)
+    // API records (from @cartesi/viem)
     Input,
     Output,
     Report,
@@ -61,5 +62,4 @@ export type {
     Address,
     Hash,
     Hex,
-    HexNumber,
 } from "./types";

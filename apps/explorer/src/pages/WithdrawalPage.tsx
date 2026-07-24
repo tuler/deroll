@@ -3,17 +3,17 @@ import { useWithdrawal } from '../api/hooks'
 import { PayloadView } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
 import { Collapsible, Crumbs, ErrorBox, JsonView, KV, Section, Spinner } from '../components/ui'
-import { decimalToHex, formatDate, formatUint } from '../lib/format'
+import { parseUintParam, formatDate, formatUint } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function WithdrawalPage() {
   const { appParam, application } = useApp()
   const { accountIndex = '0' } = useParams()
-  const withdrawal = useWithdrawal(appParam, decimalToHex(accountIndex))
+  const withdrawal = useWithdrawal(appParam, parseUintParam(accountIndex))
 
   if (withdrawal.isLoading) return <Spinner />
   if (withdrawal.error) return <ErrorBox error={withdrawal.error} />
-  const w = withdrawal.data!.data
+  const w = withdrawal.data!
   const base = `/apps/${appParam}`
 
   return (
@@ -21,19 +21,19 @@ export function WithdrawalPage() {
       <Crumbs
         items={[
           { label: 'Withdrawals', to: `${base}/withdrawals` },
-          { label: `Account ${formatUint(w.account_index)}` },
+          { label: `Account ${formatUint(w.accountIndex)}` },
         ]}
       />
 
-      <Section title={`Withdrawal — account ${formatUint(w.account_index)}`}>
+      <Section title={`Withdrawal — account ${formatUint(w.accountIndex)}`}>
         <KV
           rows={[
-            ['Account index', formatUint(w.account_index)],
-            ['Block', formatUint(w.block_number)],
-            ['Transaction', <TxHash value={w.transaction_hash} full />],
-            ['Log index', formatUint(w.log_index)],
-            ['Created', formatDate(w.created_at)],
-            ['Updated', formatDate(w.updated_at)],
+            ['Account index', formatUint(w.accountIndex)],
+            ['Block', formatUint(w.blockNumber)],
+            ['Transaction', <TxHash value={w.transactionHash} full />],
+            ['Log index', formatUint(w.logIndex)],
+            ['Created', formatDate(w.createdAt)],
+            ['Updated', formatDate(w.updatedAt)],
           ]}
         />
       </Section>
@@ -42,7 +42,7 @@ export function WithdrawalPage() {
         <PayloadView
           value={w.account}
           decode={{
-            application: application.iapplication_address,
+            application: application.applicationAddress,
             kind: 'withdrawalAccount',
             record: w,
           }}
@@ -53,7 +53,7 @@ export function WithdrawalPage() {
         <PayloadView
           value={w.output}
           decode={{
-            application: application.iapplication_address,
+            application: application.applicationAddress,
             kind: 'withdrawalOutput',
             record: w,
           }}

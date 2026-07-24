@@ -3,7 +3,7 @@ import { useReports } from '../api/hooks'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Section } from '../components/ui'
-import { decimalToHex, formatUint, hexByteLength, uintToDecimal } from '../lib/format'
+import { formatUint, hexByteLength, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function ReportsPage() {
@@ -15,8 +15,8 @@ export function ReportsPage() {
   const reports = useReports(
     appParam,
     {
-      epoch_index: epoch ? decimalToHex(epoch) : undefined,
-      input_index: input ? decimalToHex(input) : undefined,
+      epochIndex: epoch ? BigInt(epoch) : undefined,
+      inputIndex: input ? BigInt(input) : undefined,
     },
     { limit, offset, descending },
   )
@@ -58,11 +58,11 @@ export function ReportsPage() {
             align: 'right',
             cell: (r) => (
               <Link
-                to={`/apps/${appParam}/epochs/${uintToDecimal(r.epoch_index)}`}
+                to={`/apps/${appParam}/epochs/${uintToDecimal(r.epochIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(r.epoch_index)}
+                {formatUint(r.epochIndex)}
               </Link>
             ),
           },
@@ -71,32 +71,32 @@ export function ReportsPage() {
             align: 'right',
             cell: (r) => (
               <Link
-                to={`/apps/${appParam}/inputs/${uintToDecimal(r.input_index)}`}
+                to={`/apps/${appParam}/inputs/${uintToDecimal(r.inputIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(r.input_index)}
+                {formatUint(r.inputIndex)}
               </Link>
             ),
           },
           {
             header: 'Size',
             align: 'right',
-            cell: (r) => `${hexByteLength(r.raw_data).toLocaleString()} B`,
+            cell: (r) => `${hexByteLength(r.rawData).toLocaleString()} B`,
           },
           {
             header: 'Payload',
             truncate: true,
             cell: (r) => (
               <PayloadPreview
-                value={r.raw_data}
-                decode={{ application: application.iapplication_address, kind: 'report', record: r }}
+                value={r.rawData}
+                decode={{ application: application.applicationAddress, kind: 'report', record: r }}
               />
             ),
           },
         ]}
         rows={reports.data?.data}
-        rowKey={(r) => r.index}
+        rowKey={(r) => r.index.toString()}
         rowLink={(r) => `/apps/${appParam}/reports/${uintToDecimal(r.index)}`}
         isLoading={reports.isLoading}
         error={reports.error}

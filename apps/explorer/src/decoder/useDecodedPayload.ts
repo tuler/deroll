@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Input, PortalDeposit } from '@deroll/decoder'
 import { useChainId } from '../api/hooks'
-import { hexToBigInt } from '../lib/format'
 import { loadDecoder } from './loader'
 import { decodePortalInput, hasDepositAppData } from './portals'
 import { useDecoderUrl } from './registry'
@@ -45,7 +44,7 @@ function composeDeposit(native: DecodeResult, custom: DecodeResult): DecodeResul
  */
 export function useDecodedPayload(payload?: string | null, props?: DecodeProps): DecodedPayload {
   const url = useDecoderUrl(props?.application)
-  const chainId = hexToBigInt(useChainId().data?.data)
+  const chainId = useChainId().data
   const hasPayload = !!props && !!payload && payload !== '0x'
   // Inputs are always eligible (they may be a natively-decoded deposit);
   // every other payload needs a registered decoder.
@@ -57,7 +56,7 @@ export function useDecodedPayload(payload?: string | null, props?: DecodeProps):
       const { kind, application, record } = props!
       const context: DecodeContext = {
         application: application.toLowerCase(),
-        chainId: chainId === null ? undefined : Number(chainId),
+        chainId,
       }
       if (kind === 'input') {
         // Deposits are protocol-defined: decode them here, and only hand the

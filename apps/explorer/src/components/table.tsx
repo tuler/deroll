@@ -36,7 +36,7 @@ export function Pager({
   offset: number
   onChange: (next: { limit?: number; offset?: number }) => void
 }) {
-  const total = pagination?.total_count ?? 0
+  const total = pagination?.totalCount ?? 0
   const from = total === 0 ? 0 : offset + 1
   const to = Math.min(offset + limit, total)
 

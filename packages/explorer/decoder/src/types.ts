@@ -4,33 +4,32 @@
 // documented here.
 //
 // The API record types are NOT defined here. They come verbatim from
-// @cartesi/rpc — the typed client for the Cartesi Rollups node JSON-RPC API
-// (https://cartesi.github.io/rollups-ts) — which is the source of truth for
-// everything the node serves. This module only defines what is decoder
-// specific: one optional method per application-defined raw-bytes field, and
-// what those methods may return (DecodeResult).
+// @cartesi/viem — the typed toolkit for the Cartesi Rollups node
+// (https://cartesi.github.io/rollups-ts) that the explorer's data layer is
+// built on — which is the source of truth for everything the node serves.
+// This module only defines what is decoder specific: one optional method per
+// application-defined raw-bytes field, and what those methods may return
+// (DecodeResult).
 //
 // The whole package is type-only (no runtime code), so importing from it adds
 // nothing to your bundle. For the byte/ABI work itself use viem — the blessed
 // library the explorer provides to every decoder through its import map.
 
-import type { Hex, Input, Output, Report, Withdrawal } from "@cartesi/rpc";
+import type { Input, Output, Report, Withdrawal } from "@cartesi/viem";
+import type { Hex } from "viem";
 
-// ---- API records (from @cartesi/rpc, re-exported for convenience) ----
+// ---- API records (from @cartesi/viem, re-exported for convenience) ----
 
 export type {
-    Address,
     DelegateCallVoucher,
-    Hash,
-    Hex,
-    HexNumber,
     Input,
     Notice,
     Output,
     Report,
     Voucher,
     Withdrawal,
-} from "@cartesi/rpc";
+} from "@cartesi/viem";
+export type { Address, Hash, Hex } from "viem";
 
 // ---- Payload sources ----
 //
@@ -41,7 +40,7 @@ export type {
 //
 //   method               record         bytes decoded
 //   ───────────────────  ─────────────  ──────────────────────────────────────
-//   input                Input          input.decoded_data.payload — the
+//   input                Input          input.decodedData.payload — the
 //                                       advance payload sent by the user.
 //                                       Never called for portal deposits: the
 //                                       explorer decodes those by itself.
@@ -50,10 +49,10 @@ export type {
 //                                       baseLayerData). The deposit envelope
 //                                       (asset, amounts, sender) arrives
 //                                       already decoded.
-//   output               Output         output.decoded_data.payload — the
+//   output               Output         output.decodedData.payload — the
 //                                       payload of a Notice, Voucher or
 //                                       DelegateCallVoucher.
-//   report               Report         report.raw_data — the full report body
+//   report               Report         report.rawData — the full report body
 //                                       (e.g. inspect responses, error
 //                                       messages).
 //   withdrawalAccount    Withdrawal     withdrawal.account — the account
@@ -225,7 +224,7 @@ type DecodeMethod<R> = (
 ) => DecodeResultLike | Promise<DecodeResultLike>;
 
 /**
- * Decodes `input.decoded_data.payload` — the advance payload sent by the user.
+ * Decodes `input.decodedData.payload` — the advance payload sent by the user.
  * Never called for portal deposits; those are decoded by the explorer itself
  * (see DepositDecoder for their app-specific attachment).
  */
@@ -237,9 +236,9 @@ export type InputDecoder = DecodeMethod<Input>;
  * and shows this method's result alongside it.
  */
 export type DepositDecoder = DecodeMethod<PortalDeposit>;
-/** Decodes `output.decoded_data.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
+/** Decodes `output.decodedData.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
 export type OutputDecoder = DecodeMethod<Output>;
-/** Decodes `report.raw_data` — the full report body. */
+/** Decodes `report.rawData` — the full report body. */
 export type ReportDecoder = DecodeMethod<Report>;
 /** Decodes `withdrawal.account` — the app-defined account encoding. */
 export type WithdrawalAccountDecoder = DecodeMethod<Withdrawal>;

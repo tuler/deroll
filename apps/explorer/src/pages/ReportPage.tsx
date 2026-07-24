@@ -2,17 +2,17 @@ import { Link, useParams } from 'react-router-dom'
 import { useReport } from '../api/hooks'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, JsonView, KV, Section, Spinner } from '../components/ui'
-import { decimalToHex, formatDate, formatUint, uintToDecimal } from '../lib/format'
+import { parseUintParam, formatDate, formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function ReportPage() {
   const { appParam, application } = useApp()
   const { reportIndex = '0' } = useParams()
-  const report = useReport(appParam, decimalToHex(reportIndex))
+  const report = useReport(appParam, parseUintParam(reportIndex))
 
   if (report.isLoading) return <Spinner />
   if (report.error) return <ErrorBox error={report.error} />
-  const r = report.data!.data
+  const r = report.data!
   const base = `/apps/${appParam}`
 
   return (
@@ -32,30 +32,30 @@ export function ReportPage() {
               'Epoch',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/epochs/${uintToDecimal(r.epoch_index)}`}
+                to={`${base}/epochs/${uintToDecimal(r.epochIndex)}`}
               >
-                {formatUint(r.epoch_index)}
+                {formatUint(r.epochIndex)}
               </Link>,
             ],
             [
               'Input',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/inputs/${uintToDecimal(r.input_index)}`}
+                to={`${base}/inputs/${uintToDecimal(r.inputIndex)}`}
               >
-                {formatUint(r.input_index)}
+                {formatUint(r.inputIndex)}
               </Link>,
             ],
-            ['Created', formatDate(r.created_at)],
-            ['Updated', formatDate(r.updated_at)],
+            ['Created', formatDate(r.createdAt)],
+            ['Updated', formatDate(r.updatedAt)],
           ]}
         />
       </Section>
 
       <Section title="Payload">
         <PayloadView
-          value={r.raw_data}
-          decode={{ application: application.iapplication_address, kind: 'report', record: r }}
+          value={r.rawData}
+          decode={{ application: application.applicationAddress, kind: 'report', record: r }}
         />
       </Section>
 

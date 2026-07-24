@@ -3,20 +3,20 @@ import { useInput } from '../api/hooks'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
-import { decimalToHex, formatDate, formatUint, hexToBigInt, uintToDecimal } from '../lib/format'
+import { parseUintParam, formatDate, formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function InputPage() {
   const { appParam, application } = useApp()
   const { inputIndex = '0' } = useParams()
-  const input = useInput(appParam, decimalToHex(inputIndex))
+  const input = useInput(appParam, parseUintParam(inputIndex))
 
   if (input.isLoading) return <Spinner />
   if (input.error) return <ErrorBox error={input.error} />
-  const i = input.data!.data
+  const i = input.data!
   const base = `/apps/${appParam}`
-  const decoded = i.decoded_data
-  const timestamp = hexToBigInt(decoded?.block_timestamp)
+  const decoded = i.decodedData
+  const timestamp = decoded?.blockTimestamp ?? null
 
   return (
     <div className="space-y-4">
@@ -41,18 +41,18 @@ export function InputPage() {
               'Epoch',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/epochs/${uintToDecimal(i.epoch_index)}`}
+                to={`${base}/epochs/${uintToDecimal(i.epochIndex)}`}
               >
-                {formatUint(i.epoch_index)}
+                {formatUint(i.epochIndex)}
               </Link>,
             ],
             ['Status', <StatusBadge status={i.status} />],
-            ['Block number', formatUint(i.block_number)],
-            ['Machine hash', <Hex value={i.machine_hash} full />],
-            ['Outputs hash', <Hex value={i.outputs_hash} full />],
-            ['Transaction reference', <TxHash value={i.transaction_reference} full />],
-            ['Created', formatDate(i.created_at)],
-            ['Updated', formatDate(i.updated_at)],
+            ['Block number', formatUint(i.blockNumber)],
+            ['Machine hash', <Hex value={i.machineHash} full />],
+            ['Outputs hash', <Hex value={i.outputsHash} full />],
+            ['Transaction reference', <TxHash value={i.transactionHash} full />],
+            ['Created', formatDate(i.createdAt)],
+            ['Updated', formatDate(i.updatedAt)],
           ]}
         />
       </Section>
@@ -62,21 +62,21 @@ export function InputPage() {
           <KV
             rows={[
               ['Sender', <Hex value={decoded.sender} full />],
-              ['Application contract', <Hex value={decoded.application_contract} full />],
-              ['Chain ID', formatUint(decoded.chain_id)],
-              ['Block number', formatUint(decoded.block_number)],
+              ['Application contract', <Hex value={decoded.applicationContract} full />],
+              ['Chain ID', formatUint(decoded.chainId)],
+              ['Block number', formatUint(decoded.blockNumber)],
               [
                 'Block timestamp',
                 timestamp !== null
                   ? `${formatDate(new Date(Number(timestamp) * 1000).toISOString())} (${timestamp})`
                   : '—',
               ],
-              ['Prev randao', <Hex value={decoded.prev_randao} />],
+              ['Prev randao', <Hex value={`0x${decoded.prevRandao.toString(16).padStart(64, '0')}`} />],
               [
                 'Payload',
                 <PayloadView
                   value={decoded.payload}
-                  decode={{ application: application.iapplication_address, kind: 'input', record: i }}
+                  decode={{ application: application.applicationAddress, kind: 'input', record: i }}
                 />,
               ],
             ]}
@@ -103,7 +103,7 @@ export function InputPage() {
 
       <div className="space-y-2">
         <Collapsible label="Raw input data">
-          <PayloadView value={i.raw_data} />
+          <PayloadView value={i.rawData} />
         </Collapsible>
         <Collapsible label="Raw JSON">
           <JsonView value={i} />

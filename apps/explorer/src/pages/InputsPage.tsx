@@ -3,7 +3,7 @@ import { useInputs } from '../api/hooks'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Hex, Section, StatusBadge } from '../components/ui'
-import { decimalToHex, formatUint, uintToDecimal } from '../lib/format'
+import { formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function InputsPage() {
@@ -15,7 +15,7 @@ export function InputsPage() {
   const inputs = useInputs(
     appParam,
     {
-      epoch_index: epoch ? decimalToHex(epoch) : undefined,
+      epochIndex: epoch ? BigInt(epoch) : undefined,
       sender: sender || undefined,
     },
     { limit, offset, descending },
@@ -57,30 +57,30 @@ export function InputsPage() {
             align: 'right',
             cell: (i) => (
               <Link
-                to={`/apps/${appParam}/epochs/${uintToDecimal(i.epoch_index)}`}
+                to={`/apps/${appParam}/epochs/${uintToDecimal(i.epochIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(i.epoch_index)}
+                {formatUint(i.epochIndex)}
               </Link>
             ),
           },
           { header: 'Status', cell: (i) => <StatusBadge status={i.status} /> },
-          { header: 'Sender', cell: (i) => <Hex value={i.decoded_data?.sender} head={6} tail={4} /> },
-          { header: 'Block', align: 'right', cell: (i) => formatUint(i.block_number) },
+          { header: 'Sender', cell: (i) => <Hex value={i.decodedData?.sender} head={6} tail={4} /> },
+          { header: 'Block', align: 'right', cell: (i) => formatUint(i.blockNumber) },
           {
             header: 'Payload',
             truncate: true,
             cell: (i) => (
               <PayloadPreview
-                value={i.decoded_data?.payload}
-                decode={{ application: application.iapplication_address, kind: 'input', record: i }}
+                value={i.decodedData?.payload}
+                decode={{ application: application.applicationAddress, kind: 'input', record: i }}
               />
             ),
           },
         ]}
         rows={inputs.data?.data}
-        rowKey={(i) => i.index}
+        rowKey={(i) => i.index.toString()}
         rowLink={(i) => `/apps/${appParam}/inputs/${uintToDecimal(i.index)}`}
         isLoading={inputs.isLoading}
         error={inputs.error}

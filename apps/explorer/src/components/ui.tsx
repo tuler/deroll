@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { apiErrorMessage } from '../api/errors'
 import type { TagColor } from '../decoder/types'
 import { shortHex } from '../lib/format'
+import { useServer } from '../server'
 
 export const linkClass = 'text-sky-700 hover:underline dark:text-sky-400'
 
@@ -248,10 +250,10 @@ export function Spinner({ label = 'Loading…' }: { label?: string }) {
 }
 
 export function ErrorBox({ error }: { error: unknown }) {
-  const message = error instanceof Error ? error.message : String(error)
+  const { server } = useServer()
   return (
     <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
-      {message}
+      {apiErrorMessage(error, server)}
     </div>
   )
 }
