@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     // Relocate or re-pin with VITE_KIT_URL.
     const kitUrl =
         env.VITE_KIT_URL ||
-        `${esmBase}/gh/tuler/deroll@2df0ae0/packages/explorer/decoder/src/index.ts`;
+        `${esmBase}/gh/tuler/deroll@6fa614d/packages/explorer/decoder/src/index.ts`;
 
     // viem (byte/ABI work) and @cartesi/codec (the protocol's on-chain
     // formats) are the blessed libraries for decoders: they import them bare
