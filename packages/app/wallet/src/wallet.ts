@@ -1,3 +1,4 @@
+import { decodeDeposit } from "@cartesi/codec";
 import type { AdvanceRequestHandler, Voucher } from "@deroll/core";
 import { type Address, type Hex, getAddress, isAddress } from "viem";
 
@@ -7,16 +8,6 @@ import {
     createERC20TransferVoucher,
     createERC721TransferVoucher,
     createWithdrawEtherVoucher,
-    isERC1155BatchDeposit,
-    isERC1155SingleDeposit,
-    isERC20Deposit,
-    isERC721Deposit,
-    isEtherDeposit,
-    parseERC1155BatchDeposit,
-    parseERC1155SingleDeposit,
-    parseERC20Deposit,
-    parseERC721Deposit,
-    parseEtherDeposit,
 } from "./index.js";
 
 export type Wallet = {
@@ -167,83 +158,86 @@ export class WalletAppImpl implements WalletApp {
     }
 
     public handler: AdvanceRequestHandler = async (data) => {
-        if (isEtherDeposit(data)) {
-            // parse payload
-            const { sender, value } = parseEtherDeposit(data.payload);
+        // decode payload as a portal deposit, dispatching on msgSender
+        const deposit = decodeDeposit({
+            msgSender: data.metadata.msgSender,
+            payload: data.payload,
+        });
 
-            // get or create wallet
-            const wallet = this.wallets[sender] ?? createEmptyWallet();
+        switch (deposit?.type) {
+            case "EtherDeposit": {
+                const { sender, value } = deposit;
 
-            // increment balance
-            wallet.ether += value;
+                // get or create wallet
+                const wallet = this.wallets[sender] ?? createEmptyWallet();
 
-            this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC20Deposit(data)) {
-            // parse payload
-            const { token, sender, amount } = parseERC20Deposit(data.payload);
+                // increment balance
+                wallet.ether += value;
 
-            // get or create wallet
-            const wallet = this.wallets[sender] ?? createEmptyWallet();
+                this.wallets[sender] = wallet;
+                return "accept";
+            }
+            case "Erc20Deposit": {
+                const { token, sender, value } = deposit;
 
-            // increment balance
-            wallet.erc20[token] = wallet.erc20[token]
-                ? wallet.erc20[token] + amount
-                : amount;
+                // get or create wallet
+                const wallet = this.wallets[sender] ?? createEmptyWallet();
 
-            this.wallets[sender] = wallet;
+                // increment balance
+                wallet.erc20[token] = wallet.erc20[token]
+                    ? wallet.erc20[token] + value
+                    : value;
 
-            return "accept";
-        } else if (isERC721Deposit(data)) {
-            // parse payload
-            const { sender, token, tokenId } = parseERC721Deposit(data.payload);
+                this.wallets[sender] = wallet;
+                return "accept";
+            }
+            case "Erc721Deposit": {
+                const { sender, token, tokenId } = deposit;
 
-            // get or create wallet
-            const wallet = this.wallets[sender] ?? createEmptyWallet();
+                // get or create wallet
+                const wallet = this.wallets[sender] ?? createEmptyWallet();
 
-            // set ownership
-            wallet.erc721[token] = wallet.erc721[token] ?? new Set();
-            wallet.erc721[token].add(tokenId);
+                // set ownership
+                wallet.erc721[token] = wallet.erc721[token] ?? new Set();
+                wallet.erc721[token].add(tokenId);
 
-            this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC1155SingleDeposit(data)) {
-            // parse payload
-            const { sender, token, tokenId, value } = parseERC1155SingleDeposit(
-                data.payload,
-            );
+                this.wallets[sender] = wallet;
+                return "accept";
+            }
+            case "Erc1155SingleDeposit": {
+                const { sender, token, tokenId, value } = deposit;
 
-            // get or create wallet
-            const wallet = this.wallets[sender] ?? createEmptyWallet();
+                // get or create wallet
+                const wallet = this.wallets[sender] ?? createEmptyWallet();
 
-            // increment balance
-            wallet.erc1155[token] = wallet.erc1155[token] ?? new Map();
-            wallet.erc1155[token].set(
-                tokenId,
-                (wallet.erc1155[token].get(tokenId) ?? 0n) + value,
-            );
-
-            this.wallets[sender] = wallet;
-            return "accept";
-        } else if (isERC1155BatchDeposit(data)) {
-            // parse payload
-            const { sender, token, tokenIds, values } =
-                parseERC1155BatchDeposit(data.payload);
-
-            // get or create wallet
-            const wallet = this.wallets[sender] ?? createEmptyWallet();
-
-            // increment balance
-            wallet.erc1155[token] = wallet.erc1155[token] ?? new Map();
-            tokenIds.forEach((tokenId, i) => {
+                // increment balance
+                wallet.erc1155[token] = wallet.erc1155[token] ?? new Map();
                 wallet.erc1155[token].set(
                     tokenId,
-                    (wallet.erc1155[token].get(tokenId) ?? 0n) + values[i],
+                    (wallet.erc1155[token].get(tokenId) ?? 0n) + value,
                 );
-            });
 
-            this.wallets[sender] = wallet;
-            return "accept";
+                this.wallets[sender] = wallet;
+                return "accept";
+            }
+            case "Erc1155BatchDeposit": {
+                const { sender, token, tokenIds, values } = deposit;
+
+                // get or create wallet
+                const wallet = this.wallets[sender] ?? createEmptyWallet();
+
+                // increment balance
+                wallet.erc1155[token] = wallet.erc1155[token] ?? new Map();
+                tokenIds.forEach((tokenId, i) => {
+                    wallet.erc1155[token].set(
+                        tokenId,
+                        (wallet.erc1155[token].get(tokenId) ?? 0n) + values[i],
+                    );
+                });
+
+                this.wallets[sender] = wallet;
+                return "accept";
+            }
         }
         return "reject";
     };

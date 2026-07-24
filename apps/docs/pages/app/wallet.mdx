@@ -129,30 +129,30 @@ app.start().catch((e) => process.exit(1));
 
 ## Utility functions
 
-Instead of using the wallet module handler, and the wallet in-memory data structure, you can also use some utility functions provided by the `@deroll/wallet` module to parse deposits yourself and take care of managing balances or creating vouchers.
+Instead of using the wallet module handler, and the wallet in-memory data structure, you can also decode deposits yourself with the [`@cartesi/codec`](https://cartesi.github.io/rollups-ts/codec) package and take care of managing balances or creating vouchers, using the voucher utility functions provided by the `@deroll/wallet` module.
 
 The following code snippet handles ERC-20 deposits manually, and just creates a voucher to return the deposited amount.
 
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
+import { decodeDeposit } from "@cartesi/codec";
 import { createApp } from "@deroll/app";
-import {
-    createERC20TransferVoucher,
-    isERC20Deposit,
-    parseERC20Deposit,
-} from "@deroll/wallet";
+import { createERC20TransferVoucher } from "@deroll/wallet";
 
 // create app
 const app = createApp();
 
 app.addAdvanceHandler(async (data) => { // [!code focus]
-    if (isERC20Deposit(data)) { // [!code focus]
-        const deposit = parseERC20Deposit(data.payload); // [!code focus]
+    const deposit = decodeDeposit({ // [!code focus]
+        msgSender: data.metadata.msgSender, // [!code focus]
+        payload: data.payload, // [!code focus]
+    }); // [!code focus]
+    if (deposit?.type === "Erc20Deposit") { // [!code focus]
         const voucher = createERC20TransferVoucher( // [!code focus]
             deposit.token, // [!code focus]
             deposit.sender, // [!code focus]
-            deposit.amount, // [!code focus]
+            deposit.value, // [!code focus]
         ); // [!code focus]
         await app.createVoucher(voucher); // [!code focus]
     } // [!code focus]

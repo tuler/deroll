@@ -33,7 +33,7 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@cartesi/viem": "2.0.0-alpha.31",
+        "@cartesi/codec": "1.0.0-alpha.1",
         "@deroll/core": "workspace:*",
         "viem": "^2.52.2"
     },
