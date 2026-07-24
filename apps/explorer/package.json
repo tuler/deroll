@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "lint": "biome check"
     },
     "dependencies": {
         "@cartesi/viem": "2.0.0-alpha.33",

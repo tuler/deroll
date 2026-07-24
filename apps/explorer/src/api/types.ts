@@ -3,35 +3,45 @@
 // hooks are built on. This module only re-exports them and adds UI-side
 // constants and small accessors.
 
-import type { EpochStatus, Output, OutputType } from '@cartesi/viem'
+import type { EpochStatus, Output, OutputType } from "@cartesi/viem";
 
-export type * from '@cartesi/viem'
+export type * from "@cartesi/viem";
 
 export const EPOCH_STATUSES: EpochStatus[] = [
-  'OPEN',
-  'CLOSED',
-  'INPUTS_PROCESSED',
-  'CLAIM_COMPUTED',
-  'CLAIM_SUBMITTED',
-  'CLAIM_STAGED',
-  'CLAIM_ACCEPTED',
-  'CLAIM_REJECTED',
-  'CLAIM_FORECLOSED',
-]
+    "OPEN",
+    "CLOSED",
+    "INPUTS_PROCESSED",
+    "CLAIM_COMPUTED",
+    "CLAIM_SUBMITTED",
+    "CLAIM_STAGED",
+    "CLAIM_ACCEPTED",
+    "CLAIM_REJECTED",
+    "CLAIM_FORECLOSED",
+];
 
 /** The canonical output types (Cartesi Outputs library), as the node names them. */
-export const OUTPUT_TYPES: OutputType[] = ['Notice', 'Voucher', 'DelegateCallVoucher']
+export const OUTPUT_TYPES: OutputType[] = [
+    "Notice",
+    "Voucher",
+    "DelegateCallVoucher",
+];
 
 export function outputTypeLabel(type?: string | null): string {
-  return type ?? 'Unknown'
+    return type ?? "Unknown";
 }
 
 /** Voucher/DelegateCallVoucher destination; Notices have none. */
-export function outputDestination(decoded: Output['decodedData']): string | undefined {
-  return decoded && 'destination' in decoded ? decoded.destination : undefined
+export function outputDestination(
+    decoded: Output["decodedData"],
+): string | undefined {
+    return decoded && "destination" in decoded
+        ? decoded.destination
+        : undefined;
 }
 
 /** Voucher value (wei); other output types have none. */
-export function outputValue(decoded: Output['decodedData']): bigint | undefined {
-  return decoded && 'value' in decoded ? decoded.value : undefined
+export function outputValue(
+    decoded: Output["decodedData"],
+): bigint | undefined {
+    return decoded && "value" in decoded ? decoded.value : undefined;
 }
