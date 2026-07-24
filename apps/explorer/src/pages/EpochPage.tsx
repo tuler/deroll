@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useEpoch } from '../api/hooks'
+import { useEpoch } from '@cartesi/wagmi'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
 import { parseUintParam, formatDate, formatUint } from '../lib/format'
@@ -22,7 +22,7 @@ function HashList({ hashes }: { hashes: string[] | null }) {
 export function EpochPage() {
   const { appParam } = useApp()
   const { epochIndex = '0' } = useParams()
-  const epoch = useEpoch(appParam, parseUintParam(epochIndex))
+  const epoch = useEpoch({ application: appParam, epochIndex: parseUintParam(epochIndex) })
 
   if (epoch.isLoading) return <Spinner />
   if (epoch.error) return <ErrorBox error={epoch.error} />

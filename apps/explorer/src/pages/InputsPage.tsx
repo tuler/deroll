@@ -1,5 +1,7 @@
+import { keepPreviousData } from '@tanstack/react-query'
+import type { Address } from 'viem'
 import { Link } from 'react-router-dom'
-import { useInputs } from '../api/hooks'
+import { useInputs } from '@cartesi/wagmi'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Hex, Section, StatusBadge } from '../components/ui'
@@ -12,14 +14,15 @@ export function InputsPage() {
   const sender = searchParams.get('sender') ?? ''
   const { appParam, application } = useApp()
 
-  const inputs = useInputs(
-    appParam,
-    {
-      epochIndex: epoch ? BigInt(epoch) : undefined,
-      sender: sender || undefined,
-    },
-    { limit, offset, descending },
-  )
+  const inputs = useInputs({
+    application: appParam,
+    epochIndex: epoch ? BigInt(epoch) : undefined,
+    sender: (sender || undefined) as Address | undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

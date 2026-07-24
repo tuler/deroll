@@ -1,11 +1,12 @@
-import { useApplications } from '../api/hooks'
+import { keepPreviousData } from '@tanstack/react-query'
+import { useApplications } from '@cartesi/wagmi'
 import { DataTable, Pager, SortToggle, useListControls } from '../components/table'
 import { Hex, Section, StatusBadge } from '../components/ui'
 import { formatDate, formatUint } from '../lib/format'
 
 export function ApplicationsPage() {
   const { limit, offset, descending, update } = useListControls()
-  const apps = useApplications({ limit, offset, descending })
+  const apps = useApplications({ limit, offset, descending, placeholderData: keepPreviousData })
 
   return (
     <div className="space-y-4">

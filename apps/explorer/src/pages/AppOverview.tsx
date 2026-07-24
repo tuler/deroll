@@ -1,4 +1,4 @@
-import { useLastAcceptedEpochIndex, useProcessedInputCount } from '../api/hooks'
+import { useLastAcceptedEpochIndex, useProcessedInputCount } from '@cartesi/wagmi'
 import { DecoderSettings } from '../components/DecoderSettings'
 import { TxHash } from '../components/TxHash'
 import { Collapsible, Hex, JsonView, KV, Section, StatusBadge } from '../components/ui'
@@ -16,8 +16,8 @@ function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
 
 export function AppOverview() {
   const { appParam, application: app } = useApp()
-  const processedCount = useProcessedInputCount(appParam)
-  const lastAccepted = useLastAcceptedEpochIndex(appParam)
+  const processedCount = useProcessedInputCount({ application: appParam })
+  const lastAccepted = useLastAcceptedEpochIndex({ application: appParam })
   const ep = app.executionParameters
 
   return (

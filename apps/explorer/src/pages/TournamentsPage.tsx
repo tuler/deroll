@@ -1,5 +1,7 @@
+import { keepPreviousData } from '@tanstack/react-query'
+import type { Address } from 'viem'
 import { Link } from 'react-router-dom'
-import { useTournaments } from '../api/hooks'
+import { useTournaments } from '@cartesi/wagmi'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { Hex, Section } from '../components/ui'
 import { formatUint, uintToDecimal } from '../lib/format'
@@ -12,15 +14,16 @@ export function TournamentsPage() {
   const parent = searchParams.get('parent') ?? ''
   const { appParam } = useApp()
 
-  const tournaments = useTournaments(
-    appParam,
-    {
-      epochIndex: epoch ? BigInt(epoch) : undefined,
-      level: level ? BigInt(level) : undefined,
-      parentTournamentAddress: parent || undefined,
-    },
-    { limit, offset, descending },
-  )
+  const tournaments = useTournaments({
+    application: appParam,
+    epochIndex: epoch ? BigInt(epoch) : undefined,
+    level: level ? BigInt(level) : undefined,
+    parentTournamentAddress: (parent || undefined) as Address | undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

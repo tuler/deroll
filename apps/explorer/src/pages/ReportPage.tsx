@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useReport } from '../api/hooks'
+import { useReport } from '@cartesi/wagmi'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, JsonView, KV, Section, Spinner } from '../components/ui'
 import { parseUintParam, formatDate, formatUint, uintToDecimal } from '../lib/format'
@@ -8,7 +8,7 @@ import { useApp } from './AppLayout'
 export function ReportPage() {
   const { appParam, application } = useApp()
   const { reportIndex = '0' } = useParams()
-  const report = useReport(appParam, parseUintParam(reportIndex))
+  const report = useReport({ application: appParam, reportIndex: parseUintParam(reportIndex) })
 
   if (report.isLoading) return <Spinner />
   if (report.error) return <ErrorBox error={report.error} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { isRpcResponseError } from '../api/errors'
-import { useChainId, useNodeVersion } from '../api/hooks'
+import { useChainId, useNodeVersion } from '@cartesi/wagmi'
 import { useServer } from '../server'
 import { useTheme } from '../theme'
 
@@ -10,8 +10,8 @@ function ServerBar() {
   const [draft, setDraft] = useState(server)
   useEffect(() => setDraft(server), [server])
 
-  const chainId = useChainId()
-  const version = useNodeVersion()
+  const chainId = useChainId({})
+  const version = useNodeVersion({})
   // An RPC-level error still proves the server is answering — e.g. a node
   // running without an EVM reader errors on cartesi_getChainId while serving
   // everything else.

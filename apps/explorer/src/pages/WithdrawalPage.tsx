@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { useWithdrawal } from '../api/hooks'
+import { useWithdrawal } from '@cartesi/wagmi'
 import { PayloadView } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
 import { Collapsible, Crumbs, ErrorBox, JsonView, KV, Section, Spinner } from '../components/ui'
@@ -9,7 +9,7 @@ import { useApp } from './AppLayout'
 export function WithdrawalPage() {
   const { appParam, application } = useApp()
   const { accountIndex = '0' } = useParams()
-  const withdrawal = useWithdrawal(appParam, parseUintParam(accountIndex))
+  const withdrawal = useWithdrawal({ application: appParam, accountIndex: parseUintParam(accountIndex) })
 
   if (withdrawal.isLoading) return <Spinner />
   if (withdrawal.error) return <ErrorBox error={withdrawal.error} />

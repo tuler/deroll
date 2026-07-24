@@ -1,5 +1,6 @@
+import { keepPreviousData } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { useReports } from '../api/hooks'
+import { useReports } from '@cartesi/wagmi'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Section } from '../components/ui'
@@ -12,14 +13,15 @@ export function ReportsPage() {
   const input = searchParams.get('input') ?? ''
   const { appParam, application } = useApp()
 
-  const reports = useReports(
-    appParam,
-    {
-      epochIndex: epoch ? BigInt(epoch) : undefined,
-      inputIndex: input ? BigInt(input) : undefined,
-    },
-    { limit, offset, descending },
-  )
+  const reports = useReports({
+    application: appParam,
+    epochIndex: epoch ? BigInt(epoch) : undefined,
+    inputIndex: input ? BigInt(input) : undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

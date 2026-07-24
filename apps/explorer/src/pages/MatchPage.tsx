@@ -1,5 +1,7 @@
+import { keepPreviousData } from '@tanstack/react-query'
+import type { Address, Hash } from 'viem'
 import { Link, useParams } from 'react-router-dom'
-import { useMatch, useMatchAdvances } from '../api/hooks'
+import { useMatch, useMatchAdvances } from '@cartesi/wagmi'
 import { DataTable, Pager, useListControls } from '../components/table'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
@@ -12,8 +14,19 @@ export function MatchPage() {
   const epochHex = parseUintParam(epochIndex)
   const { limit, offset, update } = useListControls()
 
-  const match = useMatch(appParam, epochHex, address, idHash)
-  const advances = useMatchAdvances(appParam, epochHex, address, idHash, { limit, offset })
+  const matchParams = {
+    application: appParam,
+    epochIndex: epochHex,
+    tournamentAddress: address as Address,
+    idHash: idHash as Hash,
+  }
+  const match = useMatch(matchParams)
+  const advances = useMatchAdvances({
+    ...matchParams,
+    limit,
+    offset,
+    placeholderData: keepPreviousData,
+  })
 
   if (match.isLoading) return <Spinner />
   if (match.error) return <ErrorBox error={match.error} />
