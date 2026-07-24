@@ -1,5 +1,7 @@
+import { keepPreviousData } from '@tanstack/react-query'
+import type { Address } from 'viem'
 import { Link } from 'react-router-dom'
-import { useOutputs } from '../api/hooks'
+import { useOutputs } from '@cartesi/wagmi'
 import { OUTPUT_TYPES, outputDestination, outputTypeLabel, type OutputType } from '../api/types'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
@@ -15,16 +17,17 @@ export function OutputsPage() {
   const voucher = searchParams.get('voucher') ?? ''
   const { appParam, application } = useApp()
 
-  const outputs = useOutputs(
-    appParam,
-    {
-      epochIndex: epoch ? BigInt(epoch) : undefined,
-      inputIndex: input ? BigInt(input) : undefined,
-      outputType: (type || undefined) as OutputType | undefined,
-      voucherAddress: voucher || undefined,
-    },
-    { limit, offset, descending },
-  )
+  const outputs = useOutputs({
+    application: appParam,
+    epochIndex: epoch ? BigInt(epoch) : undefined,
+    inputIndex: input ? BigInt(input) : undefined,
+    outputType: (type || undefined) as OutputType | undefined,
+    voucherAddress: (voucher || undefined) as Address | undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

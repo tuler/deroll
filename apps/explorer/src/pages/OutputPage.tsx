@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useOutput } from '../api/hooks'
+import { useOutput } from '@cartesi/wagmi'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner } from '../components/ui'
 import { TxHash } from '../components/TxHash'
@@ -10,7 +10,7 @@ import { useApp } from './AppLayout'
 export function OutputPage() {
   const { appParam, application } = useApp()
   const { outputIndex = '0' } = useParams()
-  const output = useOutput(appParam, parseUintParam(outputIndex))
+  const output = useOutput({ application: appParam, outputIndex: parseUintParam(outputIndex) })
 
   if (output.isLoading) return <Spinner />
   if (output.error) return <ErrorBox error={output.error} />

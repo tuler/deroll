@@ -1,5 +1,6 @@
+import type { Address } from 'viem'
 import { Link, useParams } from 'react-router-dom'
-import { useCommitments, useMatches, useTournament, useTournaments } from '../api/hooks'
+import { useCommitments, useMatches, useTournament, useTournaments } from '@cartesi/wagmi'
 import { DataTable } from '../components/table'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
@@ -9,14 +10,22 @@ import { useApp } from './AppLayout'
 export function TournamentPage() {
   const { appParam } = useApp()
   const { address = '' } = useParams()
-  const tournament = useTournament(appParam, address)
-  const commitments = useCommitments(appParam, { tournamentAddress: address }, { limit: 100 })
-  const matches = useMatches(appParam, { tournamentAddress: address }, { limit: 100 })
-  const children = useTournaments(
-    appParam,
-    { parentTournamentAddress: address },
-    { limit: 100 },
-  )
+  const tournament = useTournament({ application: appParam, address: address as Address })
+  const commitments = useCommitments({
+    application: appParam,
+    tournamentAddress: address as Address,
+    limit: 100,
+  })
+  const matches = useMatches({
+    application: appParam,
+    tournamentAddress: address as Address,
+    limit: 100,
+  })
+  const children = useTournaments({
+    application: appParam,
+    parentTournamentAddress: address as Address,
+    limit: 100,
+  })
 
   if (tournament.isLoading) return <Spinner />
   if (tournament.error) return <ErrorBox error={tournament.error} />

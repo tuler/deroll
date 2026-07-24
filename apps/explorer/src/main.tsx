@@ -8,7 +8,11 @@ import './index.css'
 import { DecoderProvider } from './decoder/registry'
 import { ServerProvider, useServer } from './server'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  // Shared defaults for every query; list pages additionally pass
+  // placeholderData: keepPreviousData so tables don't flash while paging.
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+})
 
 /** Binds @cartesi/wagmi's client to the user-selected server URL. */
 function CartesiNode({ children }: { children: ReactNode }) {

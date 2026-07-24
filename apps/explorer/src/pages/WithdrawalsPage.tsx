@@ -1,4 +1,5 @@
-import { useWithdrawals } from '../api/hooks'
+import { keepPreviousData } from '@tanstack/react-query'
+import { useWithdrawals } from '@cartesi/wagmi'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
@@ -11,11 +12,14 @@ export function WithdrawalsPage() {
   const account = searchParams.get('account') ?? ''
   const { appParam, application } = useApp()
 
-  const withdrawals = useWithdrawals(
-    appParam,
-    { accountIndex: account ? BigInt(account) : undefined },
-    { limit, offset, descending },
-  )
+  const withdrawals = useWithdrawals({
+    application: appParam,
+    accountIndex: account ? BigInt(account) : undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

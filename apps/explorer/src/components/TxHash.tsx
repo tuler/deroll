@@ -1,4 +1,4 @@
-import { useChainId } from '../api/hooks'
+import { useChainId } from '@cartesi/wagmi'
 import { explorerFor, txExplorerUrl } from '../lib/explorer'
 import { Hex } from './ui'
 
@@ -9,7 +9,7 @@ import { Hex } from './ui'
  * show the copy button.
  */
 export function TxHash({ value, full }: { value?: string | null; full?: boolean }) {
-  const chainId = useChainId().data
+  const chainId = useChainId({}).data
   const explorer = explorerFor(chainId)
   return (
     <Hex

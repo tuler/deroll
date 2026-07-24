@@ -1,5 +1,6 @@
-import { useEpochs } from '../api/hooks'
-import { EPOCH_STATUSES } from '../api/types'
+import { keepPreviousData } from '@tanstack/react-query'
+import { useEpochs } from '@cartesi/wagmi'
+import { EPOCH_STATUSES, type EpochStatus } from '../api/types'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { Section, StatusBadge } from '../components/ui'
 import { formatDate, formatUint, uintToDecimal } from '../lib/format'
@@ -10,7 +11,14 @@ export function EpochsPage() {
   const status = searchParams.get('status') ?? ''
   const { appParam } = useApp()
 
-  const epochs = useEpochs(appParam, status ? { status } : {}, { limit, offset, descending })
+  const epochs = useEpochs({
+    application: appParam,
+    status: (status || undefined) as EpochStatus | undefined,
+    limit,
+    offset,
+    descending,
+    placeholderData: keepPreviousData,
+  })
 
   return (
     <Section

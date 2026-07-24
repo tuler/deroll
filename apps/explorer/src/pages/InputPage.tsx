@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useInput } from '../api/hooks'
+import { useInput } from '@cartesi/wagmi'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
@@ -9,7 +9,7 @@ import { useApp } from './AppLayout'
 export function InputPage() {
   const { appParam, application } = useApp()
   const { inputIndex = '0' } = useParams()
-  const input = useInput(appParam, parseUintParam(inputIndex))
+  const input = useInput({ application: appParam, inputIndex: parseUintParam(inputIndex) })
 
   if (input.isLoading) return <Spinner />
   if (input.error) return <ErrorBox error={input.error} />

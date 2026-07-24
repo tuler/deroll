@@ -1,3 +1,4 @@
+import { keepPreviousData } from '@tanstack/react-query'
 import { NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom'
 import {
   useApplication,
@@ -7,7 +8,7 @@ import {
   useReports,
   useTournaments,
   useWithdrawals,
-} from '../api/hooks'
+} from '@cartesi/wagmi'
 import type { Application } from '../api/types'
 import { Crumbs, ErrorBox, Hex, Spinner, StatusBadge } from '../components/ui'
 import { DecoderUrlSync } from '../decoder/registry'
@@ -47,16 +48,16 @@ function Tab({ to, label, count, end }: { to: string; label: string; count?: num
 
 export function AppLayout() {
   const { app = '' } = useParams()
-  const result = useApplication(app)
+  const result = useApplication({ application: app })
 
   // totalCount probes for tab badges
-  const peek = { limit: 1 }
-  const epochs = useEpochs(app, {}, peek)
-  const inputs = useInputs(app, {}, peek)
-  const outputs = useOutputs(app, {}, peek)
-  const reports = useReports(app, {}, peek)
-  const withdrawals = useWithdrawals(app, {}, peek)
-  const tournaments = useTournaments(app, {}, peek)
+  const peek = { application: app, limit: 1, placeholderData: keepPreviousData }
+  const epochs = useEpochs(peek)
+  const inputs = useInputs(peek)
+  const outputs = useOutputs(peek)
+  const reports = useReports(peek)
+  const withdrawals = useWithdrawals(peek)
+  const tournaments = useTournaments(peek)
 
   if (result.isLoading) return <Spinner label={`Loading application ${app}…`} />
   if (result.error) {
