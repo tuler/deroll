@@ -3,7 +3,7 @@ import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls
 import { PayloadPreview } from '../components/PayloadView'
 import { TxHash } from '../components/TxHash'
 import { Section } from '../components/ui'
-import { decimalToHex, formatDate, formatUint, hexByteLength, uintToDecimal } from '../lib/format'
+import { formatDate, formatUint, hexByteLength, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function WithdrawalsPage() {
@@ -13,7 +13,7 @@ export function WithdrawalsPage() {
 
   const withdrawals = useWithdrawals(
     appParam,
-    { account_index: account ? decimalToHex(account) : undefined },
+    { accountIndex: account ? BigInt(account) : undefined },
     { limit, offset, descending },
   )
 
@@ -38,7 +38,7 @@ export function WithdrawalsPage() {
     >
       <DataTable
         columns={[
-          { header: 'Account index', align: 'right', cell: (w) => formatUint(w.account_index) },
+          { header: 'Account index', align: 'right', cell: (w) => formatUint(w.accountIndex) },
           {
             header: 'Account',
             truncate: true,
@@ -46,7 +46,7 @@ export function WithdrawalsPage() {
               <PayloadPreview
                 value={w.account}
                 decode={{
-                  application: application.iapplication_address,
+                  application: application.applicationAddress,
                   kind: 'withdrawalAccount',
                   record: w,
                 }}
@@ -58,13 +58,13 @@ export function WithdrawalsPage() {
             align: 'right',
             cell: (w) => `${hexByteLength(w.output).toLocaleString()} B`,
           },
-          { header: 'Block', align: 'right', cell: (w) => formatUint(w.block_number) },
-          { header: 'Transaction', cell: (w) => <TxHash value={w.transaction_hash} /> },
-          { header: 'Created', cell: (w) => formatDate(w.created_at) },
+          { header: 'Block', align: 'right', cell: (w) => formatUint(w.blockNumber) },
+          { header: 'Transaction', cell: (w) => <TxHash value={w.transactionHash} /> },
+          { header: 'Created', cell: (w) => formatDate(w.createdAt) },
         ]}
         rows={withdrawals.data?.data}
-        rowKey={(w) => w.account_index}
-        rowLink={(w) => `/apps/${appParam}/withdrawals/${uintToDecimal(w.account_index)}`}
+        rowKey={(w) => w.accountIndex.toString()}
+        rowLink={(w) => `/apps/${appParam}/withdrawals/${uintToDecimal(w.accountIndex)}`}
         isLoading={withdrawals.isLoading}
         error={withdrawals.error}
         empty="No withdrawals — they appear only after the application is foreclosed and its accounts drive is proved."

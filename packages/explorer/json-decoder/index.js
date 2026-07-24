@@ -5,15 +5,15 @@
 // application-specific raw-bytes payload — a decoder exports only the methods
 // for the payload sources it understands (all optional):
 //
-//   input(input, context)                → decodes input.decoded_data.payload
+//   input(input, context)                → decodes input.decodedData.payload
 //                                          (never called for portal deposits —
 //                                          the explorer decodes those itself)
 //   deposit(deposit, context)            → decodes the app-specific data
 //                                          attached to a portal deposit
 //                                          (deposit.execLayerData & co); the
 //                                          deposit envelope arrives decoded
-//   output(output, context)              → decodes output.decoded_data.payload
-//   report(report, context)              → decodes report.raw_data
+//   output(output, context)              → decodes output.decodedData.payload
+//   report(report, context)              → decodes report.rawData
 //   withdrawalAccount(withdrawal, context) → decodes withdrawal.account
 //   withdrawalOutput(withdrawal, context)  → decodes withdrawal.output
 //
@@ -75,7 +75,7 @@ function text(payload) {
 }
 
 export const input = (input) => {
-  const value = toUtf8(input.decoded_data?.payload)
+  const value = toUtf8(input.decodedData?.payload)
   if (value === null) return null
   try {
     const data = JSON.parse(value)
@@ -93,6 +93,6 @@ export const input = (input) => {
   }
 }
 
-export const output = (output) => text(output.decoded_data?.payload)
+export const output = (output) => text(output.decodedData?.payload)
 
-export const report = (report) => text(report.raw_data)
+export const report = (report) => text(report.rawData)

@@ -2,7 +2,7 @@ import { useEpochs } from '../api/hooks'
 import { EPOCH_STATUSES } from '../api/types'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { Section, StatusBadge } from '../components/ui'
-import { formatDate, formatUint, hexToBigInt, uintToDecimal } from '../lib/format'
+import { formatDate, formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function EpochsPage() {
@@ -43,25 +43,25 @@ export function EpochsPage() {
             header: 'Blocks',
             cell: (e) => (
               <span className="text-slate-600 dark:text-slate-300">
-                {formatUint(e.first_block)} – {formatUint(e.last_block)}
+                {formatUint(e.firstBlock)} – {formatUint(e.lastBlock)}
               </span>
             ),
           },
           {
             header: 'Inputs',
             cell: (e) => {
-              const lo = hexToBigInt(e.input_index_lower_bound)
-              const hi = hexToBigInt(e.input_index_upper_bound)
-              if (lo === null || hi === null || hi <= lo)
+              const lo = e.inputIndexLowerBound
+              const hi = e.inputIndexUpperBound
+              if (hi <= lo)
                 return <span className="text-slate-400 dark:text-slate-500">none</span>
               return `${lo.toLocaleString()} – ${(hi - 1n).toLocaleString()}`
             },
           },
-          { header: 'Virtual index', align: 'right', cell: (e) => formatUint(e.virtual_index) },
-          { header: 'Updated', cell: (e) => formatDate(e.updated_at) },
+          { header: 'Virtual index', align: 'right', cell: (e) => formatUint(e.virtualIndex) },
+          { header: 'Updated', cell: (e) => formatDate(e.updatedAt) },
         ]}
         rows={epochs.data?.data}
-        rowKey={(e) => e.index}
+        rowKey={(e) => e.index.toString()}
         rowLink={(e) => `/apps/${appParam}/epochs/${uintToDecimal(e.index)}`}
         isLoading={epochs.isLoading}
         error={epochs.error}

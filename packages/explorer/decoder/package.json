@@ -21,6 +21,7 @@
         "access": "public"
     },
     "dependencies": {
-        "@cartesi/rpc": "2.0.0-alpha.23"
+        "@cartesi/viem": "2.0.0-alpha.33",
+        "viem": "^2.52.2"
     }
 }

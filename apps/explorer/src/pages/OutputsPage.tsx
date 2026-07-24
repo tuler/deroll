@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useOutputs } from '../api/hooks'
-import { OUTPUT_TYPE_SELECTORS, outputDestination, outputTypeLabel } from '../api/types'
+import { OUTPUT_TYPES, outputDestination, outputTypeLabel, type OutputType } from '../api/types'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { PayloadPreview } from '../components/PayloadView'
 import { Hex, Section } from '../components/ui'
-import { decimalToHex, formatUint, uintToDecimal } from '../lib/format'
+import { formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function OutputsPage() {
@@ -18,10 +18,10 @@ export function OutputsPage() {
   const outputs = useOutputs(
     appParam,
     {
-      epoch_index: epoch ? decimalToHex(epoch) : undefined,
-      input_index: input ? decimalToHex(input) : undefined,
-      output_type: type || undefined,
-      voucher_address: voucher || undefined,
+      epochIndex: epoch ? BigInt(epoch) : undefined,
+      inputIndex: input ? BigInt(input) : undefined,
+      outputType: (type || undefined) as OutputType | undefined,
+      voucherAddress: voucher || undefined,
     },
     { limit, offset, descending },
   )
@@ -58,9 +58,9 @@ export function OutputsPage() {
               className={filterInputClass}
             >
               <option value="">All</option>
-              {Object.entries(OUTPUT_TYPE_SELECTORS).map(([selector, label]) => (
-                <option key={selector} value={selector}>
-                  {label}
+              {OUTPUT_TYPES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
                 </option>
               ))}
             </select>
@@ -86,11 +86,11 @@ export function OutputsPage() {
             align: 'right',
             cell: (o) => (
               <Link
-                to={`/apps/${appParam}/epochs/${uintToDecimal(o.epoch_index)}`}
+                to={`/apps/${appParam}/epochs/${uintToDecimal(o.epochIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(o.epoch_index)}
+                {formatUint(o.epochIndex)}
               </Link>
             ),
           },
@@ -99,11 +99,11 @@ export function OutputsPage() {
             align: 'right',
             cell: (o) => (
               <Link
-                to={`/apps/${appParam}/inputs/${uintToDecimal(o.input_index)}`}
+                to={`/apps/${appParam}/inputs/${uintToDecimal(o.inputIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(o.input_index)}
+                {formatUint(o.inputIndex)}
               </Link>
             ),
           },
@@ -111,25 +111,25 @@ export function OutputsPage() {
             header: 'Type',
             cell: (o) => (
               <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                {outputTypeLabel(o.decoded_data?.type)}
+                {outputTypeLabel(o.decodedData?.type)}
               </span>
             ),
           },
-          { header: 'Destination', cell: (o) => <Hex value={outputDestination(o.decoded_data)} /> },
+          { header: 'Destination', cell: (o) => <Hex value={outputDestination(o.decodedData)} /> },
           {
             header: 'Payload',
             truncate: true,
             cell: (o) => (
               <PayloadPreview
-                value={o.decoded_data?.payload}
-                decode={{ application: application.iapplication_address, kind: 'output', record: o }}
+                value={o.decodedData?.payload}
+                decode={{ application: application.applicationAddress, kind: 'output', record: o }}
               />
             ),
           },
           {
             header: 'Executed',
             cell: (o) =>
-              o.execution_transaction_hash ? (
+              o.executionTransactionHash ? (
                 <span className="text-emerald-600 dark:text-emerald-400">✓</span>
               ) : (
                 <span className="text-slate-300 dark:text-slate-600">—</span>
@@ -137,7 +137,7 @@ export function OutputsPage() {
           },
         ]}
         rows={outputs.data?.data}
-        rowKey={(o) => o.index}
+        rowKey={(o) => o.index.toString()}
         rowLink={(o) => `/apps/${appParam}/outputs/${uintToDecimal(o.index)}`}
         isLoading={outputs.isLoading}
         error={outputs.error}

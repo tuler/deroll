@@ -1,6 +1,5 @@
 import { useChainId } from '../api/hooks'
 import { explorerFor, txExplorerUrl } from '../lib/explorer'
-import { hexToBigInt } from '../lib/format'
 import { Hex } from './ui'
 
 /**
@@ -10,8 +9,7 @@ import { Hex } from './ui'
  * show the copy button.
  */
 export function TxHash({ value, full }: { value?: string | null; full?: boolean }) {
-  const chainIdBig = hexToBigInt(useChainId().data?.data)
-  const chainId = chainIdBig === null ? undefined : Number(chainIdBig)
+  const chainId = useChainId().data
   const explorer = explorerFor(chainId)
   return (
     <Hex

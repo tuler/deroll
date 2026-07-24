@@ -3,20 +3,20 @@ import { useOutput } from '../api/hooks'
 import { PayloadView } from '../components/PayloadView'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner } from '../components/ui'
 import { TxHash } from '../components/TxHash'
-import { decimalToHex, formatDate, formatUint, formatWei, uintToDecimal } from '../lib/format'
+import { parseUintParam, formatDate, formatUint, formatWei, uintToDecimal } from '../lib/format'
 import { outputDestination, outputTypeLabel, outputValue } from '../api/types'
 import { useApp } from './AppLayout'
 
 export function OutputPage() {
   const { appParam, application } = useApp()
   const { outputIndex = '0' } = useParams()
-  const output = useOutput(appParam, decimalToHex(outputIndex))
+  const output = useOutput(appParam, parseUintParam(outputIndex))
 
   if (output.isLoading) return <Spinner />
   if (output.error) return <ErrorBox error={output.error} />
-  const o = output.data!.data
+  const o = output.data!
   const base = `/apps/${appParam}`
-  const decoded = o.decoded_data
+  const decoded = o.decodedData
   const typeLabel = outputTypeLabel(decoded?.type)
 
   return (
@@ -45,24 +45,24 @@ export function OutputPage() {
               'Epoch',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/epochs/${uintToDecimal(o.epoch_index)}`}
+                to={`${base}/epochs/${uintToDecimal(o.epochIndex)}`}
               >
-                {formatUint(o.epoch_index)}
+                {formatUint(o.epochIndex)}
               </Link>,
             ],
             [
               'Input',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/inputs/${uintToDecimal(o.input_index)}`}
+                to={`${base}/inputs/${uintToDecimal(o.inputIndex)}`}
               >
-                {formatUint(o.input_index)}
+                {formatUint(o.inputIndex)}
               </Link>,
             ],
             ['Hash', <Hex value={o.hash} full />],
-            ['Execution transaction', <TxHash value={o.execution_transaction_hash} full />],
-            ['Created', formatDate(o.created_at)],
-            ['Updated', formatDate(o.updated_at)],
+            ['Execution transaction', <TxHash value={o.executionTransactionHash} full />],
+            ['Created', formatDate(o.createdAt)],
+            ['Updated', formatDate(o.updatedAt)],
           ]}
         />
       </Section>
@@ -82,7 +82,7 @@ export function OutputPage() {
                 'Payload',
                 <PayloadView
                   value={decoded.payload}
-                  decode={{ application: application.iapplication_address, kind: 'output', record: o }}
+                  decode={{ application: application.applicationAddress, kind: 'output', record: o }}
                 />,
               ],
             ]}
@@ -92,11 +92,11 @@ export function OutputPage() {
 
       <div className="space-y-2">
         <Collapsible
-          label={`Output hashes siblings (${o.output_hashes_siblings?.length ?? 0} hashes)`}
+          label={`Output hashes siblings (${o.outputHashesSiblings?.length ?? 0} hashes)`}
         >
-          {o.output_hashes_siblings && o.output_hashes_siblings.length > 0 ? (
+          {o.outputHashesSiblings && o.outputHashesSiblings.length > 0 ? (
             <ol className="space-y-1 font-mono text-xs">
-              {o.output_hashes_siblings.map((h, i) => (
+              {o.outputHashesSiblings.map((h, i) => (
                 <li key={i} className="flex gap-2">
                   <span className="w-6 text-right text-slate-400 dark:text-slate-500">{i}</span>
                   <Hex value={h} full />
@@ -108,7 +108,7 @@ export function OutputPage() {
           )}
         </Collapsible>
         <Collapsible label="Raw output data">
-          <PayloadView value={o.raw_data} />
+          <PayloadView value={o.rawData} />
         </Collapsible>
         <Collapsible label="Raw JSON">
           <JsonView value={o} />

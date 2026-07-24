@@ -8,10 +8,10 @@ The rollups node serves several **raw-bytes fields whose encoding is defined by 
 
 | method | record | bytes decoded |
 | --- | --- | --- |
-| `input` | `Input` | `input.decoded_data.payload` — the advance payload sent by the user. Never called for portal deposits: the explorer decodes those itself |
+| `input` | `Input` | `input.decodedData.payload` — the advance payload sent by the user. Never called for portal deposits: the explorer decodes those itself |
 | `deposit` | `PortalDeposit` | the app-specific data attached to a portal deposit (`execLayerData`, and `baseLayerData` on the NFT portals). The deposit envelope — asset, amounts, sender — arrives already decoded |
-| `output` | `Output` | `output.decoded_data.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
-| `report` | `Report` | `report.raw_data` — the full report body (inspect responses, error messages, …) |
+| `output` | `Output` | `output.decodedData.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
+| `report` | `Report` | `report.rawData` — the full report body (inspect responses, error messages, …) |
 | `withdrawalAccount` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
 | `withdrawalOutput` | `Withdrawal` | `withdrawal.output` — the raw output blob emitted for that account |
 
@@ -21,7 +21,7 @@ Everything else the node serves (hashes, indices, proofs, tournament data, …) 
 
 ## What the kit gives you
 
-This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/rpc`](https://cartesi.github.io/rollups-ts), the typed client for the node's JSON-RPC API — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
+This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/viem`](https://cartesi.github.io/rollups-ts), the typed toolkit for the node — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
 
 All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here. Being types-only, importing the kit adds nothing to a decoder's bundle.
 
@@ -57,10 +57,10 @@ export const name = 'My decoder'
 export const input: InputDecoder = (input, context) => {
   // Your application's own messages. Portal deposits never reach this
   // method — the explorer decodes those itself.
-  if (!input.decoded_data) return null
+  if (!input.decodedData) return null
   const [action, amount] = decodeAbiParameters(
     [{ type: 'string' }, { type: 'uint256' }],
-    input.decoded_data.payload,
+    input.decodedData.payload,
   )
   return {
     summary: `${action} · ${formatUnits(amount, 18)}`,

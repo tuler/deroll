@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTournaments } from '../api/hooks'
 import { DataTable, Filter, filterInputClass, Pager, SortToggle, useListControls } from '../components/table'
 import { Hex, Section } from '../components/ui'
-import { decimalToHex, formatUint, uintToDecimal } from '../lib/format'
+import { formatUint, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function TournamentsPage() {
@@ -15,9 +15,9 @@ export function TournamentsPage() {
   const tournaments = useTournaments(
     appParam,
     {
-      epoch_index: epoch ? decimalToHex(epoch) : undefined,
-      level: level ? decimalToHex(level) : undefined,
-      parent_tournament_address: parent || undefined,
+      epochIndex: epoch ? BigInt(epoch) : undefined,
+      level: level ? BigInt(level) : undefined,
+      parentTournamentAddress: parent || undefined,
     },
     { limit, offset, descending },
   )
@@ -68,28 +68,28 @@ export function TournamentsPage() {
             align: 'right',
             cell: (t) => (
               <Link
-                to={`/apps/${appParam}/epochs/${uintToDecimal(t.epoch_index)}`}
+                to={`/apps/${appParam}/epochs/${uintToDecimal(t.epochIndex)}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-sky-700 hover:underline dark:text-sky-400"
               >
-                {formatUint(t.epoch_index)}
+                {formatUint(t.epochIndex)}
               </Link>
             ),
           },
           {
             header: 'Level',
             align: 'right',
-            cell: (t) => `${formatUint(t.level)} / ${formatUint(t.max_level)}`,
+            cell: (t) => `${formatUint(t.level)} / ${formatUint(t.maxLevel)}`,
           },
           { header: 'log2 step', align: 'right', cell: (t) => formatUint(t.log2step) },
           { header: 'Height', align: 'right', cell: (t) => formatUint(t.height) },
           {
             header: 'Parent',
             cell: (t) =>
-              t.parent_tournament_address ? (
+              t.parentTournamentAddress ? (
                 <Hex
-                  value={t.parent_tournament_address}
-                  to={`/apps/${appParam}/tournaments/${t.parent_tournament_address}`}
+                  value={t.parentTournamentAddress}
+                  to={`/apps/${appParam}/tournaments/${t.parentTournamentAddress}`}
                 />
               ) : (
                 <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">root</span>
@@ -98,8 +98,8 @@ export function TournamentsPage() {
           {
             header: 'Winner',
             cell: (t) =>
-              t.winner_commitment ? (
-                <Hex value={t.winner_commitment} />
+              t.winnerCommitment ? (
+                <Hex value={t.winnerCommitment} />
               ) : (
                 <span className="text-slate-400 dark:text-slate-500">—</span>
               ),

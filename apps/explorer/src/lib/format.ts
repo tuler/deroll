@@ -1,30 +1,22 @@
 const ZERO_RE = /^0x0*$/
 
-/** Parses a hex-encoded unsigned integer; returns null when absent/invalid. */
-export function hexToBigInt(hex?: string | null): bigint | null {
-  if (!hex) return null
+/** Formats an unsigned integer for display, with thousands separators. */
+export function formatUint(value?: bigint | number | null): string {
+  return value === undefined || value === null ? '—' : value.toLocaleString('en-US')
+}
+
+/** Plain (ungrouped) decimal string, for URLs. */
+export function uintToDecimal(value?: bigint | null): string {
+  return value === undefined || value === null ? '' : value.toString(10)
+}
+
+/** Parses a decimal route param into a bigint; garbage becomes 0n. */
+export function parseUintParam(dec?: string): bigint {
   try {
-    return BigInt(hex)
+    return BigInt(dec ?? 0)
   } catch {
-    return null
+    return 0n
   }
-}
-
-/** Formats a hex-encoded unsigned integer as a decimal string. */
-export function formatUint(hex?: string | null): string {
-  const value = hexToBigInt(hex)
-  return value === null ? '—' : value.toLocaleString('en-US')
-}
-
-/** Plain (ungrouped) decimal string of a hex-encoded unsigned integer. */
-export function uintToDecimal(hex?: string | null): string {
-  const value = hexToBigInt(hex)
-  return value === null ? '' : value.toString(10)
-}
-
-/** Converts a decimal string (URL param) to the hex encoding the API expects. */
-export function decimalToHex(dec: string): string {
-  return '0x' + BigInt(dec).toString(16)
 }
 
 /** Middle-truncates a hex string for display, e.g. 0x1234…abcd. */
@@ -42,6 +34,16 @@ export function isZeroHex(hex?: string | null): boolean {
 export function hexByteLength(hex?: string | null): number {
   if (!hex || hex.length < 2) return 0
   return Math.floor((hex.length - 2) / 2)
+}
+
+/** Parses a hex-encoded unsigned integer; returns null when absent/invalid. */
+export function hexToBigInt(hex?: string | null): bigint | null {
+  if (!hex) return null
+  try {
+    return BigInt(hex)
+  } catch {
+    return null
+  }
 }
 
 /** Decodes a hex byte array as UTF-8; returns null when it is not mostly printable text. */
@@ -67,11 +69,11 @@ export function hexToUtf8(hex?: string | null): string | null {
   }
 }
 
-/** Formats an ISO date-time for display. */
-export function formatDate(iso?: string | null): string {
-  if (!iso) return '—'
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso
+/** Formats a date-time for display. */
+export function formatDate(value?: Date | string | null): string {
+  if (!value) return '—'
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
   return date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -83,10 +85,9 @@ export function formatDate(iso?: string | null): string {
   })
 }
 
-/** Formats a duration given in nanoseconds (hex) into a human readable string. */
-export function formatNanos(hex?: string | null): string {
-  const value = hexToBigInt(hex)
-  if (value === null) return '—'
+/** Formats a duration given in nanoseconds into a human readable string. */
+export function formatNanos(value?: bigint | null): string {
+  if (value === undefined || value === null) return '—'
   const ns = Number(value)
   if (ns < 1_000) return `${ns} ns`
   if (ns < 1_000_000) return `${ns / 1_000} µs`
@@ -94,15 +95,10 @@ export function formatNanos(hex?: string | null): string {
   return `${ns / 1_000_000_000} s`
 }
 
-/** Formats a wei amount (hex or decimal string), appending the ether value when meaningful. */
-export function formatWei(value?: string | null): string {
-  if (!value) return '—'
-  try {
-    const wei = BigInt(value)
-    if (wei === 0n) return '0 wei'
-    const ether = Number(wei) / 1e18
-    return ether >= 0.000001 ? `${wei} wei (${ether} ETH)` : `${wei} wei`
-  } catch {
-    return value
-  }
+/** Formats a wei amount, appending the ether value when meaningful. */
+export function formatWei(value?: bigint | null): string {
+  if (value === undefined || value === null) return '—'
+  if (value === 0n) return '0 wei'
+  const ether = Number(value) / 1e18
+  return ether >= 0.000001 ? `${value} wei (${ether} ETH)` : `${value} wei`
 }

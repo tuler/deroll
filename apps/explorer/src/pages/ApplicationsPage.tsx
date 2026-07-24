@@ -20,8 +20,8 @@ export function ApplicationsPage() {
               header: 'Name',
               cell: (app) => <span className="font-medium text-sky-700 dark:text-sky-400">{app.name}</span>,
             },
-            { header: 'Address', cell: (app) => <Hex value={app.iapplication_address} /> },
-            { header: 'Consensus', cell: (app) => <StatusBadge status={app.consensus_type} /> },
+            { header: 'Address', cell: (app) => <Hex value={app.applicationAddress} /> },
+            { header: 'Consensus', cell: (app) => <StatusBadge status={app.consensusType} /> },
             {
               header: 'Status',
               cell: (app) => (
@@ -34,17 +34,17 @@ export function ApplicationsPage() {
             {
               header: 'Inputs',
               align: 'right',
-              cell: (app) => formatUint(app.processed_inputs),
+              cell: (app) => formatUint(app.processedInputs),
             },
             {
               header: 'Epoch length',
               align: 'right',
-              cell: (app) => formatUint(app.epoch_length),
+              cell: (app) => formatUint(app.epochLength),
             },
-            { header: 'Created', cell: (app) => formatDate(app.created_at) },
+            { header: 'Created', cell: (app) => formatDate(app.createdAt) },
           ]}
           rows={apps.data?.data}
-          rowKey={(app) => app.iapplication_address}
+          rowKey={(app) => app.applicationAddress}
           rowLink={(app) => `/apps/${app.name}`}
           isLoading={apps.isLoading}
           error={apps.error}

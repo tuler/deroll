@@ -49,7 +49,7 @@ export function AppLayout() {
   const { app = '' } = useParams()
   const result = useApplication(app)
 
-  // total_count probes for tab badges
+  // totalCount probes for tab badges
   const peek = { limit: 1 }
   const epochs = useEpochs(app, {}, peek)
   const inputs = useInputs(app, {}, peek)
@@ -68,7 +68,7 @@ export function AppLayout() {
     )
   }
 
-  const application = result.data!.data
+  const application = result.data!
   const base = `/apps/${app}`
 
   return (
@@ -80,8 +80,8 @@ export function AppLayout() {
           <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{application.name}</h1>
           <StatusBadge status={application.status} />
           {!application.enabled && <StatusBadge status="DISABLED" />}
-          <StatusBadge status={application.consensus_type} />
-          <Hex value={application.iapplication_address} full />
+          <StatusBadge status={application.consensusType} />
+          <Hex value={application.applicationAddress} full />
         </div>
         {application.reason && (
           <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/50 dark:text-red-300">
@@ -90,32 +90,32 @@ export function AppLayout() {
         )}
         <nav className="mt-2 -mb-3 flex overflow-x-auto">
           <Tab to={base} label="Overview" end />
-          <Tab to={`${base}/epochs`} label="Epochs" count={epochs.data?.pagination.total_count} />
-          <Tab to={`${base}/inputs`} label="Inputs" count={inputs.data?.pagination.total_count} />
+          <Tab to={`${base}/epochs`} label="Epochs" count={epochs.data?.pagination.totalCount} />
+          <Tab to={`${base}/inputs`} label="Inputs" count={inputs.data?.pagination.totalCount} />
           <Tab
             to={`${base}/outputs`}
             label="Outputs"
-            count={outputs.data?.pagination.total_count}
+            count={outputs.data?.pagination.totalCount}
           />
           <Tab
             to={`${base}/reports`}
             label="Reports"
-            count={reports.data?.pagination.total_count}
+            count={reports.data?.pagination.totalCount}
           />
           <Tab
             to={`${base}/withdrawals`}
             label="Withdrawals"
-            count={withdrawals.data?.pagination.total_count}
+            count={withdrawals.data?.pagination.totalCount}
           />
           <Tab
             to={`${base}/tournaments`}
             label="Tournaments"
-            count={tournaments.data?.pagination.total_count}
+            count={tournaments.data?.pagination.totalCount}
           />
         </nav>
       </div>
 
-      <DecoderUrlSync application={application.iapplication_address} />
+      <DecoderUrlSync application={application.applicationAddress} />
 
       <Outlet context={{ appParam: app, application } satisfies AppContext} />
     </div>

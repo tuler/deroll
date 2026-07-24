@@ -1,25 +1,35 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { rpc } from './client'
-import { useServer } from '../server'
-import type {
-  CartesiClient,
-  GetEpochParams,
-  GetInputParams,
-  GetMatchParams,
-  GetOutputParams,
-  GetReportParams,
-  GetTournamentParams,
-  GetWithdrawalParams,
-  ListCommitmentsParams,
-  ListEpochsParams,
-  ListInputsParams,
-  ListMatchAdvancesParams,
-  ListMatchesParams,
-  ListOutputsParams,
-  ListReportsParams,
-  ListTournamentsParams,
-  ListWithdrawalsParams,
-} from './types'
+// Thin adapters over @cartesi/wagmi's publicL2 hooks: same hook per API
+// method, with the explorer's shared query defaults applied in one place.
+// The server URL comes from CartesiProvider (see main.tsx) and is part of
+// every query key, so switching servers never serves another node's cache.
+
+import {
+  useApplication as useCartesiApplication,
+  useApplications as useCartesiApplications,
+  useChainId as useCartesiChainId,
+  useCommitments as useCartesiCommitments,
+  useEpoch as useCartesiEpoch,
+  useEpochs as useCartesiEpochs,
+  useInput as useCartesiInput,
+  useInputs as useCartesiInputs,
+  useLastAcceptedEpochIndex as useCartesiLastAcceptedEpochIndex,
+  useMatch as useCartesiMatch,
+  useMatchAdvances as useCartesiMatchAdvances,
+  useMatches as useCartesiMatches,
+  useNodeVersion as useCartesiNodeVersion,
+  useOutput as useCartesiOutput,
+  useOutputs as useCartesiOutputs,
+  useProcessedInputCount as useCartesiProcessedInputCount,
+  useReport as useCartesiReport,
+  useReports as useCartesiReports,
+  useTournament as useCartesiTournament,
+  useTournaments as useCartesiTournaments,
+  useWithdrawal as useCartesiWithdrawal,
+  useWithdrawals as useCartesiWithdrawals,
+} from '@cartesi/wagmi'
+import { keepPreviousData } from '@tanstack/react-query'
+import type { Address, Hash } from 'viem'
+import type { OutputType } from './types'
 
 export interface ListOptions {
   limit?: number
@@ -27,61 +37,31 @@ export interface ListOptions {
   descending?: boolean
 }
 
-function useRpc<T>(
-  key: readonly unknown[],
-  run: (client: CartesiClient) => PromiseLike<T>,
-  enabled = true,
-) {
-  const { server } = useServer()
-  return useQuery<T>({
-    queryKey: [server, ...key],
-    queryFn: () => rpc(server, run),
-    enabled,
-    retry: 1,
-    refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
-  })
-}
-
-// Each hook assembles its request params once, and that same object feeds both
-// the queryKey and the request — they cannot drift. Filter values arrive as
-// free-form strings (URL params, text inputs), so hook signatures take strings
-// and the assembled object is cast to the @cartesi/rpc param type: the wire
-// shape is the same, only the hex template types are wider here.
+const defaults = {
+  retry: 1,
+  refetchOnWindowFocus: false,
+  placeholderData: keepPreviousData,
+} as const
 
 // Node
 
-export const useChainId = () =>
-  useRpc(['cartesi_getChainId'], (c) => c.request('cartesi_getChainId'))
+export const useChainId = () => useCartesiChainId({ ...defaults })
 
-export const useNodeVersion = () =>
-  useRpc(['cartesi_getNodeVersion'], (c) => c.request('cartesi_getNodeVersion'))
+export const useNodeVersion = () => useCartesiNodeVersion({ ...defaults })
 
 // Applications
 
 export const useApplications = (opts: ListOptions = {}) =>
-  useRpc(['cartesi_listApplications', opts], (c) => c.request('cartesi_listApplications', opts))
+  useCartesiApplications({ ...opts, ...defaults })
 
-export const useApplication = (application: string) => {
-  const params = { application }
-  return useRpc(['cartesi_getApplication', params], (c) =>
-    c.request('cartesi_getApplication', params),
-  )
-}
+export const useApplication = (application: string) =>
+  useCartesiApplication({ application, ...defaults })
 
-export const useProcessedInputCount = (application: string) => {
-  const params = { application }
-  return useRpc(['cartesi_getProcessedInputCount', params], (c) =>
-    c.request('cartesi_getProcessedInputCount', params),
-  )
-}
+export const useProcessedInputCount = (application: string) =>
+  useCartesiProcessedInputCount({ application, ...defaults })
 
-export const useLastAcceptedEpochIndex = (application: string) => {
-  const params = { application }
-  return useRpc(['cartesi_getLastAcceptedEpochIndex', params], (c) =>
-    c.request('cartesi_getLastAcceptedEpochIndex', params),
-  )
-}
+export const useLastAcceptedEpochIndex = (application: string) =>
+  useCartesiLastAcceptedEpochIndex({ application, ...defaults })
 
 // Epochs
 
@@ -89,168 +69,163 @@ export const useEpochs = (
   application: string,
   filters: { status?: string } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListEpochsParams
-  return useRpc(['cartesi_listEpochs', params], (c) => c.request('cartesi_listEpochs', params))
-}
+) =>
+  useCartesiEpochs({
+    application,
+    status: filters.status as never,
+    ...opts,
+    ...defaults,
+  })
 
-export const useEpoch = (application: string, epochIndex: string) => {
-  const params = { application, epoch_index: epochIndex } as GetEpochParams
-  return useRpc(['cartesi_getEpoch', params], (c) => c.request('cartesi_getEpoch', params))
-}
+export const useEpoch = (application: string, epochIndex: bigint) =>
+  useCartesiEpoch({ application, epochIndex, ...defaults })
 
 // Inputs
 
 export const useInputs = (
   application: string,
-  filters: { epoch_index?: string; sender?: string } = {},
+  filters: { epochIndex?: bigint; sender?: string } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListInputsParams
-  return useRpc(['cartesi_listInputs', params], (c) => c.request('cartesi_listInputs', params))
-}
+) =>
+  useCartesiInputs({
+    application,
+    epochIndex: filters.epochIndex,
+    sender: filters.sender as Address | undefined,
+    ...opts,
+    ...defaults,
+  })
 
-export const useInput = (application: string, inputIndex: string) => {
-  const params = { application, input_index: inputIndex } as GetInputParams
-  return useRpc(['cartesi_getInput', params], (c) => c.request('cartesi_getInput', params))
-}
+export const useInput = (application: string, inputIndex: bigint) =>
+  useCartesiInput({ application, inputIndex, ...defaults })
 
 // Outputs
 
 export const useOutputs = (
   application: string,
   filters: {
-    epoch_index?: string
-    input_index?: string
-    output_type?: string
-    voucher_address?: string
+    epochIndex?: bigint
+    inputIndex?: bigint
+    outputType?: OutputType
+    voucherAddress?: string
   } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListOutputsParams
-  return useRpc(['cartesi_listOutputs', params], (c) => c.request('cartesi_listOutputs', params))
-}
+) =>
+  useCartesiOutputs({
+    application,
+    epochIndex: filters.epochIndex,
+    inputIndex: filters.inputIndex,
+    outputType: filters.outputType,
+    voucherAddress: filters.voucherAddress as Address | undefined,
+    ...opts,
+    ...defaults,
+  })
 
-export const useOutput = (application: string, outputIndex: string) => {
-  const params = { application, output_index: outputIndex } as GetOutputParams
-  return useRpc(['cartesi_getOutput', params], (c) => c.request('cartesi_getOutput', params))
-}
+export const useOutput = (application: string, outputIndex: bigint) =>
+  useCartesiOutput({ application, outputIndex, ...defaults })
 
 // Reports
 
 export const useReports = (
   application: string,
-  filters: { epoch_index?: string; input_index?: string } = {},
+  filters: { epochIndex?: bigint; inputIndex?: bigint } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListReportsParams
-  return useRpc(['cartesi_listReports', params], (c) => c.request('cartesi_listReports', params))
-}
+) => useCartesiReports({ application, ...filters, ...opts, ...defaults })
 
-export const useReport = (application: string, reportIndex: string) => {
-  const params = { application, report_index: reportIndex } as GetReportParams
-  return useRpc(['cartesi_getReport', params], (c) => c.request('cartesi_getReport', params))
-}
+export const useReport = (application: string, reportIndex: bigint) =>
+  useCartesiReport({ application, reportIndex, ...defaults })
 
 // Withdrawals
 
 export const useWithdrawals = (
   application: string,
-  filters: { account_index?: string } = {},
+  filters: { accountIndex?: bigint } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListWithdrawalsParams
-  return useRpc(['cartesi_listWithdrawals', params], (c) =>
-    c.request('cartesi_listWithdrawals', params),
-  )
-}
+) => useCartesiWithdrawals({ application, ...filters, ...opts, ...defaults })
 
-export const useWithdrawal = (application: string, accountIndex: string) => {
-  const params = { application, account_index: accountIndex } as GetWithdrawalParams
-  return useRpc(['cartesi_getWithdrawal', params], (c) =>
-    c.request('cartesi_getWithdrawal', params),
-  )
-}
+export const useWithdrawal = (application: string, accountIndex: bigint) =>
+  useCartesiWithdrawal({ application, accountIndex, ...defaults })
 
 // Tournaments
 
 export const useTournaments = (
   application: string,
   filters: {
-    epoch_index?: string
-    level?: string
-    parent_tournament_address?: string
-    parent_match_id_hash?: string
+    epochIndex?: bigint
+    level?: bigint
+    parentTournamentAddress?: string
+    parentMatchIdHash?: string
   } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListTournamentsParams
-  return useRpc(['cartesi_listTournaments', params], (c) =>
-    c.request('cartesi_listTournaments', params),
-  )
-}
+) =>
+  useCartesiTournaments({
+    application,
+    epochIndex: filters.epochIndex,
+    level: filters.level,
+    parentTournamentAddress: filters.parentTournamentAddress as Address | undefined,
+    parentMatchIdHash: filters.parentMatchIdHash as Hash | undefined,
+    ...opts,
+    ...defaults,
+  })
 
-export const useTournament = (application: string, address: string) => {
-  const params = { application, address } as GetTournamentParams
-  return useRpc(['cartesi_getTournament', params], (c) =>
-    c.request('cartesi_getTournament', params),
-  )
-}
+export const useTournament = (application: string, address: string) =>
+  useCartesiTournament({ application, address: address as Address, ...defaults })
 
 // Commitments
 
 export const useCommitments = (
   application: string,
-  filters: { epoch_index?: string; tournament_address?: string } = {},
+  filters: { epochIndex?: bigint; tournamentAddress?: string } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListCommitmentsParams
-  return useRpc(['cartesi_listCommitments', params], (c) =>
-    c.request('cartesi_listCommitments', params),
-  )
-}
+) =>
+  useCartesiCommitments({
+    application,
+    epochIndex: filters.epochIndex,
+    tournamentAddress: filters.tournamentAddress as Address | undefined,
+    ...opts,
+    ...defaults,
+  })
 
 // Matches
 
 export const useMatches = (
   application: string,
-  filters: { epoch_index?: string; tournament_address?: string } = {},
+  filters: { epochIndex?: bigint; tournamentAddress?: string } = {},
   opts: ListOptions = {},
-) => {
-  const params = { application, ...filters, ...opts } as ListMatchesParams
-  return useRpc(['cartesi_listMatches', params], (c) => c.request('cartesi_listMatches', params))
-}
+) =>
+  useCartesiMatches({
+    application,
+    epochIndex: filters.epochIndex,
+    tournamentAddress: filters.tournamentAddress as Address | undefined,
+    ...opts,
+    ...defaults,
+  })
 
 export const useMatch = (
   application: string,
-  epochIndex: string,
+  epochIndex: bigint,
   tournamentAddress: string,
   idHash: string,
-) => {
-  const params = {
+) =>
+  useCartesiMatch({
     application,
-    epoch_index: epochIndex,
-    tournament_address: tournamentAddress,
-    id_hash: idHash,
-  } as GetMatchParams
-  return useRpc(['cartesi_getMatch', params], (c) => c.request('cartesi_getMatch', params))
-}
+    epochIndex,
+    tournamentAddress: tournamentAddress as Address,
+    idHash: idHash as Hash,
+    ...defaults,
+  })
 
 export const useMatchAdvances = (
   application: string,
-  epochIndex: string,
+  epochIndex: bigint,
   tournamentAddress: string,
   idHash: string,
   opts: ListOptions = {},
-) => {
-  const params = {
+) =>
+  useCartesiMatchAdvances({
     application,
-    epoch_index: epochIndex,
-    tournament_address: tournamentAddress,
-    id_hash: idHash,
+    epochIndex,
+    tournamentAddress: tournamentAddress as Address,
+    idHash: idHash as Hash,
     ...opts,
-  } as ListMatchAdvancesParams
-  return useRpc(['cartesi_listMatchAdvances', params], (c) =>
-    c.request('cartesi_listMatchAdvances', params),
-  )
-}
+    ...defaults,
+  })

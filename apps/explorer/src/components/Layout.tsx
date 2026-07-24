@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
-import { RpcError } from '../api/client'
+import { isRpcResponseError } from '../api/errors'
 import { useChainId, useNodeVersion } from '../api/hooks'
-import { formatUint } from '../lib/format'
 import { useServer } from '../server'
 import { useTheme } from '../theme'
 
@@ -19,8 +18,8 @@ function ServerBar() {
   const connected =
     chainId.isSuccess ||
     version.isSuccess ||
-    chainId.error instanceof RpcError ||
-    version.error instanceof RpcError
+    isRpcResponseError(chainId.error) ||
+    isRpcResponseError(version.error)
   const checking = (chainId.isLoading || version.isLoading) && !connected
 
   return (
@@ -40,8 +39,8 @@ function ServerBar() {
         />
         {connected ? (
           <span className="hidden sm:inline whitespace-nowrap">
-            {chainId.isSuccess && <>chain {formatUint(chainId.data?.data)} · </>}
-            node v{version.data?.data ?? '?'}
+            {chainId.isSuccess && <>chain {chainId.data} · </>}
+            node v{version.data ?? '?'}
           </span>
         ) : (
           <span className="hidden sm:inline">{checking ? 'connecting…' : 'unreachable'}</span>

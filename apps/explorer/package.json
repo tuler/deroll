@@ -9,14 +9,15 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@cartesi/rpc": "2.0.0-alpha.23",
-        "@tanstack/react-query": "^5.101.0",
-        "json-rpc-2.0": "^1.7.1",
+        "@cartesi/viem": "2.0.0-alpha.33",
+        "@cartesi/wagmi": "2.0.0-alpha.37",
         "@deroll/decoder": "workspace:*",
+        "@tanstack/react-query": "^5.101.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
         "react-router-dom": "^7.18.1",
-        "viem": "^2.52.2"
+        "viem": "^2.52.2",
+        "wagmi": "^3.7.4"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.2",

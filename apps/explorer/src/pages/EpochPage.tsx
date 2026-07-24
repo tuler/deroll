@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useEpoch } from '../api/hooks'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
-import { decimalToHex, formatDate, formatUint, hexToBigInt } from '../lib/format'
+import { parseUintParam, formatDate, formatUint } from '../lib/format'
 import { useApp } from './AppLayout'
 
 function HashList({ hashes }: { hashes: string[] | null }) {
@@ -22,16 +22,16 @@ function HashList({ hashes }: { hashes: string[] | null }) {
 export function EpochPage() {
   const { appParam } = useApp()
   const { epochIndex = '0' } = useParams()
-  const epoch = useEpoch(appParam, decimalToHex(epochIndex))
+  const epoch = useEpoch(appParam, parseUintParam(epochIndex))
 
   if (epoch.isLoading) return <Spinner />
   if (epoch.error) return <ErrorBox error={epoch.error} />
-  const e = epoch.data!.data
+  const e = epoch.data!
 
   const base = `/apps/${appParam}`
-  const lo = hexToBigInt(e.input_index_lower_bound)
-  const hi = hexToBigInt(e.input_index_upper_bound)
-  const inputCount = lo !== null && hi !== null && hi > lo ? hi - lo : 0n
+  const lo = e.inputIndexLowerBound
+  const hi = e.inputIndexUpperBound
+  const inputCount = hi > lo ? hi - lo : 0n
 
   return (
     <div className="space-y-4">
@@ -52,32 +52,32 @@ export function EpochPage() {
         <KV
           rows={[
             ['Index', formatUint(e.index)],
-            ['Virtual index', formatUint(e.virtual_index)],
+            ['Virtual index', formatUint(e.virtualIndex)],
             ['Status', <StatusBadge status={e.status} />],
-            ['Block range', `${formatUint(e.first_block)} – ${formatUint(e.last_block)}`],
+            ['Block range', `${formatUint(e.firstBlock)} – ${formatUint(e.lastBlock)}`],
             [
               'Input index range',
               inputCount > 0n
                 ? `${lo!.toLocaleString()} – ${(hi! - 1n).toLocaleString()} (${inputCount.toLocaleString()} inputs)`
                 : 'no inputs',
             ],
-            ['Machine hash', <Hex value={e.machine_hash} full />],
-            ['Outputs merkle root', <Hex value={e.outputs_merkle_root} full />],
+            ['Machine hash', <Hex value={e.machineHash} full />],
+            ['Outputs merkle root', <Hex value={e.outputsMerkleRoot} full />],
             ['Commitment', <Hex value={e.commitment} full />],
-            ['Claim transaction', <TxHash value={e.claim_transaction_hash} full />],
-            e.staged_at_block ? ['Staged at block', formatUint(e.staged_at_block)] : null,
-            e.tournament_address
+            ['Claim transaction', <TxHash value={e.claimTransactionHash} full />],
+            e.stagedAtBlock ? ['Staged at block', formatUint(e.stagedAtBlock)] : null,
+            e.tournamentAddress
               ? [
                   'Tournament',
                   <Hex
-                    value={e.tournament_address}
+                    value={e.tournamentAddress}
                     full
-                    to={`${base}/tournaments/${e.tournament_address}`}
+                    to={`${base}/tournaments/${e.tournamentAddress}`}
                   />,
                 ]
               : null,
-            ['Created', formatDate(e.created_at)],
-            ['Updated', formatDate(e.updated_at)],
+            ['Created', formatDate(e.createdAt)],
+            ['Updated', formatDate(e.updatedAt)],
           ]}
         />
       </Section>
@@ -92,11 +92,11 @@ export function EpochPage() {
       </Section>
 
       <div className="space-y-2">
-        <Collapsible label={`Commitment proof (${e.commitment_proof?.length ?? 0} hashes)`}>
-          <HashList hashes={e.commitment_proof} />
+        <Collapsible label={`Commitment proof (${e.commitmentProof?.length ?? 0} hashes)`}>
+          <HashList hashes={e.commitmentProof} />
         </Collapsible>
-        <Collapsible label={`Outputs merkle proof (${e.outputs_merkle_proof?.length ?? 0} hashes)`}>
-          <HashList hashes={e.outputs_merkle_proof} />
+        <Collapsible label={`Outputs merkle proof (${e.outputsMerkleProof?.length ?? 0} hashes)`}>
+          <HashList hashes={e.outputsMerkleProof} />
         </Collapsible>
         <Collapsible label="Raw JSON">
           <JsonView value={e} />

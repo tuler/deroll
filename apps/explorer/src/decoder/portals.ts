@@ -181,8 +181,8 @@ function summarizePortalDeposit(d: PortalDeposit): string {
  * PortalDeposit as data); otherwise return null.
  */
 export function decodePortalInput(input: Input): DecodeResult | null {
-  const sender = input.decoded_data?.sender?.toLowerCase()
-  const payload = input.decoded_data?.payload
+  const sender = input.decodedData?.sender?.toLowerCase()
+  const payload = input.decodedData?.payload
   if (!sender || !payload) return null
   const portal = PORTAL_ADDRESSES[sender]
   if (!portal) return null

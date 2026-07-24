@@ -3,26 +3,26 @@ import { useCommitments, useMatches, useTournament, useTournaments } from '../ap
 import { DataTable } from '../components/table'
 import { Collapsible, Crumbs, ErrorBox, Hex, JsonView, KV, Section, Spinner, StatusBadge } from '../components/ui'
 import { TxHash } from '../components/TxHash'
-import { formatDate, formatUint, isZeroHex, shortHex, uintToDecimal } from '../lib/format'
+import { formatDate, formatUint, shortHex, uintToDecimal } from '../lib/format'
 import { useApp } from './AppLayout'
 
 export function TournamentPage() {
   const { appParam } = useApp()
   const { address = '' } = useParams()
   const tournament = useTournament(appParam, address)
-  const commitments = useCommitments(appParam, { tournament_address: address }, { limit: 100 })
-  const matches = useMatches(appParam, { tournament_address: address }, { limit: 100 })
+  const commitments = useCommitments(appParam, { tournamentAddress: address }, { limit: 100 })
+  const matches = useMatches(appParam, { tournamentAddress: address }, { limit: 100 })
   const children = useTournaments(
     appParam,
-    { parent_tournament_address: address },
+    { parentTournamentAddress: address },
     { limit: 100 },
   )
 
   if (tournament.isLoading) return <Spinner />
   if (tournament.error) return <ErrorBox error={tournament.error} />
-  const t = tournament.data!.data
+  const t = tournament.data!
   const base = `/apps/${appParam}`
-  const finished = !isZeroHex(t.finished_at_block)
+  const finished = t.finishedAtBlock !== 0n
 
   return (
     <div className="space-y-4">
@@ -47,44 +47,44 @@ export function TournamentPage() {
               'Epoch',
               <Link
                 className="text-sky-700 hover:underline dark:text-sky-400"
-                to={`${base}/epochs/${uintToDecimal(t.epoch_index)}`}
+                to={`${base}/epochs/${uintToDecimal(t.epochIndex)}`}
               >
-                {formatUint(t.epoch_index)}
+                {formatUint(t.epochIndex)}
               </Link>,
             ],
-            ['Level', `${formatUint(t.level)} of ${formatUint(t.max_level)}`],
+            ['Level', `${formatUint(t.level)} of ${formatUint(t.maxLevel)}`],
             ['log2 step', formatUint(t.log2step)],
             ['Height', formatUint(t.height)],
-            t.parent_tournament_address
+            t.parentTournamentAddress
               ? [
                   'Parent tournament',
                   <Hex
-                    value={t.parent_tournament_address}
+                    value={t.parentTournamentAddress}
                     full
-                    to={`${base}/tournaments/${t.parent_tournament_address}`}
+                    to={`${base}/tournaments/${t.parentTournamentAddress}`}
                   />,
                 ]
               : ['Parent tournament', 'none (root tournament)'],
-            t.parent_match_id_hash
-              ? ['Parent match', <Hex value={t.parent_match_id_hash} full />]
+            t.parentMatchIdHash
+              ? ['Parent match', <Hex value={t.parentMatchIdHash} full />]
               : null,
-            ['Winner commitment', <Hex value={t.winner_commitment} full />],
-            ['Final state hash', <Hex value={t.final_state_hash} full />],
-            ['Finished at block', finished ? formatUint(t.finished_at_block) : 'in progress'],
-            ['Created', formatDate(t.created_at)],
-            ['Updated', formatDate(t.updated_at)],
+            ['Winner commitment', <Hex value={t.winnerCommitment} full />],
+            ['Final state hash', <Hex value={t.finalStateHash} full />],
+            ['Finished at block', finished ? formatUint(t.finishedAtBlock) : 'in progress'],
+            ['Created', formatDate(t.createdAt)],
+            ['Updated', formatDate(t.updatedAt)],
           ]}
         />
       </Section>
 
-      <Section title={`Commitments (${commitments.data?.pagination.total_count ?? '…'})`}>
+      <Section title={`Commitments (${commitments.data?.pagination.totalCount ?? '…'})`}>
         <DataTable
           columns={[
             { header: 'Commitment', cell: (c) => <Hex value={c.commitment} /> },
-            { header: 'Final state', cell: (c) => <Hex value={c.final_state_hash} /> },
-            { header: 'Submitter', cell: (c) => <Hex value={c.submitter_address} /> },
-            { header: 'Block', align: 'right', cell: (c) => formatUint(c.block_number) },
-            { header: 'Tx', cell: (c) => <TxHash value={c.tx_hash} /> },
+            { header: 'Final state', cell: (c) => <Hex value={c.finalStateHash} /> },
+            { header: 'Submitter', cell: (c) => <Hex value={c.submitterAddress} /> },
+            { header: 'Block', align: 'right', cell: (c) => formatUint(c.blockNumber) },
+            { header: 'Tx', cell: (c) => <TxHash value={c.txHash} /> },
           ]}
           rows={commitments.data?.data}
           rowKey={(c) => c.commitment}
@@ -94,20 +94,20 @@ export function TournamentPage() {
         />
       </Section>
 
-      <Section title={`Matches (${matches.data?.pagination.total_count ?? '…'})`}>
+      <Section title={`Matches (${matches.data?.pagination.totalCount ?? '…'})`}>
         <DataTable
           columns={[
-            { header: 'Match ID', cell: (m) => <Hex value={m.id_hash} /> },
-            { header: 'Commitment 1', cell: (m) => <Hex value={m.commitment_one} /> },
-            { header: 'Commitment 2', cell: (m) => <Hex value={m.commitment_two} /> },
-            { header: 'Winner', cell: (m) => <StatusBadge status={m.winner_commitment} /> },
-            { header: 'Resolution', cell: (m) => <StatusBadge status={m.deletion_reason} /> },
-            { header: 'Block', align: 'right', cell: (m) => formatUint(m.block_number) },
+            { header: 'Match ID', cell: (m) => <Hex value={m.idHash} /> },
+            { header: 'Commitment 1', cell: (m) => <Hex value={m.commitmentOne} /> },
+            { header: 'Commitment 2', cell: (m) => <Hex value={m.commitmentTwo} /> },
+            { header: 'Winner', cell: (m) => <StatusBadge status={m.winnerCommitment} /> },
+            { header: 'Resolution', cell: (m) => <StatusBadge status={m.deletionReason} /> },
+            { header: 'Block', align: 'right', cell: (m) => formatUint(m.blockNumber) },
           ]}
           rows={matches.data?.data}
-          rowKey={(m) => m.id_hash}
+          rowKey={(m) => m.idHash}
           rowLink={(m) =>
-            `${base}/tournaments/${t.address}/matches/${uintToDecimal(m.epoch_index)}/${m.id_hash}`
+            `${base}/tournaments/${t.address}/matches/${uintToDecimal(m.epochIndex)}/${m.idHash}`
           }
           isLoading={matches.isLoading}
           error={matches.error}
@@ -115,21 +115,21 @@ export function TournamentPage() {
         />
       </Section>
 
-      <Section title={`Child tournaments (${children.data?.pagination.total_count ?? '…'})`}>
+      <Section title={`Child tournaments (${children.data?.pagination.totalCount ?? '…'})`}>
         <DataTable
           columns={[
             { header: 'Address', cell: (c) => <Hex value={c.address} /> },
             {
               header: 'Level',
               align: 'right',
-              cell: (c) => `${formatUint(c.level)} / ${formatUint(c.max_level)}`,
+              cell: (c) => `${formatUint(c.level)} / ${formatUint(c.maxLevel)}`,
             },
             { header: 'log2 step', align: 'right', cell: (c) => formatUint(c.log2step) },
-            { header: 'Parent match', cell: (c) => <Hex value={c.parent_match_id_hash} /> },
+            { header: 'Parent match', cell: (c) => <Hex value={c.parentMatchIdHash} /> },
             {
               header: 'Winner',
               cell: (c) =>
-                c.winner_commitment ? <Hex value={c.winner_commitment} /> : <span className="text-slate-400 dark:text-slate-500">—</span>,
+                c.winnerCommitment ? <Hex value={c.winnerCommitment} /> : <span className="text-slate-400 dark:text-slate-500">—</span>,
             },
           ]}
           rows={children.data?.data}
