@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Input, PortalDeposit } from "@deroll/decoder";
+import type { Deposit, Input } from "@deroll/decoder";
 import { useChainId } from "@cartesi/wagmi";
 import { loadDecoder } from "./loader";
 import { decodePortalInput, hasDepositAppData } from "./portals";
@@ -32,7 +32,7 @@ function composeDeposit(
     native: DecodeResult,
     custom: DecodeResult,
 ): DecodeResult {
-    const deposit = native.data as PortalDeposit;
+    const deposit = native.data as Deposit;
     return {
         summary: [native.summary, custom.summary].filter(Boolean).join(" · "),
         tags: [...(native.tags ?? []), ...(custom.tags ?? [])],
@@ -73,7 +73,7 @@ export function useDecodedPayload(
                 // decoder their app-specific attachment (execLayerData & co).
                 const native = decodePortalInput(record as Input);
                 if (native) {
-                    const deposit = native.data as PortalDeposit;
+                    const deposit = native.data as Deposit;
                     if (url && hasDepositAppData(deposit)) {
                         try {
                             const decoder = await loadDecoder(url);

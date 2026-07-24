@@ -3,20 +3,22 @@
 // the records and context your decoder receives are exactly what is
 // documented here.
 //
-// The API record types are NOT defined here. They come verbatim from
+// The record types are NOT defined here. The API records come verbatim from
 // @cartesi/viem — the typed toolkit for the Cartesi Rollups node
 // (https://cartesi.github.io/rollups-ts) that the explorer's data layer is
-// built on — which is the source of truth for everything the node serves.
-// This module only defines what is decoder specific: one optional method per
-// application-defined raw-bytes field, and what those methods may return
-// (DecodeResult).
+// built on — and the deposit envelope comes from @cartesi/codec, the
+// encode/decode library for the protocol's on-chain formats. Both are the
+// source of truth for what they describe. This module only defines what is
+// decoder specific: one optional method per application-defined raw-bytes
+// field, and what those methods may return (DecodeResult).
 //
 // The whole package is type-only (no runtime code), so importing from it adds
-// nothing to your bundle. For the byte/ABI work itself use viem — the blessed
-// library the explorer provides to every decoder through its import map.
+// nothing to your bundle. For the byte/ABI work itself use viem and
+// @cartesi/codec — the blessed libraries the explorer provides to every
+// decoder through its import map.
 
+import type { Deposit } from "@cartesi/codec";
 import type { Input, Output, Report, Withdrawal } from "@cartesi/viem";
-import type { Hex } from "viem";
 
 // ---- API records (from @cartesi/viem, re-exported for convenience) ----
 
@@ -44,7 +46,7 @@ export type { Address, Hash, Hex } from "viem";
 //                                       advance payload sent by the user.
 //                                       Never called for portal deposits: the
 //                                       explorer decodes those by itself.
-//   deposit              PortalDeposit  the app-specific data attached to a
+//   deposit              Deposit        the app-specific data attached to a
 //                                       portal deposit (execLayerData /
 //                                       baseLayerData). The deposit envelope
 //                                       (asset, amounts, sender) arrives
@@ -72,91 +74,22 @@ export type { Address, Hash, Hex } from "viem";
 // ---- Portal deposits ----
 //
 // Deposits are protocol-defined (InputEncoding.sol in rollups-contracts) and
-// decoded by the explorer itself — never by a decoder. These types only
-// describe what the `deposit` decode method RECEIVES: the already-decoded
-// deposit envelope, whose baseLayerData/execLayerData fields carry the
-// app-specific bytes the method is asked to decode.
+// decoded by the explorer itself — never by a decoder — using
+// @cartesi/codec, the protocol's encode/decode library
+// (https://cartesi.github.io/rollups-ts/codec). These re-exports only
+// describe what the `deposit` decode method RECEIVES: codec's Deposit union
+// (discriminated by `type`, with bigint amounts/ids), whose
+// baseLayerData/execLayerData fields carry the app-specific bytes the method
+// is asked to decode — "0x" when the depositor attached nothing.
 
-/** The Cartesi portal contracts that produce deposit inputs. */
-export type PortalKind =
-    | "EtherPortal"
-    | "ERC20Portal"
-    | "ERC721Portal"
-    | "ERC1155SinglePortal"
-    | "ERC1155BatchPortal";
-
-/** Common fields of a decoded portal deposit. `portal` identifies the source. */
-interface PortalDepositBase {
-    portal: PortalKind;
-    /** The depositing account (encoded in the payload, distinct from the input sender). */
-    sender: Hex;
-}
-
-export interface EtherDeposit extends PortalDepositBase {
-    portal: "EtherPortal";
-    /** Deposited amount formatted as ETH. */
-    ether: string;
-    /** Deposited amount in wei (decimal string). */
-    wei: string;
-    /** App-specific data attached to the deposit. */
-    execLayerData?: Hex;
-}
-
-export interface ERC20Deposit extends PortalDepositBase {
-    portal: "ERC20Portal";
-    token: Hex;
-    /** Raw on-chain token amount (decimal string); the portal carries no token decimals. */
-    amount: string;
-    /** App-specific data attached to the deposit. */
-    execLayerData?: Hex;
-}
-
-export interface ERC721Deposit extends PortalDepositBase {
-    portal: "ERC721Portal";
-    token: Hex;
-    tokenId: string;
-    /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: Hex;
-    /** App-specific data attached for the execution layer. */
-    execLayerData?: Hex;
-    /** Raw abi.encode(baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: Hex;
-}
-
-export interface ERC1155SingleDeposit extends PortalDepositBase {
-    portal: "ERC1155SinglePortal";
-    token: Hex;
-    tokenId: string;
-    value: string;
-    /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: Hex;
-    /** App-specific data attached for the execution layer. */
-    execLayerData?: Hex;
-    /** Raw abi.encode(baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: Hex;
-}
-
-export interface ERC1155BatchDeposit extends PortalDepositBase {
-    portal: "ERC1155BatchPortal";
-    token: Hex;
-    /** Deposited token ids (decimal strings). */
-    tokenIds?: string[];
-    /** Deposited amount per token id (decimal strings). */
-    values?: string[];
-    /** App-specific data attached on the base layer (L1-visible). */
-    baseLayerData?: Hex;
-    /** App-specific data attached for the execution layer. */
-    execLayerData?: Hex;
-    /** Raw abi.encode(tokenIds, values, baseLayerData, execLayerData), kept only when it cannot be decoded. */
-    data?: Hex;
-}
-
-export type PortalDeposit =
-    | EtherDeposit
-    | ERC20Deposit
-    | ERC721Deposit
-    | ERC1155SingleDeposit
-    | ERC1155BatchDeposit;
+export type {
+    Deposit,
+    EtherDeposit,
+    Erc20Deposit,
+    Erc721Deposit,
+    Erc1155SingleDeposit,
+    Erc1155BatchDeposit,
+} from "@cartesi/codec";
 
 /** Context passed to every decode method. */
 export interface DecodeContext {
@@ -231,11 +164,11 @@ type DecodeMethod<R> = (
 export type InputDecoder = DecodeMethod<Input>;
 /**
  * Decodes the app-specific data attached to a portal deposit — execLayerData
- * (and baseLayerData on the NFT portals). The deposit envelope arrives
- * already decoded as a PortalDeposit; the explorer renders the deposit itself
- * and shows this method's result alongside it.
+ * (and baseLayerData on the NFT portals); "0x" when absent. The deposit
+ * envelope arrives already decoded as @cartesi/codec's Deposit; the explorer
+ * renders the deposit itself and shows this method's result alongside it.
  */
-export type DepositDecoder = DecodeMethod<PortalDeposit>;
+export type DepositDecoder = DecodeMethod<Deposit>;
 /** Decodes `output.decodedData.payload` — a Notice/Voucher/DelegateCallVoucher payload. */
 export type OutputDecoder = DecodeMethod<Output>;
 /** Decodes `report.rawData` — the full report body. */

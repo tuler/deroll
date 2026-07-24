@@ -21,6 +21,7 @@
         "access": "public"
     },
     "dependencies": {
+        "@cartesi/codec": "1.0.0-alpha.0",
         "@cartesi/viem": "2.0.0-alpha.33",
         "viem": "^2.52.2"
     }

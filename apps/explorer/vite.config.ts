@@ -23,14 +23,19 @@ export default defineConfig(({ mode }) => {
         env.VITE_KIT_URL ||
         `${esmBase}/gh/tuler/deroll@2df0ae0/packages/explorer/decoder/src/index.ts`;
 
-    // viem is the blessed byte/ABI library for decoders: they import it bare
-    // (esm.sh leaves it external, see src/decoder/github.ts) and this import map
-    // resolves it — pinned to the version the explorer itself depends on, so
-    // authors bundle nothing and every decoder shares one vetted copy.
+    // viem (byte/ABI work) and @cartesi/codec (the protocol's on-chain
+    // formats) are the blessed libraries for decoders: they import them bare
+    // (esm.sh leaves them external, see src/decoder/github.ts) and this import
+    // map resolves them — pinned to the versions the explorer itself depends
+    // on, so authors bundle nothing and every decoder shares one vetted copy.
+    // codec's own viem import stays external too, so it resolves through this
+    // same map to the single pinned viem.
     const viemVersion = pkg.dependencies.viem.replace(/^[^\d]*/, "");
+    const codecVersion = pkg.dependencies["@cartesi/codec"];
     const importMap = JSON.stringify({
         imports: {
             "@deroll/decoder": kitUrl,
+            "@cartesi/codec": `${esmBase}/@cartesi/codec@${codecVersion}?external=viem`,
             viem: `${esmBase}/viem@${viemVersion}`,
             "viem/": `${esmBase}/viem@${viemVersion}/`,
         },
