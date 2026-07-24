@@ -10,6 +10,7 @@
         "lint": "biome check"
     },
     "dependencies": {
+        "@cartesi/codec": "1.0.0-alpha.0",
         "@cartesi/viem": "2.0.0-alpha.33",
         "@cartesi/wagmi": "2.0.0-alpha.37",
         "@deroll/decoder": "workspace:*",

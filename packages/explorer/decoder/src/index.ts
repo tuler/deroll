@@ -16,16 +16,18 @@
 //     // …decode deposit.execLayerData, the app-specific attachment…
 //   }
 //
-// For the byte/ABI work itself, import viem: the explorer provides it to
-// every decoder through its import map (pinned to the version the explorer
-// uses), so `import { … } from 'viem'` just works — nothing to bundle.
+// For the byte/ABI work itself, import viem — and @cartesi/codec for the
+// protocol's own on-chain formats (inputs, outputs, deposits): the explorer
+// provides both to every decoder through its import map (pinned to the
+// versions the explorer uses), so `import { … } from 'viem'` just works —
+// nothing to bundle.
 //
 // A decoder exports one method per payload source it understands (input,
 // deposit, output, report, withdrawalAccount, withdrawalOutput) — all
 // optional. The API record types (Input, Output, Report, Withdrawal, …) are
 // re-exported from @cartesi/viem, the typed toolkit for the node that the
-// explorer's data layer is built on — the source of truth for everything the
-// node serves.
+// explorer's data layer is built on, and the deposit envelope (Deposit) from
+// @cartesi/codec — each the source of truth for what it describes.
 //
 // See README.md for the authoring and build/host workflow.
 
@@ -43,14 +45,13 @@ export type {
     DecodeResultLike,
     Tag,
     TagColor,
-    // Portal deposit records (what the deposit method receives)
-    PortalKind,
-    PortalDeposit,
+    // Portal deposit records (what the deposit method receives, from @cartesi/codec)
+    Deposit,
     EtherDeposit,
-    ERC20Deposit,
-    ERC721Deposit,
-    ERC1155SingleDeposit,
-    ERC1155BatchDeposit,
+    Erc20Deposit,
+    Erc721Deposit,
+    Erc1155SingleDeposit,
+    Erc1155BatchDeposit,
     // API records (from @cartesi/viem)
     Input,
     Output,

@@ -41,9 +41,10 @@
 //       falls back to its hex/UTF-8 view.
 //
 // TypeScript authors get all of this typed from the @deroll/decoder package
-// (types-only). For byte/ABI work, `import { … } from 'viem'` just works: the
-// explorer provides viem to every decoder through its import map, pinned to
-// the version the explorer itself uses — nothing to bundle. (This example
+// (types-only). For byte/ABI work `import { … } from 'viem'` just works, and
+// `import { … } from '@cartesi/codec'` for the protocol's on-chain formats:
+// the explorer provides both to every decoder through its import map, pinned
+// to the versions the explorer itself uses — nothing to bundle. (This example
 // sticks to TextDecoder because it wants strict UTF-8 validation.)
 //
 // This example handles the payloads produced by the mock server

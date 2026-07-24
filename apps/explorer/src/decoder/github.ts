@@ -34,10 +34,11 @@ function splitRefAndPath(rest: string): { ref: string; path: string } | null {
 // Imports the explorer provides to every decoder through its import map (see
 // vite.config.ts): the contract kit, mapped at the kit's own GitHub source so
 // a kit-using decoder loads from a repo with nothing published to a registry,
-// and the blessed byte/ABI library viem, pinned to the version the explorer
-// itself uses so decoders import it without bundling it. esm.sh is told to
-// leave these bare imports alone rather than resolve them from npm.
-const BLESSED_IMPORTS = ["@deroll/decoder", "viem"];
+// and the blessed libraries — viem for byte/ABI work and @cartesi/codec for
+// the protocol's on-chain formats — pinned to the versions the explorer
+// itself uses so decoders import them without bundling them. esm.sh is told
+// to leave these bare imports alone rather than resolve them from npm.
+const BLESSED_IMPORTS = ["@deroll/decoder", "@cartesi/codec", "viem"];
 
 function withBlessedExternals(url: string): string {
     return `${url}${url.includes("?") ? "&" : "?"}external=${BLESSED_IMPORTS.join(",")}`;

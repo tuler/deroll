@@ -9,7 +9,7 @@ The rollups node serves several **raw-bytes fields whose encoding is defined by 
 | method | record | bytes decoded |
 | --- | --- | --- |
 | `input` | `Input` | `input.decodedData.payload` — the advance payload sent by the user. Never called for portal deposits: the explorer decodes those itself |
-| `deposit` | `PortalDeposit` | the app-specific data attached to a portal deposit (`execLayerData`, and `baseLayerData` on the NFT portals). The deposit envelope — asset, amounts, sender — arrives already decoded |
+| `deposit` | `Deposit` | the app-specific data attached to a portal deposit (`execLayerData`, and `baseLayerData` on the NFT portals; `"0x"` when absent). The deposit envelope — asset, amounts, sender — arrives already decoded |
 | `output` | `Output` | `output.decodedData.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
 | `report` | `Report` | `report.rawData` — the full report body (inspect responses, error messages, …) |
 | `withdrawalAccount` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
@@ -21,19 +21,20 @@ Everything else the node serves (hashes, indices, proofs, tournament data, …) 
 
 ## What the kit gives you
 
-This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext`, `DecodeResult` and the `PortalDeposit` record the `deposit` method receives. The API record types (`Input`, `Output`, `Report`, `Withdrawal`, …) are re-exported verbatim from [`@cartesi/viem`](https://cartesi.github.io/rollups-ts), the typed toolkit for the node — that package is the source of truth, and the explorer re-exports these same types internally, so the record your method receives is exactly the API record you see.
+This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The record types are re-exported from their sources of truth: the API records (`Input`, `Output`, `Report`, `Withdrawal`, …) verbatim from [`@cartesi/viem`](https://cartesi.github.io/rollups-ts), the typed toolkit for the node, and the `Deposit` union the `deposit` method receives from [`@cartesi/codec`](https://cartesi.github.io/rollups-ts/codec), the encode/decode library for the protocol's on-chain formats. The explorer uses these same types internally, so the record your method receives is exactly what you see.
 
-All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here. Being types-only, importing the kit adds nothing to a decoder's bundle.
+All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here — it uses `@cartesi/codec` for it. Being types-only, importing the kit adds nothing to a decoder's bundle.
 
-## Batteries: viem
+## Batteries: viem and @cartesi/codec
 
-For the byte/ABI work itself, use [viem](https://viem.sh) — the blessed library for decoders. Import it bare and **don't bundle it**: the explorer serves viem to every decoder through its import map, pinned to the version the explorer itself uses (and leaves the import external when transpiling GitHub-hosted sources through esm.sh), so every decoder shares one vetted copy.
+For the byte/ABI work itself, use [viem](https://viem.sh); for the protocol's own on-chain formats (inputs, outputs, deposits), use [`@cartesi/codec`](https://cartesi.github.io/rollups-ts/codec). Both are blessed libraries for decoders: import them bare and **don't bundle them** — the explorer serves them to every decoder through its import map, pinned to the versions the explorer itself uses (and leaves the imports external when transpiling GitHub-hosted sources through esm.sh), so every decoder shares one vetted copy.
 
 ```ts
 import { decodeAbiParameters, hexToString, formatUnits, slice } from 'viem'
+import { decodeOutput } from '@cartesi/codec'
 ```
 
-If you bundle a decoder into a single self-contained `.js` yourself, mark `viem` (and `@deroll/decoder`) as external — or bundle viem in if you prefer; both work, the import map only applies to bare imports.
+If you bundle a decoder into a single self-contained `.js` yourself, mark `viem`, `@cartesi/codec` and `@deroll/decoder` as external — or bundle them in if you prefer; both work, the import map only applies to bare imports.
 
 ## What a decode method returns
 
@@ -72,7 +73,7 @@ export const input: InputDecoder = (input, context) => {
 export const deposit: DepositDecoder = (deposit, context) => {
   // Only the app-specific data attached to a deposit; the envelope (asset,
   // amounts, sender) is already decoded and rendered by the explorer.
-  if (!deposit.execLayerData) return null
+  if (deposit.execLayerData === '0x') return null
   return {
     summary: hexToString(deposit.execLayerData),
     data: deposit.execLayerData,
