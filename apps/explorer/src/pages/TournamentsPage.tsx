@@ -1,7 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { Link } from "react-router-dom";
-import { useTournaments } from "@cartesi/wagmi";
+import { useTournaments } from "@cartesi/react";
 import {
     DataTable,
     Filter,

@@ -1,4 +1,4 @@
-import { CartesiProvider } from "@cartesi/wagmi";
+import { CartesiProvider } from "@cartesi/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
 });
 
-/** Binds @cartesi/wagmi's client to the user-selected server URL. */
+/** Binds @cartesi/react's client to the user-selected server URL. */
 function CartesiNode({ children }: { children: ReactNode }) {
     const { server } = useServer();
     return <CartesiProvider rpcUrl={server}>{children}</CartesiProvider>;

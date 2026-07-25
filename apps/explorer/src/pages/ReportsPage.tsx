@@ -1,6 +1,6 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { useReports } from "@cartesi/wagmi";
+import { useReports } from "@cartesi/react";
 import {
     DataTable,
     Filter,

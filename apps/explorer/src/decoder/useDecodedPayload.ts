@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Deposit, Input } from "@deroll/decoder";
-import { useChainId } from "@cartesi/wagmi";
+import { useChainId } from "@cartesi/react";
 import { loadDecoder } from "./loader";
 import { decodePortalInput, hasDepositAppData } from "./portals";
 import { useDecoderUrl } from "./registry";

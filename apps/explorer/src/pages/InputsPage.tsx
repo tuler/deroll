@@ -1,7 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { Link } from "react-router-dom";
-import { useInputs } from "@cartesi/wagmi";
+import { useInputs } from "@cartesi/react";
 import {
     DataTable,
     Filter,

@@ -1,11 +1,11 @@
-// Record types come from @cartesi/viem — the typed toolkit for the Cartesi
-// Rollups node (https://cartesi.github.io/rollups-ts) that @cartesi/wagmi's
+// Record types come from @cartesi/client — the typed toolkit for the Cartesi
+// Rollups node (https://cartesi.github.io/rollups-ts) that @cartesi/react's
 // hooks are built on. This module only re-exports them and adds UI-side
 // constants and small accessors.
 
-import type { EpochStatus, Output, OutputType } from "@cartesi/viem";
+import type { EpochStatus, Output, OutputType } from "@cartesi/client";
 
-export type * from "@cartesi/viem";
+export type * from "@cartesi/client";
 
 export const EPOCH_STATUSES: EpochStatus[] = [
     "OPEN",

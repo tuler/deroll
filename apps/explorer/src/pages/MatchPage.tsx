@@ -2,7 +2,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { Address, Hash } from "viem";
 import { Link, useParams } from "react-router-dom";
-import { useMatch, useMatchAdvances } from "@cartesi/wagmi";
+import { useMatch, useMatchAdvances } from "@cartesi/react";
 import { DataTable, Pager, useListControls } from "../components/table";
 import {
     Collapsible,

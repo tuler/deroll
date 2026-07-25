@@ -1,4 +1,4 @@
-import { useChainId } from "@cartesi/wagmi";
+import { useChainId } from "@cartesi/react";
 import { explorerFor, txExplorerUrl } from "../lib/explorer";
 import { Hex } from "./ui";
 

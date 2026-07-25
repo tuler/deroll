@@ -10,9 +10,9 @@
         "lint": "biome check"
     },
     "dependencies": {
+        "@cartesi/client": "2.0.0-alpha.34",
         "@cartesi/codec": "1.0.0-alpha.0",
-        "@cartesi/viem": "2.0.0-alpha.33",
-        "@cartesi/wagmi": "2.0.0-alpha.37",
+        "@cartesi/react": "2.0.0-alpha.38",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.101.0",
         "react": "^19.2.6",

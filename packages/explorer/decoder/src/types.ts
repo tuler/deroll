@@ -4,7 +4,7 @@
 // documented here.
 //
 // The record types are NOT defined here. The API records come verbatim from
-// @cartesi/viem — the typed toolkit for the Cartesi Rollups node
+// @cartesi/client — the typed toolkit for the Cartesi Rollups node
 // (https://cartesi.github.io/rollups-ts) that the explorer's data layer is
 // built on — and the deposit envelope comes from @cartesi/codec, the
 // encode/decode library for the protocol's on-chain formats. Both are the
@@ -18,9 +18,9 @@
 // decoder through its import map.
 
 import type { Deposit } from "@cartesi/codec";
-import type { Input, Output, Report, Withdrawal } from "@cartesi/viem";
+import type { Input, Output, Report, Withdrawal } from "@cartesi/client";
 
-// ---- API records (from @cartesi/viem, re-exported for convenience) ----
+// ---- API records (from @cartesi/client, re-exported for convenience) ----
 
 export type {
     DelegateCallVoucher,
@@ -30,7 +30,7 @@ export type {
     Report,
     Voucher,
     Withdrawal,
-} from "@cartesi/viem";
+} from "@cartesi/client";
 export type { Address, Hash, Hex } from "viem";
 
 // ---- Payload sources ----

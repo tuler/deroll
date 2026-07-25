@@ -2,7 +2,7 @@
 import {
     useLastAcceptedEpochIndex,
     useProcessedInputCount,
-} from "@cartesi/wagmi";
+} from "@cartesi/react";
 import { DecoderSettings } from "../components/DecoderSettings";
 import { TxHash } from "../components/TxHash";
 import {

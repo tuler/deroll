@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { useEpochs } from "@cartesi/wagmi";
+import { useEpochs } from "@cartesi/react";
 import { EPOCH_STATUSES, type EpochStatus } from "../api/types";
 import {
     DataTable,

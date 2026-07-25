@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { useApplications } from "@cartesi/wagmi";
+import { useApplications } from "@cartesi/react";
 import {
     DataTable,
     Pager,

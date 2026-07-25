@@ -8,7 +8,7 @@ import {
     useReports,
     useTournaments,
     useWithdrawals,
-} from "@cartesi/wagmi";
+} from "@cartesi/react";
 import type { Application } from "../api/types";
 import { Crumbs, ErrorBox, Hex, Spinner, StatusBadge } from "../components/ui";
 import { DecoderUrlSync } from "../decoder/registry";

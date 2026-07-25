@@ -25,7 +25,7 @@
 // A decoder exports one method per payload source it understands (input,
 // deposit, output, report, withdrawalAccount, withdrawalOutput) — all
 // optional. The API record types (Input, Output, Report, Withdrawal, …) are
-// re-exported from @cartesi/viem, the typed toolkit for the node that the
+// re-exported from @cartesi/client, the typed toolkit for the node that the
 // explorer's data layer is built on, and the deposit envelope (Deposit) from
 // @cartesi/codec — each the source of truth for what it describes.
 //
@@ -52,7 +52,7 @@ export type {
     Erc721Deposit,
     Erc1155SingleDeposit,
     Erc1155BatchDeposit,
-    // API records (from @cartesi/viem)
+    // API records (from @cartesi/client)
     Input,
     Output,
     Report,

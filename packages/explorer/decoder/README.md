@@ -21,7 +21,7 @@ Everything else the node serves (hashes, indices, proofs, tournament data, …) 
 
 ## What the kit gives you
 
-This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The record types are re-exported from their sources of truth: the API records (`Input`, `Output`, `Report`, `Withdrawal`, …) verbatim from [`@cartesi/viem`](https://cartesi.github.io/rollups-ts), the typed toolkit for the node, and the `Deposit` union the `deposit` method receives from [`@cartesi/codec`](https://cartesi.github.io/rollups-ts/codec), the encode/decode library for the protocol's on-chain formats. The explorer uses these same types internally, so the record your method receives is exactly what you see.
+This package is **types-only** — the decoder contract and nothing else: [`src/types.ts`](src/types.ts) defines `Decoder` (the per-method interface), `DecodeContext` and `DecodeResult`. The record types are re-exported from their sources of truth: the API records (`Input`, `Output`, `Report`, `Withdrawal`, …) verbatim from [`@cartesi/client`](https://cartesi.github.io/rollups-ts/client), the typed toolkit for the node, and the `Deposit` union the `deposit` method receives from [`@cartesi/codec`](https://cartesi.github.io/rollups-ts/codec), the encode/decode library for the protocol's on-chain formats. The explorer uses these same types internally, so the record your method receives is exactly what you see.
 
 All protocol decoding (the portal deposit envelope, portal addresses, …) lives in the explorer, not here — it uses `@cartesi/codec` for it. Being types-only, importing the kit adds nothing to a decoder's bundle.
 

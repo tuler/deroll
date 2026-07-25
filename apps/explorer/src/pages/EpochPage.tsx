@@ -1,6 +1,6 @@
 // biome-ignore-all lint/correctness/useJsxKeyInIterable: KV/Crumbs tuples pass JSX as slot content rendered by the component, not as sibling list items
 import { Link, useParams } from "react-router-dom";
-import { useEpoch } from "@cartesi/wagmi";
+import { useEpoch } from "@cartesi/react";
 import {
     Collapsible,
     Crumbs,

@@ -70,9 +70,9 @@
       "name": "@deroll/explorer",
       "version": "0.2.0-alpha.4",
       "dependencies": {
+        "@cartesi/client": "2.0.0-alpha.34",
         "@cartesi/codec": "1.0.0-alpha.0",
-        "@cartesi/viem": "2.0.0-alpha.33",
-        "@cartesi/wagmi": "2.0.0-alpha.37",
+        "@cartesi/react": "2.0.0-alpha.38",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.101.0",
         "react": "^19.2.6",
@@ -237,8 +237,8 @@
       "name": "@deroll/decoder",
       "version": "0.2.0-alpha.3",
       "dependencies": {
+        "@cartesi/client": "2.0.0-alpha.34",
         "@cartesi/codec": "1.0.0-alpha.0",
-        "@cartesi/viem": "2.0.0-alpha.33",
         "viem": "^2.52.2",
       },
     },
@@ -329,13 +329,13 @@
 
     "@braidai/lang": ["@braidai/lang@1.1.2", "", {}, "sha512-qBcknbBufNHlui137Hft8xauQMTZDKdophmLFv05r2eNmdIv/MlPuP4TdUknHG68UdWLgVZwgxVe735HzJNIwA=="],
 
+    "@cartesi/client": ["@cartesi/client@2.0.0-alpha.34", "", { "dependencies": { "@cartesi/rpc": "2.0.0-alpha.25", "abitype": "^1.3.0", "p-retry": "^8.0.0" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-NYsT7QmpcLHnjEBK1JR5OiUtPGZgXiD8uWtnSIS0IXPYpUbHYn0/B8YlIFBLHoM8p7AxpEaR2R5XnLIX2pNkDw=="],
+
     "@cartesi/codec": ["@cartesi/codec@1.0.0-alpha.0", "", { "dependencies": { "abitype": "^1.2.4" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-WKHzp0rUhljBSATufenEcWvk86jgv+o15mwazf9FyxI4yyGmtJlkQM4ehHGFDzyOwhPQwSsEG+KUIubrs2SGdg=="],
 
-    "@cartesi/rpc": ["@cartesi/rpc@2.0.0-alpha.24", "", { "dependencies": { "json-rpc-2.0": "^1.7.1" } }, "sha512-tGPsl25AlNSeugrPeTuP880k8DDRhh43X141I6rNKCsCfSRm2msmHBNH22x5jYaqnTAj4WZNCF8SmiSKPM7IXA=="],
+    "@cartesi/react": ["@cartesi/react@2.0.0-alpha.38", "", { "dependencies": { "@cartesi/client": "2.0.0-alpha.34" }, "peerDependencies": { "@tanstack/react-query": "^5.0.0", "react": "^19.0.0", "viem": "^2.0.0", "wagmi": "^3.0.0" } }, "sha512-ZYB59B+4oMUmJBwTnERUQS5cRqxCabUzxNOr7kTevTlA8umjZgHrb3wM7gtHzEoSwUgH7uTL5H0vEjmymH2N2w=="],
 
-    "@cartesi/viem": ["@cartesi/viem@2.0.0-alpha.33", "", { "dependencies": { "@cartesi/rpc": "2.0.0-alpha.24", "abitype": "^1.2.4", "p-retry": "^8.0.0" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-lGk+PszdBACOjFLJ6HDDNZ93vPZcZp6Or1wOUja11NPz8QQ+170xLJnwG/LAsyLAVkMJCAonUR3okLNonDuEHQ=="],
-
-    "@cartesi/wagmi": ["@cartesi/wagmi@2.0.0-alpha.37", "", { "dependencies": { "@cartesi/viem": "2.0.0-alpha.33" }, "peerDependencies": { "@tanstack/react-query": "^5.0.0", "react": "^19.0.0", "viem": "^2.0.0", "wagmi": "^3.0.0" } }, "sha512-LHyv/flBwdiq+iNB/wacMtDvuQc7HSRAX8r6zv9/Wx/yHOa58GHMpie3dvfhAac5Rll72M5BxAnAM8hJuxJshA=="],
+    "@cartesi/rpc": ["@cartesi/rpc@2.0.0-alpha.25", "", { "dependencies": { "json-rpc-2.0": "^1.7.1" } }, "sha512-gEvuXXUd6hLGyskdC5opiMsVwRIZnpPpioShUdUbTiPLs7w3stLbRlrxxTO34/NqHXLXvtaxiS3steMjoDpanQ=="],
 
     "@changesets/apply-release-plan": ["@changesets/apply-release-plan@7.1.1", "", { "dependencies": { "@changesets/config": "^3.1.4", "@changesets/get-version-range-type": "^0.4.0", "@changesets/git": "^3.0.4", "@changesets/should-skip-package": "^0.1.2", "@changesets/types": "^6.1.0", "@manypkg/get-packages": "^1.1.3", "detect-indent": "^6.0.0", "fs-extra": "^7.0.1", "lodash.startcase": "^4.4.0", "outdent": "^0.5.0", "prettier": "^2.7.1", "resolve-from": "^5.0.0", "semver": "^7.5.3" } }, "sha512-9qPCm/rLx/xoOFXIHGB229+4GOL76S4MC+7tyOuTsR6+1jYlfFDQORdvwR5hDA6y4FL2BPt3qpbcQIS+dW85LA=="],
 
@@ -2605,9 +2605,9 @@
 
     "@base-ui/utils/use-sync-external-store": ["use-sync-external-store@1.6.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w=="],
 
-    "@cartesi/codec/abitype": ["abitype@1.3.0", "", { "peerDependencies": { "typescript": ">=5.0.4", "zod": "^3.22.0 || ^4.0.0" }, "optionalPeers": ["typescript", "zod"] }, "sha512-fk6Te+bojIFrMvMZrnOO+SxCB+RUksTGOzq/60ZRvs1L+BVzvi2bqt9L3W/17ZLdZsyM1FuYf65P5nlmoiH1Bg=="],
+    "@cartesi/client/abitype": ["abitype@1.3.0", "", { "peerDependencies": { "typescript": ">=5.0.4", "zod": "^3.22.0 || ^4.0.0" }, "optionalPeers": ["typescript", "zod"] }, "sha512-fk6Te+bojIFrMvMZrnOO+SxCB+RUksTGOzq/60ZRvs1L+BVzvi2bqt9L3W/17ZLdZsyM1FuYf65P5nlmoiH1Bg=="],
 
-    "@cartesi/viem/abitype": ["abitype@1.3.0", "", { "peerDependencies": { "typescript": ">=5.0.4", "zod": "^3.22.0 || ^4.0.0" }, "optionalPeers": ["typescript", "zod"] }, "sha512-fk6Te+bojIFrMvMZrnOO+SxCB+RUksTGOzq/60ZRvs1L+BVzvi2bqt9L3W/17ZLdZsyM1FuYf65P5nlmoiH1Bg=="],
+    "@cartesi/codec/abitype": ["abitype@1.3.0", "", { "peerDependencies": { "typescript": ">=5.0.4", "zod": "^3.22.0 || ^4.0.0" }, "optionalPeers": ["typescript", "zod"] }, "sha512-fk6Te+bojIFrMvMZrnOO+SxCB+RUksTGOzq/60ZRvs1L+BVzvi2bqt9L3W/17ZLdZsyM1FuYf65P5nlmoiH1Bg=="],
 
     "@changesets/apply-release-plan/fs-extra": ["fs-extra@7.0.1", "", { "dependencies": { "graceful-fs": "^4.1.2", "jsonfile": "^4.0.0", "universalify": "^0.1.0" } }, "sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw=="],
 

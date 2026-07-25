@@ -6,7 +6,7 @@ import {
     useMatches,
     useTournament,
     useTournaments,
-} from "@cartesi/wagmi";
+} from "@cartesi/react";
 import { DataTable } from "../components/table";
 import {
     Collapsible,

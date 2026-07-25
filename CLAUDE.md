@@ -73,7 +73,7 @@ Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` curren
 ## Build specifics
 
 - Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`. `@deroll/core`'s build is a plain `tsup` — its types are hand-authored in `src/`, **not** generated (the previous OpenAPI/`openapi-typescript` codegen against `cartesi/openapi-interfaces` has been removed along with the HTTP transport).
-- `viem` is the shared toolkit for hex/ABI encoding throughout. Deposit parsing and voucher creation in `@deroll/wallet` rely on `@cartesi/viem` for portal/contract addresses and ABIs.
+- `viem` is the shared toolkit for hex/ABI encoding throughout. Deposit parsing in `@deroll/wallet` relies on `@cartesi/codec` (`decodeDeposit`), the protocol's encode/decode library.
 
 ## Conventions
 

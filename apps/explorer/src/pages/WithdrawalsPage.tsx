@@ -1,5 +1,5 @@
 import { keepPreviousData } from "@tanstack/react-query";
-import { useWithdrawals } from "@cartesi/wagmi";
+import { useWithdrawals } from "@cartesi/react";
 import {
     DataTable,
     Filter,
