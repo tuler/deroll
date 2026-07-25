@@ -1,5 +1,12 @@
 # @deroll/docs
 
+## 1.0.0-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [4c51eda]
+  - @deroll/wallet@2.0.0-alpha.7
+
 ## 1.0.0-alpha.8
 
 ### Patch Changes
