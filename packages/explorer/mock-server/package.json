@@ -1,7 +1,7 @@
 {
   "name": "@deroll/mock-server",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1-alpha.0",
   "description": "Mock Cartesi Rollups Node JSON-RPC server for developing the explorer",
   "type": "module",
   "scripts": {
