@@ -13,7 +13,7 @@
     },
     "apps/docs": {
       "name": "@deroll/docs",
-      "version": "1.0.0-alpha.8",
+      "version": "1.0.0-alpha.9",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
         "@deroll/app": "workspace:*",
@@ -40,7 +40,7 @@
     },
     "apps/examples": {
       "name": "@deroll/examples",
-      "version": "2.0.0-alpha.11",
+      "version": "2.0.0-alpha.12",
       "bin": {
         "deroll-example-abi": "dist/abi.js",
         "deroll-example-echo": "dist/echo.js",
@@ -68,7 +68,7 @@
     },
     "apps/explorer": {
       "name": "@deroll/explorer",
-      "version": "0.2.0-alpha.3",
+      "version": "0.2.0-alpha.4",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.0",
         "@cartesi/viem": "2.0.0-alpha.33",
@@ -180,7 +180,7 @@
     },
     "packages/app/wallet": {
       "name": "@deroll/wallet",
-      "version": "2.0.0-alpha.6",
+      "version": "2.0.0-alpha.7",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
         "@deroll/core": "workspace:*",
@@ -235,7 +235,7 @@
     },
     "packages/explorer/decoder": {
       "name": "@deroll/decoder",
-      "version": "0.2.0-alpha.2",
+      "version": "0.2.0-alpha.3",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.0",
         "@cartesi/viem": "2.0.0-alpha.33",
@@ -244,11 +244,11 @@
     },
     "packages/explorer/json-decoder": {
       "name": "@deroll/json-decoder",
-      "version": "0.1.0",
+      "version": "0.1.1-alpha.0",
     },
     "packages/explorer/mock-server": {
       "name": "@deroll/mock-server",
-      "version": "0.1.0",
+      "version": "0.1.1-alpha.0",
     },
   },
   "trustedDependencies": [

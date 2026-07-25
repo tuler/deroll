@@ -3,6 +3,7 @@ import {
     useCallback,
     useContext,
     useEffect,
+    useRef,
     useState,
     type ReactNode,
 } from "react";
@@ -101,11 +102,22 @@ export function DecoderUrlSync({ application }: { application: string }) {
     const navigate = useNavigate();
     const [dismissed, setDismissed] = useState<string | null>(null);
 
+    // The decoder this page last mirrored into the param. After a removal the
+    // param still carries it for one render — that leftover must be cleaned
+    // up, not re-offered as if a shared link had suggested it.
+    const mirrored = useRef(registered);
+    useEffect(() => {
+        mirrored.current = registered;
+    }, [registered]);
+
     const suggested = new URLSearchParams(location.search)
         .get(URL_PARAM)
         ?.trim();
     const pending =
-        suggested && suggested !== registered && suggested !== dismissed
+        suggested &&
+        suggested !== registered &&
+        suggested !== dismissed &&
+        suggested !== mirrored.current
             ? suggested
             : null;
 
