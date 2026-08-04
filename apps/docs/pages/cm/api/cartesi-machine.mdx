@@ -23,6 +23,7 @@ export interface CartesiMachine {
     cloneEmpty(): CartesiMachine;
     store(dir: string, sharing?: SharingMode): void;
     cloneStored(fromDir: string, toDir: string): void;
+    renameStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
     syncStored(dir: string): void;
     destroy(): void;
@@ -75,16 +76,8 @@ export interface CartesiMachine {
     ): string;
 
     //// Verification
-    verifyStepUarch(
-        rootHashBefore: Buffer,
-        log: AccessLog,
-        rootHashAfter?: Buffer,
-    ): Buffer;
-    verifyResetUarch(
-        rootHashBefore: Buffer,
-        log: AccessLog,
-        rootHashAfter?: Buffer,
-    ): Buffer;
+    verifyStepUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
+    verifyResetUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
 
     //// CMIO Operations
     sendCmioResponse(
@@ -165,6 +158,14 @@ Clones a stored machine directory.
 
 ```ts
 cloneStored(fromDir: string, toDir: string): void;
+```
+
+## renameStored
+
+Renames a stored machine directory and makes the rename durable. The source and destination must be on the same filesystem.
+
+```ts
+renameStored(fromDir: string, toDir: string): void;
 ```
 
 ## removeStored
@@ -433,35 +434,26 @@ verifyStep(
     rootHashBefore,
     logFilename,
     mcycleCount,
-    rootHashAfter, // optional; checked against the obtained root hash when given
-); // returns the obtained root hash after the step
+); // returns the obtained root hash after the step, for the caller to check
 ```
 
-Checks the validity of a state transition produced by a microarchitecture step log and returns the root hash obtained after the step. When `rootHashAfter` is given, it is checked against the obtained hash.
+Checks the validity of a state transition produced by a microarchitecture step log and returns the root hash obtained after the step, for the caller to check.
 
 ```ts
-verifyStepUarch(
-    rootHashBefore: Buffer,
-    log: AccessLog,
-    rootHashAfter?: Buffer,
-): Buffer;
+verifyStepUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
 ```
 
 ## verifyResetUarch
 
-Checks the validity of a state transition produced by a microarchitecture reset log and returns the root hash obtained after the reset.
+Checks the validity of a state transition produced by a microarchitecture reset log and returns the root hash obtained after the reset, for the caller to check.
 
 ```ts
-verifyResetUarch(
-    rootHashBefore: Buffer,
-    log: AccessLog,
-    rootHashAfter?: Buffer,
-): Buffer;
+verifyResetUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
 ```
 
 ## sendCmioResponse
 
-Sends a cmio response. Should only be called as a response to cmio requests with manual yield command. The revert root hash is the machine root hash to revert to in case the response is eventually rejected; it defaults to the machine's current root hash, which is the value the emulator requires for advance-state responses.
+Sends a cmio response. Should only be called as a response to cmio requests with manual yield command. The revert root hash is the machine root hash to revert to in case the response is eventually rejected. It is required for advance-state responses — where it defaults to the machine's current root hash, the value the emulator checks for — and must be absent for other responses (inspect-state queries and GIO responses).
 
 ```ts
 sendCmioResponse(

@@ -239,6 +239,7 @@ private:
     Napi::Value WriteWord(const Napi::CallbackInfo &info);
     Napi::Value GetNodeHash(const Napi::CallbackInfo &info);
     Napi::Value CloneStored(const Napi::CallbackInfo &info);
+    Napi::Value RenameStored(const Napi::CallbackInfo &info);
     Napi::Value RemoveStored(const Napi::CallbackInfo &info);
     Napi::Value SyncStored(const Napi::CallbackInfo &info);
     // cm-jsonrpc.h
@@ -616,15 +617,15 @@ Napi::Value Machine::ReceiveCmioRequest(const Napi::CallbackInfo &info) {
 
 Napi::Value Machine::SendCmioResponse(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
-    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
-    if (!get_hash(env, info[0], "revertRootHash", &revert_root_hash) || !get_i32(env, info[1], "reason", &reason) ||
-        !get_bytes(env, info[2], "data", &data, &length)) {
+    const cm_hash *revert_root_hash = nullptr;
+    if (!get_i32(env, info[0], "reason", &reason) || !get_bytes(env, info[1], "data", &data, &length) ||
+        !get_optional_hash(env, info[2], "revertRootHash", &revert_root_hash)) {
         return env.Undefined();
     }
-    CHECK_CM(env, cm_send_cmio_response(machine_, revert_root_hash, static_cast<uint16_t>(reason), data, length));
+    CHECK_CM(env, cm_send_cmio_response(machine_, static_cast<uint16_t>(reason), data, length, revert_root_hash));
     return env.Undefined();
 }
 
@@ -664,88 +665,79 @@ Napi::Value Machine::LogResetUarch(const Napi::CallbackInfo &info) {
 
 Napi::Value Machine::LogSendCmioResponse(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
-    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
+    const cm_hash *revert_root_hash = nullptr;
     int32_t log_type = 0;
-    if (!get_hash(env, info[0], "revertRootHash", &revert_root_hash) || !get_i32(env, info[1], "reason", &reason) ||
-        !get_bytes(env, info[2], "data", &data, &length) || !get_i32(env, info[3], "logType", &log_type)) {
+    if (!get_i32(env, info[0], "reason", &reason) || !get_bytes(env, info[1], "data", &data, &length) ||
+        !get_hash(env, info[2], "revertRootHash", &revert_root_hash) || !get_i32(env, info[3], "logType", &log_type)) {
         return env.Undefined();
     }
     const char *log = nullptr;
-    CHECK_CM(env, cm_log_send_cmio_response(machine_, revert_root_hash, static_cast<uint16_t>(reason), data, length,
+    CHECK_CM(env, cm_log_send_cmio_response(machine_, static_cast<uint16_t>(reason), data, length, revert_root_hash,
                       log_type, &log));
     return Napi::String::New(env, log);
 }
 
 // Shared implementation for the instance methods and the module-level
 // functions (which pass m == nullptr).
-// The verify functions check root_hash_after when given (null/undefined skips
-// the check) and return the root hash obtained after the operation.
+// The verify functions return the root hash obtained after the operation,
+// for the caller to check.
 Napi::Value verify_step(Napi::Env env, const Napi::CallbackInfo &info, size_t base) {
     const cm_hash *root_hash_before = nullptr;
     std::string log_filename;
     uint64_t mcycle_count = 0;
-    const cm_hash *root_hash_after = nullptr;
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
         !get_string(env, info[base + 1], "logFilename", &log_filename) ||
-        !get_u64(env, info[base + 2], "mcycleCount", &mcycle_count) ||
-        !get_optional_hash(env, info[base + 3], "rootHashAfter", &root_hash_after)) {
+        !get_u64(env, info[base + 2], "mcycleCount", &mcycle_count)) {
         return env.Undefined();
     }
     cm_hash obtained_root_hash{};
-    CHECK_CM(env,
-        cm_verify_step(root_hash_before, log_filename.c_str(), mcycle_count, root_hash_after, &obtained_root_hash));
+    CHECK_CM(env, cm_verify_step(root_hash_before, log_filename.c_str(), mcycle_count, &obtained_root_hash));
     return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_step_uarch(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
     const cm_hash *root_hash_before = nullptr;
     std::string log;
-    const cm_hash *root_hash_after = nullptr;
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
-        !get_string(env, info[base + 1], "log", &log) ||
-        !get_optional_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
+        !get_string(env, info[base + 1], "log", &log)) {
         return env.Undefined();
     }
     cm_hash obtained_root_hash{};
-    CHECK_CM(env, cm_verify_step_uarch(m, root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    CHECK_CM(env, cm_verify_step_uarch(m, root_hash_before, log.c_str(), &obtained_root_hash));
     return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_reset_uarch(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
     const cm_hash *root_hash_before = nullptr;
     std::string log;
-    const cm_hash *root_hash_after = nullptr;
     if (!get_hash(env, info[base + 0], "rootHashBefore", &root_hash_before) ||
-        !get_string(env, info[base + 1], "log", &log) ||
-        !get_optional_hash(env, info[base + 2], "rootHashAfter", &root_hash_after)) {
+        !get_string(env, info[base + 1], "log", &log)) {
         return env.Undefined();
     }
     cm_hash obtained_root_hash{};
-    CHECK_CM(env, cm_verify_reset_uarch(m, root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    CHECK_CM(env, cm_verify_reset_uarch(m, root_hash_before, log.c_str(), &obtained_root_hash));
     return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
 Napi::Value verify_send_cmio_response(Napi::Env env, cm_machine *m, const Napi::CallbackInfo &info, size_t base) {
-    const cm_hash *revert_root_hash = nullptr;
     int32_t reason = 0;
     const uint8_t *data = nullptr;
     size_t length = 0;
     const cm_hash *root_hash_before = nullptr;
     std::string log;
-    const cm_hash *root_hash_after = nullptr;
-    if (!get_hash(env, info[base + 0], "revertRootHash", &revert_root_hash) ||
-        !get_i32(env, info[base + 1], "reason", &reason) || !get_bytes(env, info[base + 2], "data", &data, &length) ||
-        !get_hash(env, info[base + 3], "rootHashBefore", &root_hash_before) ||
-        !get_string(env, info[base + 4], "log", &log) ||
-        !get_optional_hash(env, info[base + 5], "rootHashAfter", &root_hash_after)) {
+    const cm_hash *revert_root_hash = nullptr;
+    if (!get_i32(env, info[base + 0], "reason", &reason) || !get_bytes(env, info[base + 1], "data", &data, &length) ||
+        !get_hash(env, info[base + 2], "rootHashBefore", &root_hash_before) ||
+        !get_string(env, info[base + 3], "log", &log) ||
+        !get_hash(env, info[base + 4], "revertRootHash", &revert_root_hash)) {
         return env.Undefined();
     }
     cm_hash obtained_root_hash{};
-    CHECK_CM(env, cm_verify_send_cmio_response(m, revert_root_hash, static_cast<uint16_t>(reason), data, length,
-                      root_hash_before, log.c_str(), root_hash_after, &obtained_root_hash));
+    CHECK_CM(env, cm_verify_send_cmio_response(m, static_cast<uint16_t>(reason), data, length, root_hash_before,
+                      log.c_str(), revert_root_hash, &obtained_root_hash));
     return Napi::Buffer<uint8_t>::Copy(env, obtained_root_hash, CM_HASH_SIZE);
 }
 
@@ -807,6 +799,17 @@ Napi::Value Machine::CloneStored(const Napi::CallbackInfo &info) {
         return env.Undefined();
     }
     CHECK_CM(env, cm_clone_stored(machine_, from_dir.c_str(), to_dir.c_str()));
+    return env.Undefined();
+}
+
+Napi::Value Machine::RenameStored(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    std::string from_dir;
+    std::string to_dir;
+    if (!get_string(env, info[0], "fromDir", &from_dir) || !get_string(env, info[1], "toDir", &to_dir)) {
+        return env.Undefined();
+    }
+    CHECK_CM(env, cm_rename_stored(machine_, from_dir.c_str(), to_dir.c_str()));
     return env.Undefined();
 }
 
@@ -971,6 +974,7 @@ Napi::Object Machine::Init(Napi::Env env, Napi::Object exports) {
             InstanceMethod<&Machine::WriteWord>("writeWord"),
             InstanceMethod<&Machine::GetNodeHash>("getNodeHash"),
             InstanceMethod<&Machine::CloneStored>("cloneStored"),
+            InstanceMethod<&Machine::RenameStored>("renameStored"),
             InstanceMethod<&Machine::RemoveStored>("removeStored"),
             InstanceMethod<&Machine::SyncStored>("syncStored"),
             InstanceMethod<&Machine::JsonrpcFork>("jsonrpcFork"),

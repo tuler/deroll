@@ -25,6 +25,7 @@ export interface NativeMachine {
     cloneEmpty(): NativeMachine;
     store(dir: string, sharing?: number): void;
     cloneStored(fromDir: string, toDir: string): void;
+    renameStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
     syncStored(dir: string): void;
     destroy(): void;
@@ -55,36 +56,27 @@ export interface NativeMachine {
     resetUarch(): void;
     receiveCmioRequest(): { cmd: number; reason: number; data: Buffer };
     sendCmioResponse(
-        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
+        revertRootHash: Uint8Array | null,
     ): void;
     logStep(mcycleCount: bigint, logFilename: string): number;
     logStepUarch(logType: number): string;
     logResetUarch(logType: number): string;
     logSendCmioResponse(
-        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
+        revertRootHash: Uint8Array,
         logType: number,
     ): string;
-    verifyStepUarch(
-        rootHashBefore: Uint8Array,
-        log: string,
-        rootHashAfter: Uint8Array | null,
-    ): Buffer;
-    verifyResetUarch(
-        rootHashBefore: Uint8Array,
-        log: string,
-        rootHashAfter: Uint8Array | null,
-    ): Buffer;
+    verifyStepUarch(rootHashBefore: Uint8Array, log: string): Buffer;
+    verifyResetUarch(rootHashBefore: Uint8Array, log: string): Buffer;
     verifySendCmioResponse(
-        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array | null,
+        revertRootHash: Uint8Array,
     ): Buffer;
     verifyHashTree(): boolean;
     getHashTreeStats(clear: boolean): string;
@@ -122,25 +114,15 @@ export interface NativeAddon {
         rootHashBefore: Uint8Array,
         logFilename: string,
         mcycleCount: bigint,
-        rootHashAfter: Uint8Array | null,
     ): Buffer;
-    verifyStepUarch(
-        rootHashBefore: Uint8Array,
-        log: string,
-        rootHashAfter: Uint8Array | null,
-    ): Buffer;
-    verifyResetUarch(
-        rootHashBefore: Uint8Array,
-        log: string,
-        rootHashAfter: Uint8Array | null,
-    ): Buffer;
+    verifyStepUarch(rootHashBefore: Uint8Array, log: string): Buffer;
+    verifyResetUarch(rootHashBefore: Uint8Array, log: string): Buffer;
     verifySendCmioResponse(
-        revertRootHash: Uint8Array,
         reason: number,
         data: Uint8Array,
         rootHashBefore: Uint8Array,
         log: string,
-        rootHashAfter: Uint8Array | null,
+        revertRootHash: Uint8Array,
     ): Buffer;
     jsonrpcSpawnServer(
         address: string,

@@ -6,7 +6,7 @@
 // Base types
 export type UnsignedInteger = number; // integer with minimum 0
 export type Base64String = string; // string with contentEncoding: "base64"
-export type Base64Hash = string; // 32-byte hash encoded in base64 (45 chars)
+export type Base64Hash = string; // 32-byte hash encoded in base64 (44 chars)
 
 // VirtIO Device Types
 export type VirtIODeviceType = "console" | "p9fs" | "net-user" | "net-tuntap";
@@ -166,11 +166,21 @@ export interface RegistersConfig {
     senvcfg?: UnsignedInteger;
     ilrsc?: UnsignedInteger;
     iprv?: UnsignedInteger;
-    iflags_X?: UnsignedInteger;
-    iflags_Y?: UnsignedInteger;
-    iflags_H?: UnsignedInteger;
+    iflags?: IflagsConfig;
     iunrep?: UnsignedInteger;
     imcyclemax?: UnsignedInteger;
+
+    // Device registers
+    clint?: CLINTConfig;
+    plic?: PLICConfig;
+    htif?: HTIFConfig;
+}
+
+// Iflags register views
+export interface IflagsConfig {
+    X?: UnsignedInteger;
+    Y?: UnsignedInteger;
+    H?: UnsignedInteger;
 }
 
 // Processor Configuration
@@ -324,9 +334,9 @@ export interface PLICConfig {
 export interface HTIFConfig {
     fromhost?: UnsignedInteger;
     tohost?: UnsignedInteger;
-    console_getchar?: boolean;
-    yield_manual?: boolean;
-    yield_automatic?: boolean;
+    ihalt?: UnsignedInteger;
+    iconsole?: UnsignedInteger;
+    iyield?: UnsignedInteger;
 }
 
 // Microarchitecture processor registers
@@ -379,7 +389,6 @@ export interface UarchProcessorConfig {
 
 // Microarchitecture RAM Configuration
 export interface UarchRAMConfig {
-    length?: UnsignedInteger;
     backing_store?: BackingStoreConfig;
 }
 
@@ -396,8 +405,8 @@ export interface CmioBufferConfig {
 
 // CMIO Configuration
 export interface CmioConfig {
-    rx_buffer?: CmioBufferConfig;
-    tx_buffer?: CmioBufferConfig;
+    rx_buffer: CmioBufferConfig;
+    tx_buffer: CmioBufferConfig;
 }
 
 // VirtIO Host Forwarding
@@ -422,6 +431,8 @@ export interface VirtIODeviceConfig {
 export type VirtIOConfigs = VirtIODeviceConfig[];
 
 // Main Machine Configuration
+// (clint, plic, and htif moved into ProcessorConfig registers in
+// cartesi-machine 0.21)
 export interface MachineConfig {
     processor?: ProcessorConfig;
     ram: RAMConfig; // Required
@@ -430,9 +441,6 @@ export interface MachineConfig {
     nvram?: MemoryRangeConfigs;
     pmas?: PMAsConfig;
     hash_tree?: HashTreeConfig;
-    clint?: CLINTConfig;
-    plic?: PLICConfig;
-    htif?: HTIFConfig;
     uarch?: UarchConfig;
     cmio?: CmioConfig;
     virtio?: VirtIOConfigs;

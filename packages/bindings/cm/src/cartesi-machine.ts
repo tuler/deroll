@@ -372,6 +372,7 @@ export interface CartesiMachine {
     cloneEmpty(): CartesiMachine;
     store(dir: string, sharing?: SharingMode): CartesiMachine;
     cloneStored(fromDir: string, toDir: string): void;
+    renameStored(fromDir: string, toDir: string): void;
     removeStored(dir: string): void;
     syncStored(dir: string): void;
     destroy(): void;
@@ -419,16 +420,8 @@ export interface CartesiMachine {
         logType: AccessLogType,
         revertRootHash?: Buffer,
     ): string;
-    verifyStepUarch(
-        rootHashBefore: Buffer,
-        log: AccessLog,
-        rootHashAfter?: Buffer,
-    ): Buffer;
-    verifyResetUarch(
-        rootHashBefore: Buffer,
-        log: AccessLog,
-        rootHashAfter?: Buffer,
-    ): Buffer;
+    verifyStepUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
+    verifyResetUarch(rootHashBefore: Buffer, log: AccessLog): Buffer;
     verifyHashTree(): boolean;
     getHashTreeStats(clear?: boolean): HashTreeStats;
 }
@@ -475,54 +468,40 @@ export function verifyStep(
     rootHashBefore: Buffer,
     logFilename: string,
     mcycleCount: bigint,
-    rootHashAfter?: Buffer,
 ): Buffer {
     return NodeCartesiMachine.verifyStep(
         rootHashBefore,
         logFilename,
         mcycleCount,
-        rootHashAfter,
     );
 }
 
 export function verifyStepUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter?: Buffer,
 ): Buffer {
-    return NodeCartesiMachine.verifyStepUarch(
-        rootHashBefore,
-        log,
-        rootHashAfter,
-    );
+    return NodeCartesiMachine.verifyStepUarch(rootHashBefore, log);
 }
 
 export function verifyResetUarch(
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter?: Buffer,
 ): Buffer {
-    return NodeCartesiMachine.verifyResetUarch(
-        rootHashBefore,
-        log,
-        rootHashAfter,
-    );
+    return NodeCartesiMachine.verifyResetUarch(rootHashBefore, log);
 }
 
 export function verifySendCmioResponse(
-    revertRootHash: Buffer,
     reason: HtifYieldReason,
     data: Buffer,
     rootHashBefore: Buffer,
     log: AccessLog,
-    rootHashAfter?: Buffer,
+    revertRootHash: Buffer,
 ): Buffer {
     return NodeCartesiMachine.verifySendCmioResponse(
-        revertRootHash,
         reason,
         data,
         rootHashBefore,
         log,
-        rootHashAfter,
+        revertRootHash,
     );
 }
