@@ -279,7 +279,6 @@ describe("CartesiMachine", () => {
                 rootHashBefore,
                 logFilename,
                 mcycleCount,
-                rootHashAfter,
             );
 
             expect(obtainedRootHash.equals(rootHashAfter)).toBe(true);
@@ -294,9 +293,8 @@ describe("CartesiMachine", () => {
             });
             const rootHashAfter = machine.getRootHash();
 
-            expect(() =>
-                machine.verifyStepUarch(rootHashBefore, log, rootHashAfter),
-            ).not.toThrow();
+            const obtained = machine.verifyStepUarch(rootHashBefore, log);
+            expect(obtained.equals(rootHashAfter)).toBe(true);
         });
 
         it("should verify uarch reset", () => {
@@ -307,9 +305,8 @@ describe("CartesiMachine", () => {
             });
             const rootHashAfter = machine.getRootHash();
 
-            expect(() =>
-                machine.verifyResetUarch(rootHashBefore, log, rootHashAfter),
-            ).not.toThrow();
+            const obtained = machine.verifyResetUarch(rootHashBefore, log);
+            expect(obtained.equals(rootHashAfter)).toBe(true);
         });
     });
 

@@ -18,7 +18,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 env:
     LINUX_IMAGE_VERSION: v0.20.0
     LINUX_VERSION: 6.5.13-ctsi-1
-    CARTESI_MACHINE_VERSION: 0.21.0-test7
+    CARTESI_MACHINE_VERSION: 0.21.0-test8
 
 jobs:
     # Build native prebuilds only when the owning package is actually about to
@@ -93,7 +93,7 @@ jobs:
             - name: Install cartesi-machine emulator (macos)
               if: runner.os == 'macOS'
               # No homebrew formula exists yet for the 0.21 series (the binding
-              # currently targets the v0.21.0-test7 pre-release). This step
+              # currently targets the v0.21.0-test8 pre-release). This step
               # fails on purpose until cartesi/homebrew-tap ships one — update
               # the branch below (or simplify to a plain
               # `brew install cartesi/tap/cartesi-machine-emulator`) when it
@@ -194,7 +194,7 @@ jobs:
             - name: Install cartesi-machine emulator (macos)
               if: runner.os == 'macOS'
               # No homebrew formula exists yet for the 0.21 series (the binding
-              # currently targets the v0.21.0-test7 pre-release). This step
+              # currently targets the v0.21.0-test8 pre-release). This step
               # fails on purpose until cartesi/homebrew-tap ships one — update
               # the branch below (or simplify to a plain
               # `brew install cartesi/tap/cartesi-machine-emulator`) when it
