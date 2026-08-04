@@ -5,8 +5,12 @@
  * deps/genext2fs/xgenext2fs.8 for the authoritative descriptions.
  */
 
-/** Value for the creator OS field in the superblock (`-o`). */
-export type CreatorOs = "linux" | "hurd" | "masix" | "freebsd" | "lites";
+/**
+ * Value for the creator OS field in the superblock (`-o`). Anything xgenext2fs
+ * does not recognize by name falls back to Linux, so a raw number is the way to
+ * set one it has no name for.
+ */
+export type CreatorOs = "linux" | "hurd" | "GNU" | "freebsd" | "lites" | number;
 
 /** Filesystem block size in bytes (`-B`). */
 export type BlockSize = 1024 | 2048 | 4096;

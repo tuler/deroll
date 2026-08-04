@@ -15,15 +15,13 @@ const result = await tarToExt2("rootfs.tar", "rootfs.ext2", {
 console.log(result.stderr); // copying from tar archive rootfs.tar
 ```
 
-## tarToExt2Buffer
-
-The same conversion, returning the image as a `Buffer`. xgenext2fs always writes to a file, so this builds in a temporary directory and reads the result back — prefer `tarToExt2` for images large enough that holding one in memory matters.
+The archive can equally be passed as bytes, gzipped or not:
 
 ```ts twoslash
-import { tarToExt2Buffer } from "@deroll/genext2fs";
+import { tarToExt2 } from "@deroll/genext2fs";
 import { readFile } from "node:fs/promises";
 
-const image = await tarToExt2Buffer(await readFile("rootfs.tar.gz"), {
+await tarToExt2(await readFile("rootfs.tar.gz"), "rootfs.ext2", {
     blockSize: 4096,
 });
 ```
@@ -51,19 +49,13 @@ await createImage("rootfs.ext2", {
 | `directory` | `-d` | add a directory and its contents                   |
 | `devtable`  | `-D` | create or fix up inodes from a device table file   |
 
-## genext2fs
-
-The escape hatch: run xgenext2fs with a raw argument vector (without the program name), exactly as the CLI would. No sizing retry is applied.
-
-```ts twoslash
-import { genext2fs } from "@deroll/genext2fs";
-
-await genext2fs(["-f", "-B", "4096", "-a", "rootfs.tar", "rootfs.ext2"]);
-```
-
 ## Blocking variants
 
-`tarToExt2Sync`, `tarToExt2BufferSync`, `createImageSync` and `genext2fsSync` do the same work on the calling thread.
+`tarToExt2Sync` and `createImageSync` do the same work on the calling thread.
+
+## No escape hatch
+
+Between [Options](/genext2fs/options) and the layer types, every xgenext2fs flag is covered except `--help` and `--version` — the latter being the exported `version` — so there is no raw-argv entry point to fall back to.
 
 ## Errors
 
