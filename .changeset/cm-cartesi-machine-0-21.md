@@ -2,7 +2,7 @@
 "@deroll/cm": minor
 ---
 
-Target cartesi-machine 0.21 (currently the v0.21.0-test8 pre-release). Breaking changes follow the emulator's new C API:
+Target cartesi-machine 0.21.0. Breaking changes follow the emulator's new C API:
 
 - `sendCmioResponse` takes an optional trailing revert root hash: required for advance-state responses (defaults to the machine's current root hash, the value the emulator checks for) and refused for other responses. `logSendCmioResponse` also takes it (defaulting to the current root hash), and `verifySendCmioResponse` requires it as its last argument.
 - The verify functions (`verifyStep`, `verifyStepUarch`, `verifyResetUarch`, `verifySendCmioResponse`) no longer take `rootHashAfter`; they return the obtained root hash after the operation as a `Buffer`, for the caller to check.
