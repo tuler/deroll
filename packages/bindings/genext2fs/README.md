@@ -43,12 +43,6 @@ await tarToExt2(await readFile("rootfs.tar.gz"), "rootfs.ext2", {
 });
 ```
 
-### `tarToExt2Buffer(tar, options?)`
-
-Same, but returns the image as a `Buffer`. xgenext2fs always writes to a file, so
-this builds in a temporary directory and reads the result back — prefer
-`tarToExt2` for images large enough that holding one in memory matters.
-
 ### `createImage(output, options?)`
 
 The general form, for images assembled from more than one source. Layers are
@@ -65,21 +59,15 @@ await createImage("rootfs.ext2", {
 });
 ```
 
-### `genext2fs(args)`
-
-The escape hatch: run xgenext2fs with a raw argument vector (without the program
-name), exactly as the CLI would.
-
-```ts
-await genext2fs(["-f", "-B", "4096", "-a", "rootfs.tar", "rootfs.ext2"]);
-```
-
-Every function has a blocking counterpart (`tarToExt2Sync`, `createImageSync`,
-`genext2fsSync`, …). The async ones generate the image off the main thread.
+Both have a blocking counterpart — `tarToExt2Sync` and `createImageSync`. The
+async ones generate the image off the main thread.
 
 ### Options
 
-Each option maps onto one documented flag; see
+Between `ImageOptions` and the layer types, every xgenext2fs flag is covered
+except `--help` and `--version` (the latter is the exported `version`), so there
+is no raw-argv escape hatch to fall back to. Each option maps onto one documented
+flag; see
 [`xgenext2fs.8`](https://github.com/cartesi/genext2fs/blob/cartesi/xgenext2fs.8)
 for the full descriptions.
 
@@ -92,7 +80,7 @@ for the full descriptions.
 | `readjustment`       | `-r` | grow the computed size, e.g. `"+10%"`                |
 | `volumeLabel`        | `-L` | volume label                                         |
 | `reservedPercentage` | `-m` | reserved blocks; `0` also skips `lost+found`         |
-| `creatorOs`          | `-o` | superblock creator OS                                |
+| `creatorOs`          | `-o` | superblock creator OS, by name or number             |
 | `blockMap`           | `-g` | write a block map per path, into the current dir      |
 | `fillValue`          | `-e` | byte to fill unallocated blocks with                 |
 | `allowHoles`         | `-z` | make files with holes                                |
@@ -133,8 +121,7 @@ an explicit `-b`.
 they retry with a slightly larger explicit size, derived from the size the failed
 attempt settled on. Both the estimate and the growth are deterministic, so images
 stay reproducible. Set `autoSize: false` to get the raw behaviour, or pin
-`sizeInBlocks` to take sizing into your own hands. `genext2fs(args)` never
-retries.
+`sizeInBlocks` to take sizing into your own hands.
 
 ## Compressed archives
 

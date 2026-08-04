@@ -11,7 +11,7 @@ Every option maps onto one documented xgenext2fs flag; see [`xgenext2fs.8`](http
 | `readjustment`       | `-r` | grow the computed size, e.g. `"+10%"`                |
 | `volumeLabel`        | `-L` | volume label                                         |
 | `reservedPercentage` | `-m` | reserved blocks; `0` also skips `lost+found`         |
-| `creatorOs`          | `-o` | superblock creator OS                                |
+| `creatorOs`          | `-o` | superblock creator OS, by name or number             |
 | `blockMap`           | `-g` | write a block map per path, into the current dir     |
 | `fillValue`          | `-e` | byte to fill unallocated blocks with                 |
 | `allowHoles`         | `-z` | make files with holes                                |
@@ -24,6 +24,10 @@ Every option maps onto one documented xgenext2fs flag; see [`xgenext2fs.8`](http
 
 Sizes (`sizeInBlocks`, `numberOfInodes`, `bytesPerInode`) accept a number or a string with an IEC or SI multiplier, such as `"64Mi"`, `"1G"` or `"512k"`.
 
+`creatorOs` takes `"linux"`, `"hurd"` (or its alias `"GNU"`), `"freebsd"`, `"lites"`, or a raw number — xgenext2fs falls back to Linux for any name it does not recognize.
+
+Together with the layer types this covers every xgenext2fs flag apart from `--help` and `--version`.
+
 ## Reproducibility
 
 With `faketime` — or `SOURCE_DATE_EPOCH` in the environment, which lets you pick the timestamp — the same archive always produces byte-identical images. That is what keeps a drive's hash stable across builds.
@@ -34,7 +38,7 @@ Left to itself, xgenext2fs sizes the image from a pre-pass over the content. Tha
 
 `createImage` and the `tarToExt2` helpers absorb this: when a run fails that way they retry with a slightly larger explicit size, derived from the size the failed attempt settled on. Both the estimate and the growth are deterministic, so images stay reproducible.
 
-Set `autoSize: false` for the raw behaviour, or pin `sizeInBlocks` to take sizing into your own hands. `genext2fs(args)` never retries.
+Set `autoSize: false` for the raw behaviour, or pin `sizeInBlocks` to take sizing into your own hands.
 
 ## Compressed archives
 

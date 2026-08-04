@@ -8,7 +8,7 @@ import {
     statSync,
     writeFileSync,
 } from "node:fs";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
@@ -44,22 +44,6 @@ export type TarInput = string | Uint8Array;
 
 /** Version of the vendored xgenext2fs this binding was built against. */
 export const version: string = addon.version;
-
-/**
- * Run xgenext2fs with a raw argument vector (without the program name), the
- * escape hatch for anything this package does not model. No sizing retry is
- * applied here; see {@link createImage}.
- *
- * ```ts
- * await genext2fs(["-f", "-a", "rootfs.tar", "-b", "8192", "image.ext2"]);
- * ```
- */
-export const genext2fs = (args: string[]): Promise<Genext2fsResult> =>
-    addon.run(args);
-
-/** Blocking counterpart of {@link genext2fs}. */
-export const genext2fsSync = (args: string[]): Genext2fsResult =>
-    addon.runSync(args);
 
 // -----------------------------------------------------------------------------
 // image sizing
@@ -107,6 +91,21 @@ const canResize = (options: ImageOptions): boolean =>
     options.sizeInBlocks === undefined &&
     options.startingImage === undefined;
 
+const resizePlan = (
+    output: string,
+    options: ImageOptions,
+    error: unknown,
+): number[] => {
+    if (!isExhausted(error) || !canResize(options)) {
+        return [];
+    }
+    const blocks = attemptedBlocks(
+        output,
+        options.blockSize ?? DEFAULT_BLOCK_SIZE,
+    );
+    return blocks === undefined ? [] : growthPlan(blocks);
+};
+
 /**
  * Build an ext2 image at `output` from an arbitrary set of layers.
  *
@@ -123,13 +122,12 @@ export const createImage = async (
     options: ImageOptions = {},
 ): Promise<Genext2fsResult> => {
     try {
-        return await genext2fs(buildArgs(output, options));
+        return await addon.run(buildArgs(output, options));
     } catch (error) {
-        const sizes = resizePlan(output, options, error);
         let last = error;
-        for (const sizeInBlocks of sizes) {
+        for (const sizeInBlocks of resizePlan(output, options, error)) {
             try {
-                return await genext2fs(
+                return await addon.run(
                     buildArgs(output, { ...options, sizeInBlocks }),
                 );
             } catch (retryError) {
@@ -146,13 +144,12 @@ export const createImageSync = (
     options: ImageOptions = {},
 ): Genext2fsResult => {
     try {
-        return genext2fsSync(buildArgs(output, options));
+        return addon.runSync(buildArgs(output, options));
     } catch (error) {
-        const sizes = resizePlan(output, options, error);
         let last = error;
-        for (const sizeInBlocks of sizes) {
+        for (const sizeInBlocks of resizePlan(output, options, error)) {
             try {
-                return genext2fsSync(
+                return addon.runSync(
                     buildArgs(output, { ...options, sizeInBlocks }),
                 );
             } catch (retryError) {
@@ -161,21 +158,6 @@ export const createImageSync = (
         }
         throw last;
     }
-};
-
-const resizePlan = (
-    output: string,
-    options: ImageOptions,
-    error: unknown,
-): number[] => {
-    if (!isExhausted(error) || !canResize(options)) {
-        return [];
-    }
-    const blocks = attemptedBlocks(
-        output,
-        options.blockSize ?? DEFAULT_BLOCK_SIZE,
-    );
-    return blocks === undefined ? [] : growthPlan(blocks);
 };
 
 // -----------------------------------------------------------------------------
@@ -232,6 +214,15 @@ interface Staged {
 
 const scratchPrefix = () => join(tmpdir(), "deroll-genext2fs-");
 
+const inflateSync = (tar: TarInput): Uint8Array => {
+    const bytes = typeof tar === "string" ? readFileSync(tar) : tar;
+    return detectCompression(bytes) === "gzip" ? gunzipSync(bytes) : bytes;
+};
+
+/**
+ * xgenext2fs reads the archive from a file, so bytes and gzipped input are
+ * written to a scratch directory first. An uncompressed path is used as is.
+ */
 const stageTar = async (tar: TarInput): Promise<Staged> => {
     if (
         typeof tar === "string" &&
@@ -241,7 +232,10 @@ const stageTar = async (tar: TarInput): Promise<Staged> => {
     }
     const scratch = await mkdtemp(scratchPrefix());
     const path = join(scratch, "input.tar");
-    await writeFile(path, await inflate(tar));
+    await writeFile(
+        path,
+        inflateSync(typeof tar === "string" ? await readFile(tar) : tar),
+    );
     return { path, scratch };
 };
 
@@ -256,14 +250,6 @@ const stageTarSync = (tar: TarInput): Staged => {
     const path = join(scratch, "input.tar");
     writeFileSync(path, inflateSync(tar));
     return { path, scratch };
-};
-
-const inflate = async (tar: TarInput): Promise<Uint8Array> =>
-    inflateSync(typeof tar === "string" ? await readFile(tar) : tar);
-
-const inflateSync = (tar: TarInput): Uint8Array => {
-    const bytes = typeof tar === "string" ? readFileSync(tar) : tar;
-    return detectCompression(bytes) === "gzip" ? gunzipSync(bytes) : bytes;
 };
 
 const discard = (scratch?: string): void => {
@@ -323,41 +309,5 @@ export const tarToExt2Sync = (
         return createImageSync(output, tarOptions(staged.path, options));
     } finally {
         discard(staged.scratch);
-    }
-};
-
-/**
- * Convert a tar archive into an ext2 image returned as bytes.
- *
- * xgenext2fs always writes to a file, so the image is built in a temporary
- * directory and read back; prefer {@link tarToExt2} for images large enough
- * that holding one in memory matters.
- */
-export const tarToExt2Buffer = async (
-    tar: TarInput,
-    options: TarToExt2Options = {},
-): Promise<Buffer> => {
-    const scratch = await mkdtemp(scratchPrefix());
-    try {
-        const output = join(scratch, "image.ext2");
-        await tarToExt2(tar, output, options);
-        return await readFile(output);
-    } finally {
-        await rm(scratch, { recursive: true, force: true });
-    }
-};
-
-/** Blocking counterpart of {@link tarToExt2Buffer}. */
-export const tarToExt2BufferSync = (
-    tar: TarInput,
-    options: TarToExt2Options = {},
-): Buffer => {
-    const scratch = mkdtempSync(scratchPrefix());
-    try {
-        const output = join(scratch, "image.ext2");
-        tarToExt2Sync(tar, output, options);
-        return readFileSync(output);
-    } finally {
-        discard(scratch);
     }
 };
