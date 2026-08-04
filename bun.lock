@@ -20,6 +20,7 @@
         "@deroll/cm": "workspace:*",
         "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
+        "@deroll/genext2fs": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "@types/react": "^19.2.17",
@@ -233,6 +234,25 @@
         "typescript": "^6.0.3",
       },
     },
+    "packages/bindings/genext2fs": {
+      "name": "@deroll/genext2fs",
+      "version": "0.1.0",
+      "dependencies": {
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4",
+      },
+      "devDependencies": {
+        "@biomejs/biome": "catalog:",
+        "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^26",
+        "node-gyp": "^13.0.0",
+        "npm-run-all": "^4.1.5",
+        "prebuildify": "^6.0.1",
+        "tsup": "^8.5.0",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9",
+      },
+    },
     "packages/explorer/decoder": {
       "name": "@deroll/decoder",
       "version": "0.2.0-alpha.3",
@@ -428,6 +448,8 @@
     "@deroll/examples": ["@deroll/examples@workspace:apps/examples"],
 
     "@deroll/explorer": ["@deroll/explorer@workspace:apps/explorer"],
+
+    "@deroll/genext2fs": ["@deroll/genext2fs@workspace:packages/bindings/genext2fs"],
 
     "@deroll/json-decoder": ["@deroll/json-decoder@workspace:packages/explorer/json-decoder"],
 

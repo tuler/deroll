@@ -1,0 +1,48 @@
+# genext2fs + Node.js
+
+[xgenext2fs](https://github.com/cartesi/genext2fs) is the ext2 filesystem generator Cartesi uses to turn a root filesystem into a drive image. This package binds it to Node.js as a native N-API addon, so a tar archive becomes an ext2 image without shelling out to a container or requiring `xgenext2fs` on the `PATH`.
+
+```ts twoslash
+import { tarToExt2 } from "@deroll/genext2fs";
+
+await tarToExt2("rootfs.tar", "rootfs.ext2", {
+    blockSize: 4096,
+    faketime: true,
+});
+```
+
+## Features
+
+- **Self-contained**: the addon links against nothing but libc, so the install-time source build works anywhere `node-gyp` does, and prebuilt binaries ship for Linux and macOS on x64 and arm64;
+- **Faithful**: [cartesi/genext2fs](https://github.com/cartesi/genext2fs) is compiled in unmodified, so images match what the CLI produces;
+- **Reproducible**: with [faketime](/genext2fs/options) the same archive always yields byte-identical images;
+- **Typed**: every CLI flag has a named, documented option;
+- **Non-blocking**: images are generated off the main thread, with blocking counterparts available.
+
+## Installation
+
+:::code-group
+
+```bash [pnpm]
+pnpm add @deroll/genext2fs
+```
+
+```bash [npm]
+npm install @deroll/genext2fs
+```
+
+```bash [yarn]
+yarn add @deroll/genext2fs
+```
+
+```bash [bun]
+bun add @deroll/genext2fs
+```
+
+:::
+
+On Linux (x64, arm64) and macOS (x64, arm64) this installs a prebuilt addon — no compiler needed. Elsewhere the install script compiles from source, which needs only a C/C++ toolchain: the two upstream projects are vendored and built as part of the addon, with no system libraries to install first.
+
+## License
+
+This package is **GPL-2.0-only**, inherited from xgenext2fs, which it compiles in. That differs from the other deroll packages, which are Apache-2.0 — worth knowing before linking it into a distributed application.

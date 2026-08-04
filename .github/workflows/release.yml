@@ -34,6 +34,7 @@ jobs:
         outputs:
             publish: ${{ steps.check.outputs.publish }}
             cm-publish: ${{ steps.check-cm.outputs.publish }}
+            genext2fs-publish: ${{ steps.check-genext2fs.outputs.publish }}
         steps:
             - uses: actions/checkout@v6
             - uses: actions/setup-node@v6
@@ -59,6 +60,53 @@ jobs:
                       echo "publish=true" >> "$GITHUB_OUTPUT"
                       echo "@deroll/cm@${LOCAL} not yet published -> build platform packages."
                   fi
+            - id: check-genext2fs
+              run: |
+                  LOCAL=$(node -p "require('./packages/bindings/genext2fs/package.json').version")
+                  if npm view "@deroll/genext2fs@${LOCAL}" version >/dev/null 2>&1; then
+                      echo "publish=false" >> "$GITHUB_OUTPUT"
+                      echo "@deroll/genext2fs@${LOCAL} already on npm -> skip prebuilds."
+                  else
+                      echo "publish=true" >> "$GITHUB_OUTPUT"
+                      echo "@deroll/genext2fs@${LOCAL} not yet published -> build prebuilds."
+                  fi
+
+    # @deroll/genext2fs native prebuilds. Unlike cmio/cm the addon links against
+    # nothing but libc (xgenext2fs and the tar half of libarchive are compiled
+    # straight from the submodules), so these jobs need no system packages, and a
+    # consumer without a prebuild can always fall back to a source build.
+    genext2fs-prebuild:
+        name: genext2fs prebuild ${{ matrix.os }}
+        needs: detect
+        if: needs.detect.outputs.genext2fs-publish == 'true'
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest # linux-x64
+                    - os: ubuntu-24.04-arm # linux-arm64
+                    - os: macos-15-intel # darwin-x64
+                    - os: macos-latest # darwin-arm64
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v6
+              with:
+                  # deps/genext2fs and deps/libarchive are compiled into the addon
+                  submodules: recursive
+            - uses: oven-sh/setup-bun@v2
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+            # only genext2fs is built here, so skip the install scripts of the
+            # sibling native packages, which need the emulator distribution
+            - run: bun install --frozen-lockfile --ignore-scripts
+            - name: Build prebuild
+              working-directory: packages/bindings/genext2fs
+              run: bun run prebuild:native
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: genext2fs-prebuilds-${{ matrix.os }}
+                  if-no-files-found: error
+                  path: packages/bindings/genext2fs/prebuilds/
 
     # @deroll/cmio native prebuilds, built from the exact commit being published
     # (linux-x64/arm64, darwin-x64/arm64). Each job uploads a prebuilds-<os>
@@ -198,7 +246,8 @@ jobs:
 
     release:
         name: Release
-        needs: [detect, prebuild, prebuild-riscv64, cm-platform]
+        needs:
+            [detect, prebuild, prebuild-riscv64, cm-platform, genext2fs-prebuild]
         # Run when creating the Version PR (publish=false, prebuilds skipped), or
         # when publishing AND every prebuild succeeded. Never publish a native
         # package without its prebuilds: a prebuild failure blocks the release
@@ -208,7 +257,9 @@ jobs:
             (needs.detect.outputs.publish == 'false' ||
              (needs.prebuild.result == 'success' && needs.prebuild-riscv64.result == 'success')) &&
             (needs.detect.outputs.cm-publish == 'false' ||
-             needs.cm-platform.result == 'success')
+             needs.cm-platform.result == 'success') &&
+            (needs.detect.outputs.genext2fs-publish == 'false' ||
+             needs.genext2fs-prebuild.result == 'success')
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repo
@@ -264,6 +315,16 @@ jobs:
                   pattern: cm-platform-*
                   merge-multiple: true
                   path: packages/bindings/cm/npm
+
+            # Same for @deroll/genext2fs: pack the prebuilds so installing does
+            # not have to compile the addon.
+            - name: Collect genext2fs prebuilds
+              if: needs.detect.outputs.genext2fs-publish == 'true'
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: genext2fs-prebuilds-*
+                  merge-multiple: true
+                  path: packages/bindings/genext2fs/prebuilds
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets

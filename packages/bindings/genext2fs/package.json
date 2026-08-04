@@ -1,0 +1,106 @@
+{
+    "name": "@deroll/genext2fs",
+    "version": "0.1.0",
+    "description": "Node.js bindings for xgenext2fs, the Cartesi ext2 filesystem generator",
+    "keywords": [
+        "cartesi",
+        "ext2",
+        "genext2fs",
+        "tar",
+        "filesystem",
+        "bindings"
+    ],
+    "license": "GPL-2.0-only",
+    "author": "Danilo Tuler",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tuler/deroll"
+    },
+    "type": "module",
+    "main": "dist/index.cjs",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "require": "./dist/index.cjs"
+            }
+        },
+        "./package.json": "./package.json"
+    },
+    "scripts": {
+        "install": "node-gyp-build",
+        "build": "tsup",
+        "build:native": "node-gyp rebuild",
+        "prebuild:native": "prebuildify --napi --strip",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf build",
+        "lint": "biome check",
+        "lint:ci": "biome ci",
+        "test": "vitest run",
+        "prepack": "run-s build"
+    },
+    "dependencies": {
+        "node-addon-api": "^8.3.0",
+        "node-gyp-build": "^4.8.4"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "catalog:",
+        "@deroll/tsconfig": "workspace:*",
+        "@types/node": "^26",
+        "node-gyp": "^13.0.0",
+        "npm-run-all": "^4.1.5",
+        "prebuildify": "^6.0.1",
+        "tsup": "^8.5.0",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.9"
+    },
+    "files": [
+        "dist",
+        "binding.gyp",
+        "config/",
+        "prebuilds/",
+        "src/addon.cc",
+        "src/libarchive_formats.c",
+        "src/xgenext2fs.h",
+        "src/xgenext2fs_lib.c",
+        "deps/genext2fs/AUTHORS",
+        "deps/genext2fs/COPYING",
+        "deps/genext2fs/cache.h",
+        "deps/genext2fs/list.h",
+        "deps/genext2fs/xgenext2fs.c",
+        "deps/libarchive/COPYING",
+        "deps/libarchive/libarchive/*.h",
+        "deps/libarchive/libarchive/archive_acl.c",
+        "deps/libarchive/libarchive/archive_check_magic.c",
+        "deps/libarchive/libarchive/archive_entry.c",
+        "deps/libarchive/libarchive/archive_entry_copy_stat.c",
+        "deps/libarchive/libarchive/archive_entry_sparse.c",
+        "deps/libarchive/libarchive/archive_entry_stat.c",
+        "deps/libarchive/libarchive/archive_entry_xattr.c",
+        "deps/libarchive/libarchive/archive_read.c",
+        "deps/libarchive/libarchive/archive_read_add_passphrase.c",
+        "deps/libarchive/libarchive/archive_read_open_file.c",
+        "deps/libarchive/libarchive/archive_read_support_filter_none.c",
+        "deps/libarchive/libarchive/archive_read_support_format_tar.c",
+        "deps/libarchive/libarchive/archive_string.c",
+        "deps/libarchive/libarchive/archive_string_sprintf.c",
+        "deps/libarchive/libarchive/archive_util.c",
+        "deps/libarchive/libarchive/archive_virtual.c"
+    ],
+    "engines": {
+        "node": ">=20"
+    },
+    "binary": {
+        "napi_versions": [
+            8
+        ]
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

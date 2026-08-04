@@ -1,3 +1,9 @@
 [submodule "packages/bindings/cmio/deps/machine-guest-tools"]
 	path = packages/bindings/cmio/deps/machine-guest-tools
 	url = https://github.com/cartesi/machine-guest-tools
+[submodule "packages/bindings/genext2fs/deps/genext2fs"]
+	path = packages/bindings/genext2fs/deps/genext2fs
+	url = https://github.com/cartesi/genext2fs
+[submodule "packages/bindings/genext2fs/deps/libarchive"]
+	path = packages/bindings/genext2fs/deps/libarchive
+	url = https://github.com/libarchive/libarchive

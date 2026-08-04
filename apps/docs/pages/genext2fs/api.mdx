@@ -1,0 +1,92 @@
+# API
+
+## tarToExt2
+
+Convert a tar archive into an ext2 image written to `output`. The archive is a path or its bytes; gzipped archives are inflated transparently. Resolves with the diagnostics the tool produced.
+
+```ts twoslash
+import { tarToExt2 } from "@deroll/genext2fs";
+
+const result = await tarToExt2("rootfs.tar", "rootfs.ext2", {
+    blockSize: 4096,
+    volumeLabel: "rootfs",
+    faketime: true,
+});
+console.log(result.stderr); // copying from tar archive rootfs.tar
+```
+
+## tarToExt2Buffer
+
+The same conversion, returning the image as a `Buffer`. xgenext2fs always writes to a file, so this builds in a temporary directory and reads the result back — prefer `tarToExt2` for images large enough that holding one in memory matters.
+
+```ts twoslash
+import { tarToExt2Buffer } from "@deroll/genext2fs";
+import { readFile } from "node:fs/promises";
+
+const image = await tarToExt2Buffer(await readFile("rootfs.tar.gz"), {
+    blockSize: 4096,
+});
+```
+
+## createImage
+
+The general form, for images assembled from more than one source. Layers are applied in order, each optionally at a path inside the image.
+
+```ts twoslash
+import { createImage } from "@deroll/genext2fs";
+
+await createImage("rootfs.ext2", {
+    blockSize: 4096,
+    layers: [
+        { type: "tarball", path: "rootfs.tar" },
+        { type: "directory", path: "./overlay", target: "/opt" },
+        { type: "devtable", path: "./device_table.txt" },
+    ],
+});
+```
+
+| Layer type  | Flag | Meaning                                            |
+| ----------- | ---- | -------------------------------------------------- |
+| `tarball`   | `-a` | add the contents of an archive                     |
+| `directory` | `-d` | add a directory and its contents                   |
+| `devtable`  | `-D` | create or fix up inodes from a device table file   |
+
+## genext2fs
+
+The escape hatch: run xgenext2fs with a raw argument vector (without the program name), exactly as the CLI would. No sizing retry is applied.
+
+```ts twoslash
+import { genext2fs } from "@deroll/genext2fs";
+
+await genext2fs(["-f", "-B", "4096", "-a", "rootfs.tar", "rootfs.ext2"]);
+```
+
+## Blocking variants
+
+`tarToExt2Sync`, `tarToExt2BufferSync`, `createImageSync` and `genext2fsSync` do the same work on the calling thread.
+
+## Errors
+
+Failures reject (or throw) with the tool's own diagnostic, carrying `status`, `stdout` and `stderr`.
+
+```ts twoslash
+import { type Genext2fsError, tarToExt2 } from "@deroll/genext2fs";
+
+try {
+    await tarToExt2("rootfs.tar", "rootfs.ext2", { sizeInBlocks: 8 });
+} catch (e) {
+    const error = e as Genext2fsError;
+    console.error(error.message); // couldn't allocate a block (no free space)
+    console.error(error.stderr); // everything the run printed
+}
+```
+
+## version
+
+The version of the vendored xgenext2fs the addon was built against.
+
+```ts twoslash
+import { version } from "@deroll/genext2fs";
+
+console.log(version); // "1.5.6"
+```

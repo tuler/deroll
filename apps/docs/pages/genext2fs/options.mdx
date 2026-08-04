@@ -1,0 +1,41 @@
+# Options
+
+Every option maps onto one documented xgenext2fs flag; see [`xgenext2fs.8`](https://github.com/cartesi/genext2fs/blob/cartesi/xgenext2fs.8) for the authoritative descriptions.
+
+| Option               | Flag | Meaning                                             |
+| -------------------- | ---- | --------------------------------------------------- |
+| `blockSize`          | `-B` | filesystem block size: 1024 (default), 2048 or 4096  |
+| `sizeInBlocks`       | `-b` | image size; computed from the content when omitted   |
+| `numberOfInodes`     | `-N` | minimum inode count                                  |
+| `bytesPerInode`      | `-i` | inode count derived from the size                    |
+| `readjustment`       | `-r` | grow the computed size, e.g. `"+10%"`                |
+| `volumeLabel`        | `-L` | volume label                                         |
+| `reservedPercentage` | `-m` | reserved blocks; `0` also skips `lost+found`         |
+| `creatorOs`          | `-o` | superblock creator OS                                |
+| `blockMap`           | `-g` | write a block map per path, into the current dir     |
+| `fillValue`          | `-e` | byte to fill unallocated blocks with                 |
+| `allowHoles`         | `-z` | make files with holes                                |
+| `faketime`           | `-f` | timestamp 0 everywhere, for reproducible output      |
+| `squash`             | `-q` | squash ownership and permissions to this uid         |
+| `squashUids`         | `-U` | squash ownership to this uid                         |
+| `squashPerms`        | `-P` | squash permissions, like `umask 077`                 |
+| `startingImage`      | `-x` | start from an existing image                         |
+| `verbose`            | `-v` | dump the resulting structure to `stdout`             |
+
+Sizes (`sizeInBlocks`, `numberOfInodes`, `bytesPerInode`) accept a number or a string with an IEC or SI multiplier, such as `"64Mi"`, `"1G"` or `"512k"`.
+
+## Reproducibility
+
+With `faketime` — or `SOURCE_DATE_EPOCH` in the environment, which lets you pick the timestamp — the same archive always produces byte-identical images. That is what keeps a drive's hash stable across builds.
+
+## Sizing
+
+Left to itself, xgenext2fs sizes the image from a pre-pass over the content. That estimate comes out a handful of blocks short for some archives, and the run then dies part way through with `couldn't allocate a block (no free space)` — the same happens with the upstream CLI, which is why Cartesi's tooling always passes an explicit `-b`.
+
+`createImage` and the `tarToExt2` helpers absorb this: when a run fails that way they retry with a slightly larger explicit size, derived from the size the failed attempt settled on. Both the estimate and the growth are deterministic, so images stay reproducible.
+
+Set `autoSize: false` for the raw behaviour, or pin `sizeInBlocks` to take sizing into your own hands. `genext2fs(args)` never retries.
+
+## Compressed archives
+
+The addon compiles only the tar reader out of libarchive, with no decompression filters, so gzip is inflated in JavaScript before the archive reaches the tool. Other compression formats are rejected with an explicit message rather than a tar parse error — decompress those first.

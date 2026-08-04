@@ -14,6 +14,7 @@ export default defineConfig({
             items: [
                 { text: "cmio (libcmt)", link: "/cmio/getting-started" },
                 { text: "cm (cartesi-machine)", link: "/cm" },
+                { text: "genext2fs (ext2 images)", link: "/genext2fs" },
             ],
         },
         { text: "Explorer", link: "/explorer" },
@@ -206,6 +207,11 @@ export default defineConfig({
             { text: "Overview", link: "/explorer" },
             { text: "Writing Decoders", link: "/explorer/decoders" },
             { text: "Open explorer.deroll.dev", link: "https://explorer.deroll.dev" },
+        ],
+        "/genext2fs/": [
+            { text: "Introduction", link: "/genext2fs" },
+            { text: "API", link: "/genext2fs/api" },
+            { text: "Options", link: "/genext2fs/options" },
         ],
         "/cmio/": [
             { text: "Introduction", link: "/cmio" },
