@@ -1,5 +1,14 @@
 # @deroll/docs
 
+## 1.0.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [b33ed78]
+- Updated dependencies [0038645]
+  - @deroll/cm@0.2.0-alpha.4
+  - @deroll/genext2fs@0.2.0-alpha.0
+
 ## 1.0.0-alpha.9
 
 ### Patch Changes
