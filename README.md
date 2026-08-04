@@ -120,6 +120,15 @@ Now you're ready to start building your Cartesi application with cartesi and der
 
 Deroll uses [Bun](https://bun.sh) as its package manager. To install it follow the instructions [here](https://bun.sh/docs/installation).
 
+The native bindings under `packages/bindings/*` compile upstream C sources that
+are vendored as git submodules, so clone with them:
+
+```sh
+git clone --recurse-submodules https://github.com/tuler/deroll
+# or, in an existing checkout
+git submodule update --init --recursive
+```
+
 ```sh
 bun install
 ```

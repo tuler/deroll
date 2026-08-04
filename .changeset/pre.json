@@ -15,7 +15,8 @@
     "@deroll/cmio": "0.1.0",
     "@deroll/decoder": "0.1.0",
     "@deroll/json-decoder": "0.1.0",
-    "@deroll/mock-server": "0.1.0"
+    "@deroll/mock-server": "0.1.0",
+    "@deroll/genext2fs": "0.1.0"
   },
   "changesets": [
     "api-alpha12-withdrawals",

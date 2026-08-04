@@ -15,6 +15,7 @@
         "@deroll/cm": "workspace:*",
         "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
+        "@deroll/genext2fs": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "@types/react": "^19.2.17",

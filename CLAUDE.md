@@ -24,7 +24,12 @@ App pillar — `packages/app/*`:
 - **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
 - **`packages/app/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
 
-Bindings pillar — `packages/bindings/*` (`@deroll/cmio`, `@deroll/cm`) and Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
+Bindings pillar — `packages/bindings/*`:
+- **`packages/bindings/cmio`** (`@deroll/cmio`) — N-API binding for libcmt, compiled from the `machine-guest-tools` submodule.
+- **`packages/bindings/cm`** (`@deroll/cm`) — N-API binding for the Cartesi Machine emulator, linked against an installed emulator distribution.
+- **`packages/bindings/genext2fs`** (`@deroll/genext2fs`) — N-API binding for `xgenext2fs`, the ext2 image generator; the main entry point is `tarToExt2()`. Compiles the `genext2fs` and `libarchive` submodules straight into the addon (see its README for how the CLI is turned into a library). **GPL-2.0-only**, unlike the rest of the repo.
+
+Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
 
 Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend examples — `echo`, `minimal`, `router`, `wallet`, `walletRouter`, `withdraw`, `abi`), and `apps/explorer` (the explorer site, deployed to explorer.deroll.dev).
 
