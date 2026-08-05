@@ -16,12 +16,8 @@ concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
-# LINUX_*: used by the riscv64 cross-build. Keep in sync with the
-# machine-guest-tools submodule (its Makefile LINUX_HEADERS_* variables).
 # CARTESI_MACHINE_VERSION: emulator distribution cm's addon links against.
 env:
-    LINUX_IMAGE_VERSION: v0.21.0
-    LINUX_VERSION: 6.5.13-ctsi-2
     CARTESI_MACHINE_VERSION: 0.21.0
 
 jobs:
@@ -98,13 +94,12 @@ jobs:
             # bun (not npm) — the workspace uses bun's `catalog:` protocol.
             - run: bun install --frozen-lockfile
 
-            - name: Install riscv64 cross toolchain and Cartesi Linux headers
+            # libcmt bundles the `cmio` ioctl ABI since machine-guest-tools
+            # 0.18.0, so the Cartesi Linux headers are no longer needed here.
+            - name: Install riscv64 cross toolchain
               run: |
                   sudo apt-get update
                   sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
-                  wget -O /tmp/linux-libc-dev.deb \
-                    "https://github.com/cartesi/machine-linux-image/releases/download/${LINUX_IMAGE_VERSION}/linux-libc-dev-riscv64-cross-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.deb"
-                  sudo apt-get install -y --allow-downgrades /tmp/linux-libc-dev.deb
 
             - name: Cross-build libcmt (real IO driver)
               working-directory: packages/bindings/cmio

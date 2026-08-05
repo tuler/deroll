@@ -104,7 +104,7 @@ On riscv64 the addon does not compile libcmt; it links the static library instal
 
 ### Prebuilds
 
-`npm run prebuild` produces `prebuilds/<platform>-<arch>/` via prebuildify; `node-gyp-build` picks them up at install time so consumers need no toolchain. Cross-building the riscv64 prebuild requires the riscv64 cross toolchain and a libcmt built with the Cartesi Linux headers — see `.github/workflows/build.yml`.
+`npm run prebuild` produces `prebuilds/<platform>-<arch>/` via prebuildify; `node-gyp-build` picks them up at install time so consumers need no toolchain. Cross-building the riscv64 prebuild requires the riscv64 cross toolchain and a libcmt cross-built from the submodule (`make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-`); since libcmt 0.18.0 bundles the `cmio` ioctl ABI, the Cartesi Linux headers are no longer needed. See `.github/workflows/ci.yml`.
 
 ## Releasing
 
