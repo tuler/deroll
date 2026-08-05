@@ -12,6 +12,9 @@ export const packageJson = async (
     const { bindingPackage, packageManager, packageName } = options;
     const dependencies: Record<string, string> = {};
     const derollVersion = "alpha"; // or "latest"
+    const bindingVersion = bindingPackage.startsWith("@deroll/")
+        ? derollVersion
+        : "alpha";
 
     dependencies["@deroll/app"] =
         `^${await latestVersion("@deroll/app", { version: derollVersion })}`;
@@ -26,7 +29,8 @@ export const packageJson = async (
     dependencies.viem = `^${await latestVersion("viem")}`;
 
     // binding package needs to be a direct dependency, because we are using bundling with esbuild
-    dependencies[bindingPackage] = `^${await latestVersion(bindingPackage)}`;
+    dependencies[bindingPackage] =
+        `^${await latestVersion(bindingPackage, { version: bindingVersion })}`;
 
     const devDependencies = {
         "@types/node": `^${await latestVersion("@types/node")}`,

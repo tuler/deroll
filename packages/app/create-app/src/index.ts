@@ -69,7 +69,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     }
 
     // allow to override the used branch, especialy for the alpha phase
-    const branch = options.templateBranch ?? "main";
+    const branch = options.templateBranch ?? "prerelease/v2"; // change to "main" when we are ready to release v2
 
     // create destination directory if not exists
     fsExtra.ensureDirSync(directory);
