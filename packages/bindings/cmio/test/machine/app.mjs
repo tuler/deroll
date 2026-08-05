@@ -18,7 +18,7 @@
 // advance it emits a notice and a voucher echoing the payload plus a report;
 // for each inspect it reports the query payload back.
 
-import { Rollup } from '@deroll/cmio';
+import { Rollup } from "@deroll/cmio";
 
 const rollup = new Rollup();
 await rollup.run({
@@ -29,7 +29,11 @@ await rollup.run({
             value: request.index,
             payload: request.payload,
         });
-        rollup.emitReport(Buffer.from(`advance index=${request.index} chainId=${request.chainId}`));
+        rollup.emitReport(
+            Buffer.from(
+                `advance index=${request.index} chainId=${request.chainId}`,
+            ),
+        );
         return true;
     },
     inspect(request, rollup) {

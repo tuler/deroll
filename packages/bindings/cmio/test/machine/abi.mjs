@@ -19,9 +19,9 @@
 // Mirrors the encoder in test/rollup.test.mjs.
 
 export const SELECTOR = {
-    evmAdvance: '415bf363', // EvmAdvance(uint256,address,address,uint256,uint256,uint256,uint256,bytes)
-    voucher: '237a816f', // Voucher(address,uint256,bytes)
-    notice: 'c258d6e5', // Notice(bytes)
+    evmAdvance: "415bf363", // EvmAdvance(uint256,address,address,uint256,uint256,uint256,uint256,bytes)
+    voucher: "237a816f", // Voucher(address,uint256,bytes)
+    notice: "c258d6e5", // Notice(bytes)
 };
 
 export function word(value) {
@@ -34,12 +34,23 @@ export function word(value) {
     return bytes;
 }
 
-export const addressWord = (hex) => Buffer.concat([Buffer.alloc(12), Buffer.from(hex.slice(2), 'hex')]);
-export const pad32 = (bytes) => Buffer.concat([bytes, Buffer.alloc((32 - (bytes.length % 32)) % 32)]);
+export const addressWord = (hex) =>
+    Buffer.concat([Buffer.alloc(12), Buffer.from(hex.slice(2), "hex")]);
+export const pad32 = (bytes) =>
+    Buffer.concat([bytes, Buffer.alloc((32 - (bytes.length % 32)) % 32)]);
 
-export function encodeEvmAdvance({ chainId, appContract, msgSender, blockNumber, blockTimestamp, prevRandao, index, payload }) {
+export function encodeEvmAdvance({
+    chainId,
+    appContract,
+    msgSender,
+    blockNumber,
+    blockTimestamp,
+    prevRandao,
+    index,
+    payload,
+}) {
     return Buffer.concat([
-        Buffer.from(SELECTOR.evmAdvance, 'hex'),
+        Buffer.from(SELECTOR.evmAdvance, "hex"),
         word(chainId),
         addressWord(appContract),
         addressWord(msgSender),
@@ -55,7 +66,7 @@ export function encodeEvmAdvance({ chainId, appContract, msgSender, blockNumber,
 
 export function encodeNotice(payload) {
     return Buffer.concat([
-        Buffer.from(SELECTOR.notice, 'hex'),
+        Buffer.from(SELECTOR.notice, "hex"),
         word(32), // offset of the payload `bytes` field
         word(payload.length),
         pad32(payload),
@@ -64,7 +75,7 @@ export function encodeNotice(payload) {
 
 export function encodeVoucher({ destination, value, payload }) {
     return Buffer.concat([
-        Buffer.from(SELECTOR.voucher, 'hex'),
+        Buffer.from(SELECTOR.voucher, "hex"),
         addressWord(destination),
         word(value),
         word(3 * 32), // offset of the payload `bytes` field
@@ -78,24 +89,24 @@ export function encodeVoucher({ destination, value, payload }) {
 export const ADVANCES = [
     {
         chainId: 31337n,
-        appContract: `0x${'02'.repeat(20)}`,
-        msgSender: `0x${'03'.repeat(20)}`,
+        appContract: `0x${"02".repeat(20)}`,
+        msgSender: `0x${"03".repeat(20)}`,
         blockNumber: 456n,
         blockTimestamp: 1700000000n,
         prevRandao: 0xdeadbeefn,
         index: 0n,
-        payload: Buffer.from('hello from the chain'),
+        payload: Buffer.from("hello from the chain"),
     },
     {
         chainId: 31337n,
-        appContract: `0x${'02'.repeat(20)}`,
-        msgSender: `0x${'aa'.repeat(20)}`,
+        appContract: `0x${"02".repeat(20)}`,
+        msgSender: `0x${"aa".repeat(20)}`,
         blockNumber: 457n,
         blockTimestamp: 1700000012n,
         prevRandao: 0xc0ffeen,
         index: 1n,
-        payload: Buffer.from('second input'),
+        payload: Buffer.from("second input"),
     },
 ];
 
-export const QUERY = Buffer.from('inspect me');
+export const QUERY = Buffer.from("inspect me");

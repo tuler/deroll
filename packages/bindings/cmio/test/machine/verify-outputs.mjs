@@ -19,15 +19,15 @@
 //
 //   node test/machine/verify-outputs.mjs test/machine/work
 
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 
-import { ADVANCES, QUERY, encodeNotice, encodeVoucher } from './abi.mjs';
+import { ADVANCES, QUERY, encodeNotice, encodeVoucher } from "./abi.mjs";
 
 const dir = process.argv[2];
 if (!dir) {
-    console.error('usage: node verify-outputs.mjs <work-dir>');
+    console.error("usage: node verify-outputs.mjs <work-dir>");
     process.exit(1);
 }
 
@@ -35,10 +35,18 @@ const read = (name) => fs.readFileSync(path.join(dir, name));
 
 ADVANCES.forEach((advance, i) => {
     // app.mjs emits, in order: notice (output 0), voucher (output 1), report 0
-    assert.deepEqual(read(`input-${i}-output-0.bin`), encodeNotice(advance.payload), `input ${i}: notice mismatch`);
+    assert.deepEqual(
+        read(`input-${i}-output-0.bin`),
+        encodeNotice(advance.payload),
+        `input ${i}: notice mismatch`,
+    );
     assert.deepEqual(
         read(`input-${i}-output-1.bin`),
-        encodeVoucher({ destination: advance.msgSender, value: advance.index, payload: advance.payload }),
+        encodeVoucher({
+            destination: advance.msgSender,
+            value: advance.index,
+            payload: advance.payload,
+        }),
         `input ${i}: voucher mismatch`,
     );
     assert.equal(
@@ -49,7 +57,11 @@ ADVANCES.forEach((advance, i) => {
     console.log(`input ${i}: notice, voucher and report OK`);
 });
 
-assert.deepEqual(read('query-report-0.bin'), QUERY, 'inspect: query report mismatch');
-console.log('inspect: query report OK');
+assert.deepEqual(
+    read("query-report-0.bin"),
+    QUERY,
+    "inspect: query report mismatch",
+);
+console.log("inspect: query report OK");
 
-console.log('all machine outputs verified');
+console.log("all machine outputs verified");

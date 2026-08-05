@@ -14,6 +14,21 @@
 // limitations under the License.
 //
 
-// ESM wrapper over the CommonJS implementation, so both module systems share
-// the single native addon instance (no dual-package hazard).
-export { Rollup, RollupError, ADDRESS_LENGTH, U256_LENGTH } from './index.js';
+export { ADDRESS_LENGTH, U256_LENGTH } from "./convert.js";
+export { RollupError, type RollupErrorOptions } from "./errors.js";
+export { Rollup } from "./rollup.js";
+export type {
+    AddressLike,
+    AdvanceRequest,
+    BytesLike,
+    DelegateCallVoucher,
+    FinishOptions,
+    GioRequest,
+    GioResponse,
+    Hex,
+    InspectRequest,
+    RollupRequest,
+    RunHandlers,
+    U256Like,
+    Voucher,
+} from "./types.js";

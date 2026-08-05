@@ -13,7 +13,7 @@
     },
     "apps/docs": {
       "name": "@deroll/docs",
-      "version": "1.0.0-alpha.9",
+      "version": "1.0.0-alpha.11",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
         "@deroll/app": "workspace:*",
@@ -41,7 +41,7 @@
     },
     "apps/examples": {
       "name": "@deroll/examples",
-      "version": "2.0.0-alpha.12",
+      "version": "2.0.0-alpha.13",
       "bin": {
         "deroll-example-abi": "dist/abi.js",
         "deroll-example-echo": "dist/echo.js",
@@ -95,7 +95,7 @@
     },
     "packages/app/app": {
       "name": "@deroll/app",
-      "version": "2.0.0-alpha.9",
+      "version": "2.0.0-alpha.10",
       "dependencies": {
         "@deroll/cmio": "workspace:*",
         "@deroll/core": "workspace:*",
@@ -130,7 +130,7 @@
     },
     "packages/app/create-app": {
       "name": "@deroll/create-app",
-      "version": "2.0.0-alpha.11",
+      "version": "2.0.0-alpha.12",
       "bin": "dist/cli.js",
       "dependencies": {
         "@clack/prompts": "^1.6.0",
@@ -201,7 +201,7 @@
     },
     "packages/bindings/cm": {
       "name": "@deroll/cm",
-      "version": "0.2.0-alpha.3",
+      "version": "0.2.0-alpha.4",
       "dependencies": {
         "node-addon-api": "^8.3.0",
         "node-gyp-build": "^4.8.4",
@@ -221,22 +221,26 @@
     },
     "packages/bindings/cmio": {
       "name": "@deroll/cmio",
-      "version": "0.2.0-alpha.2",
+      "version": "0.2.0-alpha.3",
       "dependencies": {
         "node-addon-api": "^8.3.0",
         "node-gyp-build": "^4.8.4",
       },
       "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.3",
+        "@biomejs/biome": "catalog:",
+        "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "node-gyp": "^13.0.0",
+        "npm-run-all": "^4.1.5",
         "prebuildify": "^6.0.1",
+        "tsup": "^8.5.0",
         "typescript": "^6.0.3",
       },
     },
     "packages/bindings/genext2fs": {
       "name": "@deroll/genext2fs",
-      "version": "0.1.0",
+      "version": "0.2.0-alpha.0",
       "dependencies": {
         "node-addon-api": "^8.3.0",
         "node-gyp-build": "^4.8.4",

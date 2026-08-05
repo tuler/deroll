@@ -48,7 +48,7 @@ for (;;) {
 
 Byte arguments accept `Buffer`, `Uint8Array` or 0x-prefixed hex strings. Addresses are returned as 0x-hex strings, payloads as `Buffer`, and numeric fields as `bigint`.
 
-The package is dual ESM + CommonJS — `const { Rollup } = require('@deroll/cmio')` works too, and both entry points share the same native addon instance.
+The JavaScript half of the binding is written in TypeScript (`src/*.ts`) and bundled with [tsup](https://tsup.egoist.dev) into `dist/`: an ESM entry point (`dist/index.js`), a CommonJS one (`dist/index.cjs`) and the type declarations for both, all generated from the same sources. So `const { Rollup } = require('@deroll/cmio')` works too, and both entry points load the same native addon instance (the `.node` file goes through `require` either way, so Node's module cache keeps it a singleton).
 
 ### API
 
@@ -96,15 +96,18 @@ libcmt sources are expected at `deps/machine-guest-tools` (git submodule in this
 
 ```sh
 git submodule update --init   # fetch libcmt sources
-npm install                   # uses a prebuild when available, otherwise compiles
-npm test                      # runs the suite against the mock
+bun install                   # uses a prebuild when available, otherwise compiles
+bun run build                 # bundle the TypeScript half into dist/
+bun run test                  # builds, then runs the suite against the mock
 ```
+
+`build` only bundles the TypeScript sources; the native addon is compiled at install time by `node-gyp-build`. To recompile it explicitly use `bun run build:native` (`node-gyp rebuild`).
 
 On riscv64 the addon does not compile libcmt; it links the static library installed by the machine-guest-tools `.deb` (`-l:libcmt.a`, headers from `/usr/include/libcmt`). Override with `LIBCMT_LIB=/path/to/libcmt.a`.
 
 ### Prebuilds
 
-`npm run prebuild` produces `prebuilds/<platform>-<arch>/` via prebuildify; `node-gyp-build` picks them up at install time so consumers need no toolchain. Cross-building the riscv64 prebuild requires the riscv64 cross toolchain and a libcmt cross-built from the submodule (`make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-`); since libcmt 0.18.0 bundles the `cmio` ioctl ABI, the Cartesi Linux headers are no longer needed. See `.github/workflows/ci.yml`.
+`bun run prebuild:native` produces `prebuilds/<platform>-<arch>/` via prebuildify; `node-gyp-build` picks them up at install time so consumers need no toolchain. Cross-building the riscv64 prebuild requires the riscv64 cross toolchain and a libcmt cross-built from the submodule (`make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-`); since libcmt 0.18.0 bundles the `cmio` ioctl ABI, the Cartesi Linux headers are no longer needed. See `.github/workflows/ci.yml`.
 
 ## Releasing
 

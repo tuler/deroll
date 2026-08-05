@@ -142,7 +142,7 @@ jobs:
             - run: bun install --frozen-lockfile
             - name: Build prebuild
               working-directory: packages/bindings/cmio
-              run: bun run prebuild
+              run: bun run prebuild:native
             - uses: actions/upload-artifact@v7
               with:
                   name: prebuilds-${{ matrix.os }}
@@ -184,7 +184,7 @@ jobs:
                   CC: riscv64-linux-gnu-gcc
                   CXX: riscv64-linux-gnu-g++
                   LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
-              run: bun run prebuild -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+              run: bun run prebuild:native -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
             - uses: actions/upload-artifact@v7
               with:
                   name: prebuilds-riscv64
