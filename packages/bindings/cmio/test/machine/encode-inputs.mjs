@@ -19,14 +19,14 @@
 //
 //   node test/machine/encode-inputs.mjs test/machine/work
 
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from "node:fs";
+import path from "node:path";
 
-import { ADVANCES, QUERY, encodeEvmAdvance } from './abi.mjs';
+import { ADVANCES, QUERY, encodeEvmAdvance } from "./abi.mjs";
 
 const dir = process.argv[2];
 if (!dir) {
-    console.error('usage: node encode-inputs.mjs <output-dir>');
+    console.error("usage: node encode-inputs.mjs <output-dir>");
     process.exit(1);
 }
 
@@ -36,6 +36,6 @@ ADVANCES.forEach((advance, i) => {
     console.log(`wrote ${file} (${advance.payload.length}-byte payload)`);
 });
 
-const queryFile = path.join(dir, 'query.bin');
+const queryFile = path.join(dir, "query.bin");
 fs.writeFileSync(queryFile, QUERY);
 console.log(`wrote ${queryFile}`);

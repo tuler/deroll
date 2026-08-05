@@ -111,7 +111,7 @@ jobs:
                   CC: riscv64-linux-gnu-gcc
                   CXX: riscv64-linux-gnu-g++
                   LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
-              run: bun run prebuild -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
+              run: bun run prebuild:native -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
 
             - name: Run end-to-end test inside cartesi-machine
               working-directory: packages/bindings/cmio

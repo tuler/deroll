@@ -14,17 +14,19 @@
         "type": "git",
         "url": "https://github.com/tuler/deroll"
     },
-    "main": "lib/index.js",
-    "types": "lib/index.d.ts",
+    "type": "module",
+    "main": "dist/index.cjs",
+    "module": "dist/index.js",
+    "types": "dist/index.d.ts",
     "exports": {
         ".": {
             "import": {
-                "types": "./lib/index.d.mts",
-                "default": "./lib/index.mjs"
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
             },
             "require": {
-                "types": "./lib/index.d.ts",
-                "default": "./lib/index.js"
+                "types": "./dist/index.d.cts",
+                "require": "./dist/index.cjs"
             }
         },
         "./package.json": "./package.json"
@@ -32,7 +34,7 @@
     "files": [
         "AUTHORS",
         "binding.gyp",
-        "lib/",
+        "dist/",
         "src/",
         "prebuilds/",
         "deps/machine-guest-tools/sys-utils/libcmt/include/",
@@ -43,10 +45,17 @@
     },
     "scripts": {
         "install": "node-gyp-build",
-        "build": "node-gyp rebuild",
-        "prebuild": "prebuildify --napi --strip",
-        "test": "node --test \"test/*.test.mjs\"",
-        "check:package": "attw --pack ."
+        "build": "tsup",
+        "build:native": "node-gyp rebuild",
+        "prebuild:native": "prebuildify --napi --strip",
+        "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf build",
+        "dev": "tsup --watch",
+        "lint": "biome check",
+        "lint:ci": "biome ci",
+        "test": "run-s build test:mock",
+        "test:mock": "node --test \"test/*.test.mjs\"",
+        "check:package": "attw --pack .",
+        "prepack": "run-s build"
     },
     "dependencies": {
         "node-addon-api": "^8.3.0",
@@ -54,9 +63,13 @@
     },
     "devDependencies": {
         "@arethetypeswrong/cli": "^0.18.3",
+        "@biomejs/biome": "catalog:",
+        "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "node-gyp": "^13.0.0",
+        "npm-run-all": "^4.1.5",
         "prebuildify": "^6.0.1",
+        "tsup": "^8.5.0",
         "typescript": "^6.0.3"
     },
     "engines": {
