@@ -134,7 +134,7 @@ Napi::Value Rollup::Finish(const Napi::CallbackInfo &info) {
         return env.Undefined();
     }
     Napi::Object request = Napi::Object::New(env);
-    if (finish.next_request_type == HTIF_YIELD_REASON_ADVANCE) {
+    if (finish.next_request_type == HTIF_YIELD_REASON_ADVANCE_STATE) {
         cmt_rollup_advance_t advance{};
         rc = cmt_rollup_read_advance_state(&rollup_, &advance);
         if (rc < 0) {

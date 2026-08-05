@@ -24,9 +24,9 @@ CARTESI_MACHINE=${CARTESI_MACHINE:-cartesi-machine}
 WORK=test/machine/work
 mkdir -p "$WORK"
 
-LINUX_IMAGE_VERSION=v0.20.0
-LINUX_VERSION=6.5.13-ctsi-1
-GUEST_TOOLS_VERSION=v0.17.2
+LINUX_IMAGE_VERSION=v0.21.0
+LINUX_VERSION=6.5.13-ctsi-2
+GUEST_TOOLS_VERSION=v0.18.0
 
 # 1. Cartesi kernel for the emulator
 KERNEL="$WORK/linux-${LINUX_VERSION}-${LINUX_IMAGE_VERSION}.bin"
@@ -40,8 +40,6 @@ fi
 if [ -z "${SKIP_PREBUILD:-}" ]; then
     echo "==> cross-building linux-riscv64 prebuild"
     docker build --platform linux/amd64 \
-        --build-arg LINUX_IMAGE_VERSION="$LINUX_IMAGE_VERSION" \
-        --build-arg LINUX_VERSION="$LINUX_VERSION" \
         -f test/machine/Dockerfile.prebuild \
         --target export --output type=local,dest=prebuilds .
 fi
