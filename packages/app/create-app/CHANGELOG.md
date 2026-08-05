@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.13
+
+### Patch Changes
+
+- b1fb92d: fix references to alpha
+
 ## 2.0.0-alpha.12
 
 ### Patch Changes
