@@ -1,5 +1,11 @@
 # @deroll/genext2fs
 
+## 0.2.0-alpha.1
+
+### Patch Changes
+
+- 40cfed6: dependencies
+
 ## 0.2.0-alpha.0
 
 ### Minor Changes

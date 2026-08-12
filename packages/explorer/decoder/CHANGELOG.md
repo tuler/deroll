@@ -1,5 +1,11 @@
 # @deroll/decoder
 
+## 0.2.0-alpha.4
+
+### Patch Changes
+
+- 40cfed6: dependencies
+
 ## 0.2.0-alpha.3
 
 ### Minor Changes

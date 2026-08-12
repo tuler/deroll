@@ -1,5 +1,14 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.8
+
+### Patch Changes
+
+- 40cfed6: dependencies
+- Updated dependencies [ab112e9]
+- Updated dependencies [40cfed6]
+  - @deroll/core@2.0.0-alpha.5
+
 ## 2.0.0-alpha.7
 
 ### Major Changes

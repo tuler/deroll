@@ -1,6 +1,6 @@
 {
     "name": "@deroll/decoder",
-    "version": "0.2.0-alpha.3",
+    "version": "0.2.0-alpha.4",
     "description": "Typed contract for writing Cartesi Node Explorer payload decoders (types-only)",
     "repository": {
         "type": "git",
