@@ -17,9 +17,8 @@ jobs:
     # be published — i.e. its package.json version is not yet on npm. This is
     # the only reason the prebuild matrices need to run, and it's correct in
     # every case: false on Version-PR runs (not bumped yet) and on already-
-    # published versions. (Counting .changeset/*.md does NOT work: in changesets
-    # pre mode the .md files persist after `changeset version`, so they can't
-    # signal whether this push publishes.)
+    # published versions. (Counting .changeset/*.md is not a reliable signal of
+    # whether this push publishes, so don't go back to it.)
     detect:
         name: Detect native package publish
         runs-on: ubuntu-latest
@@ -128,12 +127,10 @@ jobs:
 
             - name: Create Release Pull Request or Publish to npm
               id: changesets
-              uses: changesets/action@v1
+              uses: changesets/action@v2.0.0
               with:
                   # `release` builds the packages, resolves workspace:/catalog:
                   # protocols to concrete versions (npm publish, which changeset
                   # publish shells out to, does not rewrite them), and calls
                   # `changeset publish`
-                  publish: bun run release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  publish-script: bun run release

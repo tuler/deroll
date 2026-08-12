@@ -4,8 +4,6 @@
 "@deroll/app": major
 "@deroll/core": major
 "@deroll/router": major
-"@deroll/examples": major
-"@deroll/docs": major
 ---
 
 rollups v2
