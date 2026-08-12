@@ -55,9 +55,6 @@ const fileCreator = (filename: string, result: Promise<void>): Task => ({
 export const createApp = (options: CreateAppOptions): Task[] => {
     const { directory, libraries, packageManager } = options;
 
-    // let's keep this as a variable, because it might change
-    const bindingPackage = "@cartesi/rollup";
-
     // choose one of the examples based on the selected libraries
     let example = "minimal";
     if (libraries.includes("wallet") && libraries.includes("router")) {
@@ -89,7 +86,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             (async () => {
                 await fsExtra.writeJSON(
                     path.join(directory, "package.json"),
-                    await packageJson({ bindingPackage, ...options }),
+                    await packageJson(options),
                     { spaces },
                 );
             })(),
@@ -111,7 +108,6 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             fs.promises.writeFile(
                 path.join(directory, "esbuild.mts"),
                 esbuildScript({
-                    bindingPackage,
                     entryPoint: "src/index.ts",
                     outfile: "dist/index.js",
                     packageManager,
@@ -142,7 +138,6 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             fs.promises.writeFile(
                 path.join(directory, "Dockerfile"),
                 dockerfile({
-                    bindingPackage,
                     packageManager,
                     nodeVersion: "24.17.0",
                 }),
@@ -162,7 +157,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 "pnpm-workspace.yaml",
                 fs.promises.writeFile(
                     path.join(directory, "pnpm-workspace.yaml"),
-                    pnpmWorkspace({ bindingPackage }),
+                    pnpmWorkspace(),
                 ),
             ),
         );
@@ -173,7 +168,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 "bunfig.toml",
                 fs.promises.writeFile(
                     path.join(directory, "bunfig.toml"),
-                    bunfig({ bindingPackage }),
+                    bunfig(),
                 ),
             ),
         );

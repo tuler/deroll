@@ -1,69 +1,62 @@
 import type { PackageManager } from "./index.js";
 
-const buildBlocks = (bindingPackage: string) => {
-    // "@cartesi/rollup" -> scope "@cartesi", pnpm store dir "@cartesi+rollup@*"
-    const scope = bindingPackage.split("/")[0];
-    const pnpmDir = bindingPackage.replace("/", "+");
-
-    return {
-        npm: `COPY package.json package-lock.json ./
+const buildBlocks = {
+    npm: `COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage the runtime files: the JS bundle plus ${bindingPackage}'s native addon,
+# Stage the runtime files: the JS bundle plus @cartesi/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. npm's flat layout
 # keeps the addon and its node-gyp-build loader as real dirs at the top level, so
 # copy both next to the bundle.
 
-RUN mkdir -p rootfs/node_modules/${scope} \\
+RUN mkdir -p rootfs/node_modules/@cartesi \\
  && cp dist/index.js rootfs/index.js \\
- && cp -R node_modules/${bindingPackage} rootfs/node_modules/${scope}/ \\
+ && cp -R node_modules/@cartesi/rollup rootfs/node_modules/@cartesi/ \\
  && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
 
-        pnpm: `RUN corepack enable pnpm
+    pnpm: `RUN corepack enable pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm run build
 
-# Stage the runtime files: the JS bundle plus ${bindingPackage}'s native addon,
+# Stage the runtime files: the JS bundle plus @cartesi/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. \`cp -RL\` flattens
 # pnpm's self-contained store dir for the addon into a real node_modules (the
 # addon, its node-gyp-build loader, and node-addon-api).
 RUN mkdir -p rootfs \\
  && cp dist/index.js rootfs/index.js \\
- && cp -RL node_modules/.pnpm/${pnpmDir}@*/node_modules rootfs/node_modules
+ && cp -RL node_modules/.pnpm/@cartesi+rollup@*/node_modules rootfs/node_modules
 `,
 
-        bun: `COPY package.json bun.lock ./
+    bun: `COPY package.json bun.lock ./
 RUN bun ci
 COPY . .
 RUN bun run build
 
-# Stage the runtime files: the JS bundle plus ${bindingPackage}'s native addon,
+# Stage the runtime files: the JS bundle plus @cartesi/rollup's native addon,
 # which esbuild cannot inline and must be required at runtime. npm's flat layout
 # keeps the addon and its node-gyp-build loader as real dirs at the top level, so
 # copy both next to the bundle.
 
-RUN mkdir -p rootfs/node_modules/${scope} \\
+RUN mkdir -p rootfs/node_modules/@cartesi \\
  && cp dist/index.js rootfs/index.js \\
- && cp -R node_modules/${bindingPackage} rootfs/node_modules/${scope}/ \\
+ && cp -R node_modules/@cartesi/rollup rootfs/node_modules/@cartesi/ \\
  && cp -R node_modules/node-gyp-build rootfs/node_modules/node-gyp-build`,
-    };
 };
 
 type DockerfileOptions = {
     aptSnapshot?: string;
-    bindingPackage: string;
     nodeVersion: string;
     packageManager: PackageManager;
 };
 
 export const dockerfile = (options: DockerfileOptions): string => {
-    const { bindingPackage, nodeVersion, packageManager } = options;
+    const { nodeVersion, packageManager } = options;
     const aptSnapshot = options.aptSnapshot ?? "20260415T030400Z";
-    const buildBlock = buildBlocks(bindingPackage)[packageManager];
+    const buildBlock = buildBlocks[packageManager];
 
     const buildImage =
         packageManager === "bun" ? `oven/bun:1` : `node:${nodeVersion}-trixie`;
