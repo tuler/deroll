@@ -20,8 +20,8 @@
         "react": "^19",
         "react-dom": "^19",
         "viem": "^2.53.1",
-        "vocs": "^2.2.1",
-        "waku": "^1.0.0-beta.3"
+        "vocs": "^2.8.5",
+        "waku": "^1.0.0-beta.9"
     },
     "devDependencies": {
         "@types/node": "^26",
