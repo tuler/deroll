@@ -1,7 +1,6 @@
 import type { PackageManager } from "./index.js";
 
 type ScriptOptions = {
-    bindingPackage: string;
     entryPoint: string;
     outfile: string;
     packageManager: PackageManager;
@@ -9,7 +8,7 @@ type ScriptOptions = {
 };
 
 export const esbuildScript = (options: ScriptOptions) => {
-    const { bindingPackage, entryPoint, outfile, target } = options;
+    const { entryPoint, outfile, target } = options;
 
     return `import { build, type BuildOptions } from "esbuild";
 
@@ -19,10 +18,10 @@ const options: BuildOptions = {
     outfile: "${outfile}",
     platform: "node",
     target: "${target}",
-    // ${bindingPackage} is a native addon (.node): it cannot be inlined into
+    // @cartesi/rollup is a native addon (.node): it cannot be inlined into
     // the bundle and must be required at runtime from node_modules. The
     // Dockerfile copies it (and its node-gyp-build loader) next to the bundle.
-    external: ["${bindingPackage}"],
+    external: ["@cartesi/rollup"],
 };
 
 await build(options);

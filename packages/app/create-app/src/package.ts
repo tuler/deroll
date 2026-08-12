@@ -6,15 +6,10 @@ import type { CreateAppOptions } from "./index.js";
  * @param options application options
  * @returns package.json
  */
-export const packageJson = async (
-    options: CreateAppOptions & { bindingPackage: string },
-) => {
-    const { bindingPackage, packageManager, packageName } = options;
+export const packageJson = async (options: CreateAppOptions) => {
+    const { packageManager, packageName } = options;
     const dependencies: Record<string, string> = {};
     const derollVersion = "alpha"; // or "latest"
-    const bindingVersion = bindingPackage.startsWith("@deroll/")
-        ? derollVersion
-        : "alpha";
 
     dependencies["@deroll/app"] =
         `^${await latestVersion("@deroll/app", { version: derollVersion })}`;
@@ -29,8 +24,8 @@ export const packageJson = async (
     dependencies.viem = `^${await latestVersion("viem")}`;
 
     // binding package needs to be a direct dependency, because we are using bundling with esbuild
-    dependencies[bindingPackage] =
-        `^${await latestVersion(bindingPackage, { version: bindingVersion })}`;
+    dependencies["@cartesi/rollup"] =
+        `^${await latestVersion("@cartesi/rollup", { version: "alpha" })}`;
 
     const devDependencies = {
         "@types/node": `^${await latestVersion("@types/node")}`,
@@ -56,6 +51,6 @@ export const packageJson = async (
         },
         keywords: ["cartesi", "deroll"],
         packageManager: `${packageManager}@${packageManagerVersion}`,
-        trustedDependencies: [bindingPackage, "esbuild"],
+        trustedDependencies: ["@cartesi/rollup", "esbuild"],
     };
 };
