@@ -1,5 +1,14 @@
 # @deroll/router
 
+## 2.0.0-alpha.5
+
+### Patch Changes
+
+- 40cfed6: dependencies
+- Updated dependencies [ab112e9]
+- Updated dependencies [40cfed6]
+  - @deroll/core@2.0.0-alpha.5
+
 ## 2.0.0-alpha.4
 
 ### Patch Changes
