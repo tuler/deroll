@@ -36,18 +36,18 @@
     "dependencies": {
         "@deroll/core": "workspace:*",
         "path-to-regexp": "^8.4.2",
-        "viem": "^2.53.1"
+        "viem": "^2.55.13"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^26.0.0",
+        "@types/node": "^26",
         "npm-run-all": "^4.1.5",
         "openapi-typescript": "^7.8.0",
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9",
-        "vitest-mock-extended": "^4.0.0"
+        "vitest-mock-extended": "^5.1.1"
     },
     "publishConfig": {
         "access": "public"

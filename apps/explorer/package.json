@@ -15,20 +15,20 @@
         "@cartesi/react": "2.0.0-alpha.38",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.101.0",
-        "react": "^19.2.6",
-        "react-dom": "^19.2.6",
-        "react-router-dom": "^7.18.1",
-        "viem": "^2.52.2",
-        "wagmi": "^3.7.4"
+        "react": "^19",
+        "react-dom": "^19",
+        "react-router-dom": "^7.18.2",
+        "viem": "^2.55.13",
+        "wagmi": "^3.7.6"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.3.2",
         "@types/node": "^26",
-        "@types/react": "^19.2.14",
-        "@types/react-dom": "^19.2.3",
-        "@vitejs/plugin-react": "^6.0.1",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^6",
         "tailwindcss": "^4.3.2",
         "typescript": "^6.0.3",
-        "vite": "^8.0.12"
+        "vite": "^8"
     }
 }

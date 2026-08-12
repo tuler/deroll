@@ -34,7 +34,7 @@
     "dependencies": {
         "@cartesi/rollup": "1.0.0-alpha.0",
         "@deroll/core": "workspace:*",
-        "viem": "^2.53.1"
+        "viem": "^2.55.13"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
