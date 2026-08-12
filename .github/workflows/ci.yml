@@ -7,18 +7,11 @@ on:
             - release/*
             - prerelease/*
     workflow_dispatch:
-    schedule:
-        # weekly riscv64 machine validation (Mondays 06:00 UTC)
-        - cron: "0 6 * * 1"
 permissions:
     contents: read
 concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
-
-# CARTESI_MACHINE_VERSION: emulator distribution cm's addon links against.
-env:
-    CARTESI_MACHINE_VERSION: 0.21.0
 
 jobs:
     build:
@@ -28,9 +21,9 @@ jobs:
             - name: Checkout Repo
               uses: actions/checkout@v6
               with:
-                  # cmio's native addon (cmt.node) compiles from the
-                  # machine-guest-tools submodule (deps/machine-guest-tools)
-                  # during `bun install`, so it must be checked out.
+                  # genext2fs's native addon compiles from the genext2fs and
+                  # libarchive submodules (deps/) during `bun install`, so they
+                  # must be checked out.
                   submodules: recursive
 
             - name: Setup Bun
@@ -42,13 +35,7 @@ jobs:
                   node-version: 24
 
             # ubuntu-latest already ships gcc/g++/make/python3, which node-gyp
-            # needs to compile the cmio/cm addons on install. cm additionally
-            # links against the installed emulator's static libcartesi.
-            - name: Install cartesi-machine emulator
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-
+            # needs to compile the genext2fs addon on install.
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
@@ -60,61 +47,3 @@ jobs:
 
             - name: Test
               run: bun run test
-
-    # Heavy riscv64 validation: cross-build the real-IO libcmt + addon and run it
-    # inside an emulated Cartesi Machine. The host build, darwin and the other
-    # linux prebuilds are already exercised by `bun run test` above; the riscv64
-    # addon can only be validated under emulation, so it's kept OFF the PR/push
-    # hot path and runs on demand and weekly.
-    cmio-machine:
-        name: cmio riscv64 machine test
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  submodules: recursive
-
-            - uses: oven-sh/setup-bun@v2
-
-            - uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-
-            - uses: docker/setup-qemu-action@v3
-              with:
-                  platforms: riscv64
-
-            # cm's addon links against the installed emulator during `bun install`
-            - name: Install cartesi-machine emulator
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-
-            # bun (not npm) — the workspace uses bun's `catalog:` protocol.
-            - run: bun install --frozen-lockfile
-
-            # libcmt bundles the `cmio` ioctl ABI since machine-guest-tools
-            # 0.18.0, so the Cartesi Linux headers are no longer needed here.
-            - name: Install riscv64 cross toolchain
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
-
-            - name: Cross-build libcmt (real IO driver)
-              working-directory: packages/bindings/cmio
-              run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
-
-            - name: Prebuild riscv64 addon
-              working-directory: packages/bindings/cmio
-              env:
-                  CC: riscv64-linux-gnu-gcc
-                  CXX: riscv64-linux-gnu-g++
-                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
-              run: bun run prebuild:native -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
-
-            - name: Run end-to-end test inside cartesi-machine
-              working-directory: packages/bindings/cmio
-              run: |
-                  CARTESI_MACHINE="docker run --rm -u $(id -u):$(id -g) -v $PWD:/mnt -w /mnt cartesi/machine-emulator:0.19.0 cartesi-machine" \
-                  SKIP_PREBUILD=1 test/machine/run.sh

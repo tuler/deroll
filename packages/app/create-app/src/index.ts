@@ -56,7 +56,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
     const { directory, libraries, packageManager } = options;
 
     // let's keep this as a variable, because it might change
-    const bindingPackage = "@deroll/cmio";
+    const bindingPackage = "@cartesi/rollup";
 
     // choose one of the examples based on the selected libraries
     let example = "minimal";
@@ -142,6 +142,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
             fs.promises.writeFile(
                 path.join(directory, "Dockerfile"),
                 dockerfile({
+                    bindingPackage,
                     packageManager,
                     nodeVersion: "24.17.0",
                 }),

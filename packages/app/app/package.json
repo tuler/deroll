@@ -32,7 +32,7 @@
         "prepack": "run-s build"
     },
     "dependencies": {
-        "@deroll/cmio": "workspace:*",
+        "@cartesi/rollup": "1.0.0-alpha.0",
         "@deroll/core": "workspace:*",
         "viem": "^2.53.1"
     },

@@ -1,3 +1,5 @@
+import { Rollup, RollupError } from "@cartesi/rollup";
+import { constants } from "node:os";
 import type {
     AdvanceRequestHandler,
     App,
@@ -10,7 +12,11 @@ import type {
     RequestHandlerResult,
     Voucher,
 } from "@deroll/core";
-import { Rollup, RollupError } from "@deroll/cmio";
+
+// libcmt's mock IO driver reports ENODATA once the inputs listed in CMT_INPUTS
+// are exhausted. Its numeric value is platform-specific (61 on Linux, 96 on
+// macOS), so read it from node instead of hardcoding it.
+const ENODATA = constants.errno.ENODATA;
 
 export class NativeApp implements App {
     private options: AppOptions;
@@ -27,8 +33,10 @@ export class NativeApp implements App {
         this.rollup = new Rollup();
     }
 
+    // @cartesi/rollup reports output indices as bigint (the uint64 libcmt
+    // returns); the App interface exposes them as number
     public async createNotice(notice: Notice): Promise<number> {
-        return this.rollup.emitNotice(notice.payload);
+        return Number(this.rollup.emitNotice(notice.payload));
     }
 
     public async createReport(report: Report): Promise<void> {
@@ -36,13 +44,13 @@ export class NativeApp implements App {
     }
 
     public async createVoucher(voucher: Voucher): Promise<number> {
-        return this.rollup.emitVoucher(voucher);
+        return Number(this.rollup.emitVoucher(voucher));
     }
 
     public async createDelegateCallVoucher(
         voucher: DelegateCallVoucher,
     ): Promise<number> {
-        return this.rollup.emitDelegateCallVoucher(voucher);
+        return Number(this.rollup.emitDelegateCallVoucher(voucher));
     }
 
     public async registerException(exception: Exception): Promise<void> {
@@ -123,9 +131,8 @@ export class NativeApp implements App {
                 }
             } catch (e: unknown) {
                 if (e instanceof RollupError) {
-                    if (hostMode && e.errno === -96) {
-                        // No message available on STREAM
-                        // exit gracefully
+                    if (hostMode && e.errno === -ENODATA) {
+                        // no more mock inputs to read, exit gracefully
                         break;
                     }
                 }

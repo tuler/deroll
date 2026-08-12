@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@deroll/cmio`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
+Deroll is a TypeScript framework for building the **backend** of decentralized applications (dApps) on [Cartesi](https://cartesi.io) rollups. A Cartesi dApp backend is a long-running process that reads requests from inside the Cartesi Machine via the native **libcmt** binding (`@cartesi/rollup`, published from `cartesi/rollups-ts`), processes them deterministically, and produces outputs. Deroll wraps that protocol in a small set of composable libraries. (The legacy Rollup HTTP Server transport has been replaced by the native binding.)
 
 The two request types from the rollup are:
 - **advance_state** — a state-changing input (on-chain). Handlers return `"accept"` or `"reject"`; on reject the machine state is reverted and vouchers/notices are discarded (reports survive).
@@ -18,16 +18,16 @@ bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glo
 
 App pillar — `packages/app/*`:
 - **`packages/app/core`** (`@deroll/core`) — shared, **hand-authored** types (`src/types.ts`, `src/index.ts`; depends only on `viem`). Defines the `App` interface, `AppOptions`, and the request/output types (camelCase, `bigint` metadata, `Buffer` request payloads; outputs use viem `Hex`/`Uint8Array`). No runtime logic, no codegen; everything else depends on this.
-- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@tuler/node-libcmt`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
+- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@cartesi/rollup`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
 - **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
 - **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
 - **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
 - **`packages/app/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
 
 Bindings pillar — `packages/bindings/*`:
-- **`packages/bindings/cmio`** (`@deroll/cmio`) — N-API binding for libcmt, compiled from the `machine-guest-tools` submodule.
-- **`packages/bindings/cm`** (`@deroll/cm`) — N-API binding for the Cartesi Machine emulator, linked against an installed emulator distribution.
 - **`packages/bindings/genext2fs`** (`@deroll/genext2fs`) — N-API binding for `xgenext2fs`, the ext2 image generator; the main entry point is `tarToExt2()`. Compiles the `genext2fs` and `libarchive` submodules straight into the addon (see its README for how the CLI is turned into a library). **GPL-2.0-only**, unlike the rest of the repo.
+
+The libcmt and Cartesi Machine emulator bindings used to live here as `@deroll/cmio` and `@deroll/cm`. They are now published from [`cartesi/rollups-ts`](https://github.com/cartesi/rollups-ts) as **`@cartesi/rollup`** and **`@cartesi/machine`**, and are consumed as ordinary external dependencies (`@deroll/app` depends on `@cartesi/rollup`).
 
 Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
 

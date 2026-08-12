@@ -12,10 +12,6 @@ permissions:
     pull-requests: write
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
-# CARTESI_MACHINE_VERSION: emulator distribution cm's addon links against.
-env:
-    CARTESI_MACHINE_VERSION: 0.21.0
-
 jobs:
     # Build native prebuilds only when the owning package is actually about to
     # be published — i.e. its package.json version is not yet on npm. This is
@@ -28,34 +24,12 @@ jobs:
         name: Detect native package publish
         runs-on: ubuntu-latest
         outputs:
-            publish: ${{ steps.check.outputs.publish }}
-            cm-publish: ${{ steps.check-cm.outputs.publish }}
             genext2fs-publish: ${{ steps.check-genext2fs.outputs.publish }}
         steps:
             - uses: actions/checkout@v6
             - uses: actions/setup-node@v6
               with:
                   node-version: 24
-            - id: check
-              run: |
-                  LOCAL=$(node -p "require('./packages/bindings/cmio/package.json').version")
-                  if npm view "@deroll/cmio@${LOCAL}" version >/dev/null 2>&1; then
-                      echo "publish=false" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cmio@${LOCAL} already on npm -> skip prebuilds."
-                  else
-                      echo "publish=true" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cmio@${LOCAL} not yet published -> build prebuilds."
-                  fi
-            - id: check-cm
-              run: |
-                  LOCAL=$(node -p "require('./packages/bindings/cm/package.json').version")
-                  if npm view "@deroll/cm@${LOCAL}" version >/dev/null 2>&1; then
-                      echo "publish=false" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cm@${LOCAL} already on npm -> skip platform packages."
-                  else
-                      echo "publish=true" >> "$GITHUB_OUTPUT"
-                      echo "@deroll/cm@${LOCAL} not yet published -> build platform packages."
-                  fi
             - id: check-genext2fs
               run: |
                   LOCAL=$(node -p "require('./packages/bindings/genext2fs/package.json').version")
@@ -67,10 +41,10 @@ jobs:
                       echo "@deroll/genext2fs@${LOCAL} not yet published -> build prebuilds."
                   fi
 
-    # @deroll/genext2fs native prebuilds. Unlike cmio/cm the addon links against
-    # nothing but libc (xgenext2fs and the tar half of libarchive are compiled
-    # straight from the submodules), so these jobs need no system packages, and a
-    # consumer without a prebuild can always fall back to a source build.
+    # @deroll/genext2fs native prebuilds. The addon links against nothing but
+    # libc (xgenext2fs and the tar half of libarchive are compiled straight from
+    # the submodules), so these jobs need no system packages, and a consumer
+    # without a prebuild can always fall back to a source build.
     genext2fs-prebuild:
         name: genext2fs prebuild ${{ matrix.os }}
         needs: detect
@@ -92,9 +66,7 @@ jobs:
             - uses: actions/setup-node@v6
               with:
                   node-version: 24
-            # only genext2fs is built here, so skip the install scripts of the
-            # sibling native packages, which need the emulator distribution
-            - run: bun install --frozen-lockfile --ignore-scripts
+            - run: bun install --frozen-lockfile
             - name: Build prebuild
               working-directory: packages/bindings/genext2fs
               run: bun run prebuild:native
@@ -104,155 +76,15 @@ jobs:
                   if-no-files-found: error
                   path: packages/bindings/genext2fs/prebuilds/
 
-    # @deroll/cmio native prebuilds, built from the exact commit being published
-    # (linux-x64/arm64, darwin-x64/arm64). Each job uploads a prebuilds-<os>
-    # artifact the release job collects. riscv64 validation lives in ci.yml.
-    prebuild:
-        name: cmio prebuild ${{ matrix.os }}
-        needs: detect
-        if: needs.detect.outputs.publish == 'true'
-        strategy:
-            matrix:
-                include:
-                    - os: ubuntu-latest # linux-x64
-                    - os: ubuntu-24.04-arm # linux-arm64
-                    - os: macos-15-intel # darwin-x64
-                    - os: macos-latest # darwin-arm64
-        runs-on: ${{ matrix.os }}
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  submodules: recursive
-            - uses: oven-sh/setup-bun@v2
-            - uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-            # cm's addon links against the installed emulator during the root
-            # `bun install`
-            - name: Install cartesi-machine emulator (linux)
-              if: runner.os == 'Linux'
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-            - name: Install cartesi-machine emulator (macos)
-              if: runner.os == 'macOS'
-              run: brew install cartesi/tap/cartesi-machine-emulator
-            # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
-            # npm can't resolve. Install at the repo root, then prebuild in cmio.
-            - run: bun install --frozen-lockfile
-            - name: Build prebuild
-              working-directory: packages/bindings/cmio
-              run: bun run prebuild:native
-            - uses: actions/upload-artifact@v7
-              with:
-                  name: prebuilds-${{ matrix.os }}
-                  if-no-files-found: error
-                  path: packages/bindings/cmio/prebuilds/
-
-    prebuild-riscv64:
-        name: cmio prebuild linux-riscv64 (cross)
-        needs: detect
-        if: needs.detect.outputs.publish == 'true'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  submodules: recursive
-            - uses: oven-sh/setup-bun@v2
-            - uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-            # cm's addon links against the installed emulator during the root
-            # `bun install`
-            - name: Install cartesi-machine emulator
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-            - run: bun install --frozen-lockfile
-            # libcmt bundles the `cmio` ioctl ABI since machine-guest-tools
-            # 0.18.0, so the Cartesi Linux headers are no longer needed here.
-            - name: Install riscv64 cross toolchain
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y --no-install-recommends gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
-            - name: Cross-build libcmt (real IO driver)
-              working-directory: packages/bindings/cmio
-              run: make -C deps/machine-guest-tools/sys-utils/libcmt libcmt TOOLCHAIN_PREFIX=riscv64-linux-gnu-
-            - name: Prebuild riscv64 addon
-              working-directory: packages/bindings/cmio
-              env:
-                  CC: riscv64-linux-gnu-gcc
-                  CXX: riscv64-linux-gnu-g++
-                  LIBCMT_LIB: ${{ github.workspace }}/packages/bindings/cmio/deps/machine-guest-tools/sys-utils/libcmt/build/riscv64/libcmt.a
-              run: bun run prebuild:native -- --strip-bin riscv64-linux-gnu-strip --platform linux --arch riscv64
-            - uses: actions/upload-artifact@v7
-              with:
-                  name: prebuilds-riscv64
-                  if-no-files-found: error
-                  path: packages/bindings/cmio/prebuilds/
-
-    # @deroll/cm per-platform prebuilt packages (@deroll/cm-<platform>-<arch>),
-    # assembled from the exact commit being published. Each job builds the
-    # N-API addon against the installed emulator's static libcartesi, bundles
-    # the installation's cartesi-jsonrpc-machine server, and uploads the whole
-    # npm/ tree (scaffolds are version-stamped identically by
-    # package-platform, so the artifacts merge cleanly).
-    cm-platform:
-        name: cm platform package ${{ matrix.os }}
-        needs: detect
-        if: needs.detect.outputs.cm-publish == 'true'
-        strategy:
-            matrix:
-                include:
-                    - os: ubuntu-latest # linux-x64
-                    - os: ubuntu-24.04-arm # linux-arm64
-                    - os: macos-15-intel # darwin-x64
-                    - os: macos-latest # darwin-arm64
-        runs-on: ${{ matrix.os }}
-        steps:
-            - uses: actions/checkout@v6
-              with:
-                  submodules: recursive
-            - uses: oven-sh/setup-bun@v2
-            - uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-            # the emulator distribution the addon links against; its
-            # cartesi-jsonrpc-machine server is bundled into the platform package
-            - name: Install cartesi-machine emulator (linux)
-              if: runner.os == 'Linux'
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-            - name: Install cartesi-machine emulator (macos)
-              if: runner.os == 'macOS'
-              run: brew install cartesi/tap/cartesi-machine-emulator
-            # bun (not npm) — the workspace uses bun's `catalog:` protocol, which
-            # npm can't resolve. The cm install script compiles the addon here.
-            - run: bun install --frozen-lockfile
-            - name: Assemble platform package
-              working-directory: packages/bindings/cm
-              run: bun run package:platform
-            - uses: actions/upload-artifact@v7
-              with:
-                  name: cm-platform-${{ matrix.os }}
-                  if-no-files-found: error
-                  path: packages/bindings/cm/npm/
-
     release:
         name: Release
-        needs:
-            [detect, prebuild, prebuild-riscv64, cm-platform, genext2fs-prebuild]
+        needs: [detect, genext2fs-prebuild]
         # Run when creating the Version PR (publish=false, prebuilds skipped), or
         # when publishing AND every prebuild succeeded. Never publish a native
         # package without its prebuilds: a prebuild failure blocks the release
         # (re-runnable).
         if: >-
             always() && needs.detect.result == 'success' &&
-            (needs.detect.outputs.publish == 'false' ||
-             (needs.prebuild.result == 'success' && needs.prebuild-riscv64.result == 'success')) &&
-            (needs.detect.outputs.cm-publish == 'false' ||
-             needs.cm-platform.result == 'success') &&
             (needs.detect.outputs.genext2fs-publish == 'false' ||
              needs.genext2fs-prebuild.result == 'success')
         runs-on: ubuntu-latest
@@ -260,8 +92,8 @@ jobs:
             - name: Checkout Repo
               uses: actions/checkout@v6
               with:
-                  # cmio's native addon compiles from the machine-guest-tools
-                  # submodule (deps/machine-guest-tools) during `bun install`.
+                  # genext2fs's native addon compiles from the genext2fs and
+                  # libarchive submodules (deps/) during `bun install`.
                   submodules: recursive
 
             - name: Setup Bun
@@ -281,38 +113,11 @@ jobs:
             - name: Update npm for trusted publishing
               run: npm install -g npm@11
 
-            # cm's addon links against the installed emulator during `bun install`
-            - name: Install cartesi-machine emulator
-              run: |
-                  wget -O /tmp/machine-emulator.deb "https://github.com/cartesi/machine-emulator/releases/download/v${CARTESI_MACHINE_VERSION}/machine-emulator_$(dpkg --print-architecture).deb"
-                  sudo apt-get update && sudo apt-get install -y /tmp/machine-emulator.deb
-
             - name: Install Dependencies
               run: bun install --frozen-lockfile
 
-            # Collect all platform prebuilds into the cmio package so
-            # `changeset publish` packs @deroll/cmio with them instead of forcing
-            # consumers to compile from source. Only present when publishing.
-            - name: Collect cmio prebuilds
-              if: needs.detect.outputs.publish == 'true'
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: prebuilds-*
-                  merge-multiple: true
-                  path: packages/bindings/cmio/prebuilds
-
-            # Collect the assembled @deroll/cm-<platform>-<arch> packages so the
-            # release script can publish them right before @deroll/cm itself.
-            - name: Collect cm platform packages
-              if: needs.detect.outputs.cm-publish == 'true'
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: cm-platform-*
-                  merge-multiple: true
-                  path: packages/bindings/cm/npm
-
-            # Same for @deroll/genext2fs: pack the prebuilds so installing does
-            # not have to compile the addon.
+            # Pack the prebuilds into @deroll/genext2fs so installing does not
+            # have to compile the addon.
             - name: Collect genext2fs prebuilds
               if: needs.detect.outputs.genext2fs-publish == 'true'
               uses: actions/download-artifact@v8
