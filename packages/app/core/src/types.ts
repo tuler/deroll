@@ -48,9 +48,9 @@ export type DelegateCallVoucher = {
 };
 export type Exception = { payload: Payload };
 
-export type NoticeResponse = { index: number };
+export type NoticeResponse = { index: bigint };
 export type ReportResponse = Record<string, never>; // XXX: should probably be 204 (no content)
-export type VoucherResponse = { index: number };
+export type VoucherResponse = { index: bigint };
 
 export type InspectRequestHandler = (data: InspectRequestData) => Promise<void>;
 

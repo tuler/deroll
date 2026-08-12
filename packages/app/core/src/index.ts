@@ -15,10 +15,10 @@ export type AppOptions = {
 
 export interface App {
     start(): Promise<void>;
-    createNotice(request: Notice): Promise<number>;
+    createNotice(request: Notice): Promise<bigint>;
     createReport(request: Report): Promise<void>;
-    createVoucher(request: Voucher): Promise<number>;
-    createDelegateCallVoucher(request: DelegateCallVoucher): Promise<number>;
+    createVoucher(request: Voucher): Promise<bigint>;
+    createDelegateCallVoucher(request: DelegateCallVoucher): Promise<bigint>;
     addAdvanceHandler(handler: AdvanceRequestHandler): void;
     addInspectHandler(handler: InspectRequestHandler): void;
 }

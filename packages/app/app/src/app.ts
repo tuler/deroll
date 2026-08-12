@@ -33,24 +33,22 @@ export class NativeApp implements App {
         this.rollup = new Rollup();
     }
 
-    // @cartesi/rollup reports output indices as bigint (the uint64 libcmt
-    // returns); the App interface exposes them as number
-    public async createNotice(notice: Notice): Promise<number> {
-        return Number(this.rollup.emitNotice(notice.payload));
+    public async createNotice(notice: Notice): Promise<bigint> {
+        return this.rollup.emitNotice(notice.payload);
     }
 
     public async createReport(report: Report): Promise<void> {
         this.rollup.emitReport(report.payload);
     }
 
-    public async createVoucher(voucher: Voucher): Promise<number> {
-        return Number(this.rollup.emitVoucher(voucher));
+    public async createVoucher(voucher: Voucher): Promise<bigint> {
+        return this.rollup.emitVoucher(voucher);
     }
 
     public async createDelegateCallVoucher(
         voucher: DelegateCallVoucher,
-    ): Promise<number> {
-        return Number(this.rollup.emitDelegateCallVoucher(voucher));
+    ): Promise<bigint> {
+        return this.rollup.emitDelegateCallVoucher(voucher);
     }
 
     public async registerException(exception: Exception): Promise<void> {
