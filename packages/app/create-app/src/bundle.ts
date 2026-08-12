@@ -19,7 +19,7 @@ const options: BuildOptions = {
     outfile: "${outfile}",
     platform: "node",
     target: "${target}",
-    // @deroll/cmio is a native addon (.node): it cannot be inlined into
+    // ${bindingPackage} is a native addon (.node): it cannot be inlined into
     // the bundle and must be required at runtime from node_modules. The
     // Dockerfile copies it (and its node-gyp-build loader) next to the bundle.
     external: ["${bindingPackage}"],
