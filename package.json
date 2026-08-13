@@ -24,9 +24,6 @@
     "catalog": {
         "@biomejs/biome": "2.5.8"
     },
-    "overrides": {
-        "tsx": "^4.23.12"
-    },
     "trustedDependencies": [
         "bufferutil",
         "es5-ext",
@@ -45,7 +42,6 @@
         "node-addon-api": "^8.9.1",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
-        "tsx": "^4.23.12",
         "vite": "^8.2.1"
     }
 }

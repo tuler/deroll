@@ -12,7 +12,6 @@
         "node-addon-api": "^8.9.1",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
-        "tsx": "^4.23.12",
         "vite": "^8.2.1",
       },
       "devDependencies": {
@@ -251,9 +250,6 @@
     "vue-demi",
     "es5-ext",
   ],
-  "overrides": {
-    "tsx": "^4.23.12",
-  },
   "catalog": {
     "@biomejs/biome": "2.5.8",
   },
