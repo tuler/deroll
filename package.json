@@ -24,6 +24,9 @@
     "catalog": {
         "@biomejs/biome": "2.5.8"
     },
+    "overrides": {
+        "tsx": "^4.23.12"
+    },
     "trustedDependencies": [
         "bufferutil",
         "es5-ext",
