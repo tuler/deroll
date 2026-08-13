@@ -1,5 +1,5 @@
 import { decodeDeposit } from "@cartesi/codec";
-import type { AdvanceRequestHandler, Voucher } from "@deroll/core";
+import type { AdvanceRequestHandler, Voucher } from "@cartesi/rollup";
 import { type Address, type Hex, getAddress, isAddress } from "viem";
 
 import {

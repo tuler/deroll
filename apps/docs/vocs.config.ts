@@ -63,20 +63,6 @@ export default defineConfig({
             text: "API",
             items: [
                 {
-                    text: "Core",
-                    link: "/app/overview",
-                    items: [
-                        {
-                            text: "chain",
-                            link: "/app/chain",
-                        },
-                        {
-                            text: "broadcast",
-                            link: "/app/broadcast",
-                        },
-                    ],
-                },
-                {
                     text: "Wallet",
                     link: "/app/wallet/overview",
                     collapsed: true,

@@ -10,7 +10,7 @@ import {
     erc1155SinglePortalAddress,
     etherPortalAddress,
 } from "@cartesi/codec";
-import type { AdvanceRequest } from "@deroll/core";
+import type { AdvanceRequest } from "@cartesi/rollup";
 import type { Hex } from "viem";
 import { describe, expect, test } from "vitest";
 

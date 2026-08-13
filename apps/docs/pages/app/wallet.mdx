@@ -88,8 +88,7 @@ If the user doesn't have enough balance an exception is raised, which rejects th
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { Rollup } from "@cartesi/rollup";
-import { chain } from "@deroll/core"; // [!code ++]
+import { Rollup, chain } from "@cartesi/rollup"; // [!code ++]
 import { createWallet } from "@deroll/wallet";
 import { hexToBigInt, numberToHex, toHex } from "viem"; // [!code ++]
 

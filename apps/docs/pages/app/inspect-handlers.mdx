@@ -11,13 +11,14 @@ The following example defines an inspect handler that logs the payload, decode i
 /// <reference types="node" />
 // ---cut---
 import { Rollup } from "@cartesi/rollup";
-import type { InspectRequestHandler } from "@deroll/core";
+import type { InspectRequestHandler } from "@cartesi/rollup";
 import { stringToHex } from "viem";
 
 const handler: InspectRequestHandler = ({ payload }, rollup) => {
     console.log(payload);
     const str = payload.toString();
     rollup.emitReport(stringToHex(str.toUpperCase()));
+    return true; // answered
 };
 
 // open the rollup device
@@ -26,9 +27,27 @@ rollup.run({ inspect: handler });
 ```
 
 The handler receives the rollup as a second argument, which is how it emits the
-report. To answer queries from several handlers, call them from one — there is
-no verdict to short-circuit on, so unlike [chain](/app/chain) there is nothing
-to compose.
+report.
+
+Note the `return true`. `InspectRequestHandler` is the type of a handler meant to
+be *composed*, so it must say whether it answered the query — that is what lets
+`chain` fall through to the next handler when one declines, and it is what the
+[router](/app/router/overview) returns when no route matched. A handler passed
+straight to `rollup.run` without composing is free to return nothing, since it
+decides the request's fate alone:
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+
+const rollup = new Rollup();
+// ---cut---
+rollup.run({
+    inspect: ({ payload }, rollup) => {
+        rollup.emitReport(payload); // no return: accepted // [!code focus]
+    },
+});
+```
 
 Reports are the only kind of output that inspect handlers can create.
 The state of the Cartesi machine as a whole is not modified on an inspect request, so you should only use this kind of request handler to return application state (and not modify the state).

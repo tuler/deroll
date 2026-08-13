@@ -11,8 +11,7 @@
     },
     "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
-        "@cartesi/rollup": "1.0.0-alpha.0",
-        "@deroll/core": "workspace:*",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/genext2fs": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",

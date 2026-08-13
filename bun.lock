@@ -26,8 +26,7 @@
       "version": "1.0.0-alpha.12",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
-        "@cartesi/rollup": "1.0.0-alpha.0",
-        "@deroll/core": "workspace:*",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/genext2fs": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
@@ -60,8 +59,7 @@
         "deroll-example-withdraw": "dist/withdraw.js",
       },
       "dependencies": {
-        "@cartesi/rollup": "1.0.0-alpha.0",
-        "@deroll/core": "workspace:*",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "viem": "^2.55.13",
@@ -102,24 +100,6 @@
         "vite": "^8",
       },
     },
-    "packages/app/core": {
-      "name": "@deroll/core",
-      "version": "2.0.0-alpha.5",
-      "devDependencies": {
-        "@biomejs/biome": "catalog:",
-        "@cartesi/rollup": "1.0.0-alpha.0",
-        "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^26",
-        "npm-run-all": "^4",
-        "tsup": "^8.5.1",
-        "tsx": "^4",
-        "typescript": "^6.0.3",
-        "vitest": "^4.1.9",
-      },
-      "peerDependencies": {
-        "@cartesi/rollup": "1.0.0-alpha.0",
-      },
-    },
     "packages/app/create-app": {
       "name": "@deroll/create-app",
       "version": "2.0.0-alpha.14",
@@ -151,12 +131,12 @@
       "name": "@deroll/router",
       "version": "2.0.0-alpha.5",
       "dependencies": {
-        "@deroll/core": "workspace:*",
         "path-to-regexp": "^8.4.2",
         "viem": "^2.55.13",
       },
       "devDependencies": {
         "@biomejs/biome": "catalog:",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "npm-run-all": "^4.1.5",
@@ -164,6 +144,9 @@
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9",
+      },
+      "peerDependencies": {
+        "@cartesi/rollup": "1.0.0-alpha.1",
       },
     },
     "packages/app/tsconfig": {
@@ -175,11 +158,11 @@
       "version": "2.0.0-alpha.8",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
-        "@deroll/core": "workspace:*",
         "viem": "^2.55.13",
       },
       "devDependencies": {
         "@biomejs/biome": "catalog:",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "@vitest/coverage-istanbul": "^4.1.9",
@@ -188,6 +171,9 @@
         "tsup": "^8.5.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9",
+      },
+      "peerDependencies": {
+        "@cartesi/rollup": "1.0.0-alpha.1",
       },
     },
     "packages/bindings/genext2fs": {
@@ -303,7 +289,7 @@
 
     "@cartesi/react": ["@cartesi/react@2.0.0-alpha.38", "", { "dependencies": { "@cartesi/client": "2.0.0-alpha.34" }, "peerDependencies": { "@tanstack/react-query": "^5.0.0", "react": "^19.0.0", "viem": "^2.0.0", "wagmi": "^3.0.0" } }, "sha512-ZYB59B+4oMUmJBwTnERUQS5cRqxCabUzxNOr7kTevTlA8umjZgHrb3wM7gtHzEoSwUgH7uTL5H0vEjmymH2N2w=="],
 
-    "@cartesi/rollup": ["@cartesi/rollup@1.0.0-alpha.0", "", { "dependencies": { "node-addon-api": "^8.3.0", "node-gyp-build": "^4.8.4" } }, "sha512-aPXfcQ30SDCRi4TmiexlDAwAry9J645Ae5B16IFjc01tWNtXLSIu/Cy0V0RmkyNu9RZ8EsGVyfu+ITnVzLq5VQ=="],
+    "@cartesi/rollup": ["@cartesi/rollup@1.0.0-alpha.1", "", { "dependencies": { "node-addon-api": "^8.3.0", "node-gyp-build": "^4.8.4" } }, "sha512-zeXB5Ak509JgrDRpNwldw1J8z0JKnrMZyEvSpZY9RNkUi740hpMxunGhTLDRyd634xL3Owgz19BAuRWK+GowSg=="],
 
     "@cartesi/rpc": ["@cartesi/rpc@2.0.0-alpha.25", "", { "dependencies": { "json-rpc-2.0": "^1.7.1" } }, "sha512-gEvuXXUd6hLGyskdC5opiMsVwRIZnpPpioShUdUbTiPLs7w3stLbRlrxxTO34/NqHXLXvtaxiS3steMjoDpanQ=="],
 
@@ -372,8 +358,6 @@
     "@codesandbox/sandpack-react": ["@codesandbox/sandpack-react@2.20.0", "", { "dependencies": { "@codemirror/autocomplete": "^6.4.0", "@codemirror/commands": "^6.1.3", "@codemirror/lang-css": "^6.0.1", "@codemirror/lang-html": "^6.4.0", "@codemirror/lang-javascript": "^6.1.2", "@codemirror/language": "^6.3.2", "@codemirror/state": "^6.2.0", "@codemirror/view": "^6.7.1", "@codesandbox/sandpack-client": "^2.19.8", "@lezer/highlight": "^1.1.3", "@react-hook/intersection-observer": "^3.1.1", "@stitches/core": "^1.2.6", "anser": "^2.1.1", "clean-set": "^1.1.2", "dequal": "^2.0.2", "escape-carriage": "^1.3.1", "lz-string": "^1.4.4", "react-devtools-inline": "4.4.0", "react-is": "^17.0.2" }, "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19", "react-dom": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-takd1YpW/PMQ6KPQfvseWLHWklJovGY8QYj8MtWnskGKbjOGJ6uZfyZbcJ6aCFLQMpNyjTqz9AKNbvhCOZ1TUQ=="],
 
     "@commander-js/extra-typings": ["@commander-js/extra-typings@15.0.0", "", { "peerDependencies": { "commander": "~15.0.0" } }, "sha512-yeJlba62xqmkgELUsn7356MEnzLLu/fw2x4lofFqGnXh6YysRdEs2BaLeLtg1+KU0AXvMeqQvTTp+3hBEBK+EA=="],
-
-    "@deroll/core": ["@deroll/core@workspace:packages/app/core"],
 
     "@deroll/create-app": ["@deroll/create-app@workspace:packages/app/create-app"],
 
@@ -2382,8 +2366,6 @@
     "@base-ui/react/use-sync-external-store": ["use-sync-external-store@1.6.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w=="],
 
     "@base-ui/utils/use-sync-external-store": ["use-sync-external-store@1.6.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0" } }, "sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w=="],
-
-    "@cartesi/rollup/node-addon-api": ["node-addon-api@8.9.0", "", {}, "sha512-ekZMeaaIzSQTSpr7X2X3iJM7lTzgnx8ahAG9pJfT/7+14mlEM8ZYQ9cgCDvSSRbReFK0oHli3WrZdCiRsgAT9Q=="],
 
     "@deroll/docs/@cartesi/codec": ["@cartesi/codec@1.0.0-alpha.1", "", { "dependencies": { "abitype": "^1.3.0" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-Ef2ktVyrMvD/hxY3Jh6dznnMhh9l3Ip4Q5rBXpT3hf5Hkn9JByOXPq7yTOpKCJYpGsLby7jIYm4QZc5iFKJDHg=="],
 

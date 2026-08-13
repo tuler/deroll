@@ -11,8 +11,8 @@ The handler also receives the rollup as a second argument, which is how it emits
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { Rollup } from "@cartesi/rollup";
-import type { AdvanceRequestHandler } from "@deroll/core";
+import { Rollup, chain } from "@cartesi/rollup";
+import type { AdvanceRequestHandler } from "@cartesi/rollup";
 
 const handler: AdvanceRequestHandler = ({ msgSender, payload }, rollup) => {
     console.log(msgSender, payload);
@@ -48,12 +48,11 @@ See [Data Encoding](/app/data-encoding) for how to interpret the payload.
 
 ## Composing handlers
 
-`Rollup.run` takes a single advance handler. To run several, compose them with [chain](/app/chain), which presents the input to each in order until one accepts it:
+`Rollup.run` takes a single advance handler. To run several, compose them with `chain` from [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), which presents the input to each in order until one accepts it:
 
 ```ts twoslash
 /// <reference types="node" />
-import { Rollup } from "@cartesi/rollup";
-import { chain } from "@deroll/core";
+import { Rollup, chain } from "@cartesi/rollup";
 
 const rollup = new Rollup();
 // ---cut---
@@ -75,8 +74,7 @@ When a handler declines, the next one gets the input:
 
 ```ts twoslash
 /// <reference types="node" />
-import { Rollup } from "@cartesi/rollup";
-import { chain } from "@deroll/core";
+import { Rollup, chain } from "@cartesi/rollup";
 
 const rollup = new Rollup();
 // ---cut---
@@ -94,7 +92,7 @@ rollup.run({
 });
 ```
 
-Use [broadcast](/app/broadcast) instead when every handler should see the input even after one has accepted it.
+Use `broadcast` instead when every handler should see the input even after one has accepted it — for handlers that *observe* the same input (an indexer, a metrics collector) rather than *compete* to claim it.
 
 ## Exceptions
 
