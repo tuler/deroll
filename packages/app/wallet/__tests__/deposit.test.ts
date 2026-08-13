@@ -42,7 +42,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(etherPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.etherBalanceOf(sender)).toEqual(value);
     });
 
@@ -58,7 +58,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(etherPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.etherBalanceOf(sender.toLowerCase())).toEqual(value);
     });
 
@@ -77,7 +77,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(erc20PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc20BalanceOf(token, sender)).toBe(value);
     });
 
@@ -97,7 +97,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(erc721PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc721Has(token, sender, tokenId)).toBe(true);
     });
 
@@ -119,7 +119,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(erc1155SinglePortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, sender, tokenId)).toBe(value);
     });
 
@@ -142,7 +142,7 @@ describe("deposit", () => {
         const response = await wallet.handler(
             advance(erc1155BatchPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[0])).toBe(
             values[0],
         );

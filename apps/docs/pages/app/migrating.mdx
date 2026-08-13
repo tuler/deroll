@@ -41,13 +41,13 @@ The input metadata received in an advance handler has changed, and it is no long
 // v1
 app.addAdvanceHandler(async ({ metadata, payload }) => {
     console.log(metadata.msg_sender);
-    return "accept";
+    return true;
 });
 
 // v2
 app.addAdvanceHandler(({ msgSender }) => {
     console.log(msgSender);
-    return "accept";
+    return true;
 });
 ```
 
@@ -82,7 +82,7 @@ app.addAdvanceHandler((data) => {
         }),
         value: 1000000000000000000n, // [!code focus]
     });
-    return "accept";
+    return true;
 });
 ```
 
@@ -111,6 +111,24 @@ function validateOutput(bytes output, OutputValidityProof proof);
 ```
 
 This mainly affects the frontend or relayer code that executes vouchers, not the advance and inspect handlers you write with deroll.
+
+### Handlers return a boolean
+
+An advance handler used to return `"accept"` or `"reject"`.
+Those were the `status` field of the Rollup HTTP Server's `/finish` request body, which deroll passed through verbatim; with the HTTP transport gone, handlers return a boolean instead, matching `finish({ accept })` in the binding.
+
+```diff
+-app.addAdvanceHandler(async (data) => {
+-    if (!isMine(data)) return "reject";
+-    return "accept";
++app.addAdvanceHandler((request) => {
++    if (!isMine(request)) return false;
++    return true;
+ });
+```
+
+`true` accepts the input; `false` declines it and passes it to the next handler, exactly as `"reject"` used to.
+The return type is a strict `boolean` with no `void` — `Rollup.run` in the binding accepts a request unless a handler returns `false`, while deroll rejects unless a handler opts in, so a handler that falls off its end has to be a type error rather than a silent accept.
 
 ### Outputs are synchronous
 

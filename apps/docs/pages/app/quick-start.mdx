@@ -52,7 +52,7 @@ const app = createApp();
 // log incoming advance request
 app.addAdvanceHandler((request) => {
     console.log(request);
-    return "accept";
+    return true;
 });
 
 // log incoming inspect request
@@ -148,7 +148,7 @@ cartesi send
 // log incoming advance request
 app.addAdvanceHandler((request) => {
     console.log(request); // [!code focus]
-    return "accept";
+    return true;
 });
 ```
 :::

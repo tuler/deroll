@@ -28,7 +28,7 @@ app.addAdvanceHandler(({ msgSender, appContract }) => {
         const voucher = wallet.withdrawERC1155(dapp, token, user, 1n, value, "0x"); // [!code focus]
         app.createVoucher(voucher);
     }
-    return "accept";
+    return true;
 });
 ```
 

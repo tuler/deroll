@@ -111,7 +111,7 @@ app.addAdvanceHandler((data) => { // [!code ++]
         amount, // [!code ++]
     ); // [!code ++]
     app.createVoucher(voucher); // [!code ++]
-    return "accept"; // [!code ++]
+    return true; // [!code ++]
 }); // [!code ++]
 
 app.addInspectHandler((data) => {
@@ -156,7 +156,7 @@ app.addAdvanceHandler((data) => { // [!code focus]
         ); // [!code focus]
         app.createVoucher(voucher); // [!code focus]
     } // [!code focus]
-    return "accept"; // [!code focus]
+    return true; // [!code focus]
 }); // [!code focus]
 
 // start app

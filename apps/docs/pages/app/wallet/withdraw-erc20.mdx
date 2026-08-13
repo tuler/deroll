@@ -27,7 +27,7 @@ app.addAdvanceHandler(({ msgSender }) => {
         const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
         app.createVoucher(voucher);
     }
-    return "accept";
+    return true;
 });
 ```
 

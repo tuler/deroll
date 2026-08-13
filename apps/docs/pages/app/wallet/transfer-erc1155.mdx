@@ -25,7 +25,7 @@ app.addAdvanceHandler(({ msgSender, payload }) => {
     const address = payload.toString();
     const value = parseUnits("1", 18);
     wallet.transferERC1155(token, msgSender, address, 1n, value); // [!code focus]
-    return "accept";
+    return true;
 });
 ```
 

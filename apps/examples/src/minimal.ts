@@ -9,7 +9,7 @@ app.addAdvanceHandler((request) => {
     const { type, payload, ...metadata } = request;
     console.log(metadata);
     console.log(payload.toString());
-    return "accept";
+    return true;
 });
 
 // log incoming inspect request

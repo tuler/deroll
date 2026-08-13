@@ -36,7 +36,7 @@ app.addAdvanceHandler(({ msgSender, appContract }) => {
         ); // [!code focus]
         app.createVoucher(voucher);
     }
-    return "accept";
+    return true;
 });
 ```
 
