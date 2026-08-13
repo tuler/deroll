@@ -74,29 +74,29 @@ export class NativeApp implements App {
     private handleAdvance = async (
         request: AdvanceRequest,
     ): Promise<RequestHandlerResult> => {
-        // initialize final result as reject, which is the case if no handler accepts the request
-        let finalResult: RequestHandlerResult = "reject";
+        // start out declined, which is the outcome if no handler accepts the request
+        let finalResult: RequestHandlerResult = false;
 
         // present the input to all handlers
         for (const handler of this.advanceHandlers) {
             try {
                 const result = await handler(request);
-                if (result === "accept") {
+                if (result) {
                     if (!this.options.broadcastAdvanceRequests) {
-                        // not broadcast, return accept immediately
+                        // not broadcast, accept immediately
                         return result;
                     }
 
                     // else, store the result, and return when all handlers have been called
                     finalResult = result;
                 }
-                // here result is "reject", just continue
+                // here the handler declined, just continue
             } catch (e) {
                 // a handler raised: the input is not processable, so reject the
                 // whole request rather than letting later handlers write state
                 // on top of a partially applied one
                 this.reportFailure(e);
-                return "reject";
+                return false;
             }
         }
         return finalResult;
@@ -111,10 +111,10 @@ export class NativeApp implements App {
                 await handler(request);
             } catch (e) {
                 this.reportFailure(e);
-                return "reject";
+                return false;
             }
         }
-        return "accept";
+        return true;
     };
 
     public addAdvanceHandler(handler: AdvanceRequestHandler): void {
@@ -129,14 +129,12 @@ export class NativeApp implements App {
         // set to true if there is a CMT_INPUTS env var defined
         const hostMode = !!process.env.CMT_INPUTS;
 
-        let status: RequestHandlerResult = "accept";
+        let status: RequestHandlerResult = true;
 
         // loop forever
         while (true) {
             try {
-                const request = this.rollup.finish({
-                    accept: status === "accept",
-                });
+                const request = this.rollup.finish({ accept: status });
                 switch (request.type) {
                     case "advance": {
                         status = await this.handleAdvance(request);

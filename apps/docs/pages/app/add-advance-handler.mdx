@@ -14,7 +14,7 @@ const app = createApp();
 
 app.addAdvanceHandler((request) => { // [!code focus]
     console.log(request); // [!code focus]
-    return "accept"; // [!code focus]
+    return true; // [!code focus]
 }); // [!code focus]
 ```
 
@@ -26,4 +26,4 @@ app.addAdvanceHandler((request) => { // [!code focus]
 
 Type: `AdvanceRequestHandler`
 
-A function that receives the advance request — its input metadata (`chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index`) and its `payload` — and returns either `accept` or `reject`. It may be `async`, but it does not have to be.
+A function that receives the advance request — its input metadata (`chainId`, `appContract`, `msgSender`, `blockNumber`, `blockTimestamp`, `prevRandao`, `index`) and its `payload` — and returns `true` if it handled the input, or `false` to decline it and let the next handler try. It may be `async`, but it does not have to be.

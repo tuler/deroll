@@ -6,7 +6,7 @@ const app = createApp();
 // log incoming advance request
 app.addAdvanceHandler(({ payload }) => {
     app.createNotice(payload);
-    return "accept";
+    return true;
 });
 
 // log incoming inspect request

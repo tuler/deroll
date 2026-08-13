@@ -54,7 +54,7 @@ describe("transfer", () => {
         const response = await wallet.handler(
             advance(etherPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.etherBalanceOf(from)).toEqual(value);
         expect(wallet.etherBalanceOf(to)).toEqual(0n);
 
@@ -90,7 +90,7 @@ describe("transfer", () => {
         const response = await wallet.handler(
             advance(erc20PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc20BalanceOf(token, from)).toEqual(value);
         expect(wallet.erc20BalanceOf(token, to)).toEqual(0n);
 
@@ -129,7 +129,7 @@ describe("transfer", () => {
         const response = await wallet.handler(
             advance(erc721PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc721Has(token, from, tokenId)).toEqual(true);
         expect(wallet.erc721Has(token, to, tokenId)).toEqual(false);
 
@@ -171,7 +171,7 @@ describe("transfer", () => {
         const response = await wallet.handler(
             advance(erc1155SinglePortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, from, tokenId)).toEqual(value);
         expect(wallet.erc1155BalanceOf(token, to, tokenId)).toEqual(0n);
 
@@ -229,7 +229,7 @@ describe("transfer", () => {
         const response = await wallet.handler(
             advance(erc1155BatchPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, from, tokenIds[0])).toEqual(
             values[0],
         );
