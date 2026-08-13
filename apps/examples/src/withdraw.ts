@@ -9,7 +9,7 @@ const app = createApp();
 const abi = parseAbi(["function withdraw(address token, uint256 amount)"]);
 
 // handle input encoded as ABI function call
-app.addAdvanceHandler(async ({ metadata, payload }) => {
+app.addAdvanceHandler(({ msgSender, payload }) => {
     const { functionName, args } = decodeFunctionData({
         abi,
         data: toHex(payload),
@@ -18,20 +18,20 @@ app.addAdvanceHandler(async ({ metadata, payload }) => {
     switch (functionName) {
         case "withdraw": {
             const [token, amount] = args;
-            const recipient = metadata.msgSender;
 
             // encode voucher of token transfer to requester
             const voucher = createERC20TransferVoucher(
                 token,
-                recipient,
+                msgSender,
                 amount,
             );
 
             // create voucher output
-            await app.createVoucher(voucher);
+            app.createVoucher(voucher);
             return "accept";
         }
     }
+    return "reject";
 });
 
 // start app

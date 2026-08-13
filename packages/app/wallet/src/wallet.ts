@@ -157,11 +157,11 @@ export class WalletAppImpl implements WalletApp {
         return wallet;
     }
 
-    public handler: AdvanceRequestHandler = async (data) => {
+    public handler: AdvanceRequestHandler = (request) => {
         // decode payload as a portal deposit, dispatching on msgSender
         const deposit = decodeDeposit({
-            msgSender: data.metadata.msgSender,
-            payload: data.payload,
+            msgSender: request.msgSender,
+            payload: request.payload,
         });
 
         switch (deposit?.type) {

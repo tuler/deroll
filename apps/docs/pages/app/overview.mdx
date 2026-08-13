@@ -15,13 +15,13 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // handle advance requests (inputs)
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload });
+app.addAdvanceHandler((request) => {
+    console.log(request);
     return "accept";
 });
 
 // handle inspect requests (read-only queries)
-app.addInspectHandler(async ({ payload }) => {
+app.addInspectHandler(({ payload }) => {
     console.log(payload);
 });
 

@@ -15,14 +15,14 @@ const app = createApp();
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // ERC-721 address
-app.addAdvanceHandler(async ({ metadata }) => {
+app.addAdvanceHandler(({ msgSender }) => {
     const voucher = createERC721TransferVoucher( // [!code focus]
         token, // [!code focus]
         application, // [!code focus]
-        metadata.msgSender, // [!code focus]
+        msgSender, // [!code focus]
         1n, // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    app.createVoucher(voucher);
     return "accept";
 });
 ```

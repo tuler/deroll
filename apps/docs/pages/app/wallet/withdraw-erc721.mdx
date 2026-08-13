@@ -20,13 +20,13 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
-    const dapp = metadata.appContract;
+app.addAdvanceHandler(({ msgSender, appContract }) => {
+    const user = msgSender;
+    const dapp = appContract;
     const hasOne = wallet.erc721Has(token, user, 1n);
     if (hasOne) {
         const voucher = wallet.withdrawERC721(dapp, token, user, 1n); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createVoucher(voucher);
     }
     return "accept";
 });

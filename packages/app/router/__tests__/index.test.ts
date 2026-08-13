@@ -1,9 +1,15 @@
-import type { App } from "@deroll/core";
+import type { App, InspectRequest } from "@deroll/core";
 import { stringToHex } from "viem";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { mock, mockClear } from "vitest-mock-extended";
 
 import { type Handler, type Router, createRouter } from "../src/index.js";
+
+// build a libcmt-shaped inspect request from a query string
+const inspect = (url: string): InspectRequest => ({
+    type: "inspect",
+    payload: Buffer.from(url, "utf8"),
+});
 
 describe("Router", () => {
     let app: App;
@@ -18,41 +24,33 @@ describe("Router", () => {
         router = createRouter({ app });
     });
 
-    test("no routes", async () => {
-        await router.handler({ payload: stringToHex("test") });
+    test("no routes", () => {
+        router.handler(inspect("test"));
         expect(app.createReport).toHaveBeenCalledTimes(0);
     });
 
-    test("simple route", async () => {
+    test("simple route", () => {
         router.add("ping", (_a, _b) => "pong");
-        await router.handler({ payload: stringToHex("ping") });
-        expect(app.createReport).toHaveBeenCalledWith({
-            payload: stringToHex("pong"),
-        });
+        router.handler(inspect("ping"));
+        expect(app.createReport).toHaveBeenCalledWith(stringToHex("pong"));
     });
 
-    test("single param", async () => {
+    test("single param", () => {
         router.add("tests/:id", () => "pong");
-        await router.handler({ payload: stringToHex("tests/123") });
-        expect(app.createReport).toHaveBeenCalledWith({
-            payload: stringToHex("pong"),
-        });
+        router.handler(inspect("tests/123"));
+        expect(app.createReport).toHaveBeenCalledWith(stringToHex("pong"));
     });
 
-    test("two params", async () => {
+    test("two params", () => {
         router.add("tests/:id/second/:name", () => "pong");
-        await router.handler({ payload: stringToHex("tests/123/second/cool") });
-        expect(app.createReport).toHaveBeenCalledWith({
-            payload: stringToHex("pong"),
-        });
+        router.handler(inspect("tests/123/second/cool"));
+        expect(app.createReport).toHaveBeenCalledWith(stringToHex("pong"));
     });
 
-    test("typed params", async () => {
+    test("typed params", () => {
         const handler: Handler<{ id: string }> = (a, _b) => a.params.id;
         router.add("tests/:id", handler);
-        await router.handler({ payload: stringToHex("tests/123") });
-        expect(app.createReport).toHaveBeenCalledWith({
-            payload: stringToHex("123"),
-        });
+        router.handler(inspect("tests/123"));
+        expect(app.createReport).toHaveBeenCalledWith(stringToHex("123"));
     });
 });

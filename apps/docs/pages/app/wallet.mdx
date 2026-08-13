@@ -65,13 +65,13 @@ const wallet = createWallet();
 
 app.addAdvanceHandler(wallet.handler);
 
-app.addInspectHandler(async (data) => { // [!code ++]
+app.addInspectHandler((data) => { // [!code ++]
     const address = toHex(data.payload); // [!code ++]
     const balance = wallet.erc20BalanceOf( // [!code ++]
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
         address, // [!code ++]
     ); // [!code ++]
-    await app.createReport({ payload: numberToHex(balance) }); // [!code ++]
+    app.createReport(numberToHex(balance)); // [!code ++]
 }); // [!code ++]
 
 // start app
@@ -103,24 +103,24 @@ const app = createApp();
 const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
-app.addAdvanceHandler(async (data) => { // [!code ++]
+app.addAdvanceHandler((data) => { // [!code ++]
     const amount = hexToBigInt(toHex(data.payload)); // [!code ++]
     const voucher = wallet.withdrawERC20( // [!code ++]
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
-        data.metadata.msgSender, // [!code ++]
+        data.msgSender, // [!code ++]
         amount, // [!code ++]
     ); // [!code ++]
-    await app.createVoucher(voucher); // [!code ++]
+    app.createVoucher(voucher); // [!code ++]
     return "accept"; // [!code ++]
 }); // [!code ++]
 
-app.addInspectHandler(async (data) => {
+app.addInspectHandler((data) => {
     const address = toHex(data.payload);
     const balance = wallet.erc20BalanceOf(
         "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
         address,
     );
-    await app.createReport({ payload: numberToHex(balance) });
+    app.createReport(numberToHex(balance));
 });
 
 // start app
@@ -143,9 +143,9 @@ import { createERC20TransferVoucher } from "@deroll/wallet";
 // create app
 const app = createApp();
 
-app.addAdvanceHandler(async (data) => { // [!code focus]
+app.addAdvanceHandler((data) => { // [!code focus]
     const deposit = decodeDeposit({ // [!code focus]
-        msgSender: data.metadata.msgSender, // [!code focus]
+        msgSender: data.msgSender, // [!code focus]
         payload: data.payload, // [!code focus]
     }); // [!code focus]
     if (deposit?.type === "Erc20Deposit") { // [!code focus]
@@ -154,7 +154,7 @@ app.addAdvanceHandler(async (data) => { // [!code focus]
             deposit.sender, // [!code focus]
             deposit.value, // [!code focus]
         ); // [!code focus]
-        await app.createVoucher(voucher); // [!code focus]
+        app.createVoucher(voucher); // [!code focus]
     } // [!code focus]
     return "accept"; // [!code focus]
 }); // [!code focus]

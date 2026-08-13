@@ -18,7 +18,7 @@ const wallet = createWallet();
 
 app.addAdvanceHandler(wallet.handler);
 
-app.addInspectHandler(async ({ payload }) => { // [!code focus]
+app.addInspectHandler(({ payload }) => { // [!code focus]
     const address = payload.toString(); // [!code focus]
     const userWallet = wallet.getWallet(address); // [!code focus]
     const balance = userWallet.ether; // [!code focus]

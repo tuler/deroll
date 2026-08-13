@@ -15,14 +15,14 @@ import { parseUnits } from "viem";
 const app = createApp();
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-app.addAdvanceHandler(async ({ metadata }) => {
+app.addAdvanceHandler(({ msgSender }) => {
     const value = parseUnits("1", 18);
     const voucher = createERC20TransferVoucher( // [!code focus]
         token, // [!code focus]
-        metadata.msgSender, // [!code focus]
+        msgSender, // [!code focus]
         value, // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    app.createVoucher(voucher);
     return "accept";
 });
 ```

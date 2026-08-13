@@ -19,7 +19,7 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
-app.addInspectHandler(async ({ payload }) => { // [!code focus]
+app.addInspectHandler(({ payload }) => { // [!code focus]
     const address = payload.toString(); // [!code focus]
     const balance = wallet.erc20BalanceOf(token, address); // [!code focus]
     console.log(balance); // [!code focus]

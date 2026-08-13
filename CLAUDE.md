@@ -17,7 +17,7 @@ The four outputs a backend can emit: **notices** (verifiable event logs), **repo
 bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glob) and `apps/*`. The three pillars are **App** (`packages/app/*`), **Bindings** (`packages/bindings/*`), and **Explorer** (`packages/explorer/*`). `apps/*` are private (docs + examples + the explorer site).
 
 App pillar — `packages/app/*`:
-- **`packages/app/core`** (`@deroll/core`) — shared, **hand-authored** types (`src/types.ts`, `src/index.ts`; depends only on `viem`). Defines the `App` interface, `AppOptions`, and the request/output types (camelCase, `bigint` metadata, `Buffer` request payloads; outputs use viem `Hex`/`Uint8Array`). No runtime logic, no codegen; everything else depends on this.
+- **`packages/app/core`** (`@deroll/core`) — the composition contract (`src/types.ts`, `src/index.ts`). Defines the `App` interface, `AppOptions`, `AdvanceRequestHandler`, `InspectRequestHandler` and `RequestHandlerResult`. It does **not** redeclare the rollup protocol vocabulary: the request and output shapes (`AdvanceRequest`, `InspectRequest`, `Voucher`, `DelegateCallVoucher`, `BytesLike`, …) are re-exported from `@cartesi/rollup`, which is a **peer dependency** — the native rollup device allows only one open handle per process, so the tree must hold a single copy. No runtime logic, no codegen; wallet and router depend on this rather than on `@deroll/app`.
 - **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@cartesi/rollup`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
 - **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
 - **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
@@ -47,7 +47,9 @@ app.addInspectHandler(router.handler);   // router answers inspect queries
 app.start();
 ```
 
-Advance handlers run in registration order. With `broadcastAdvanceRequests` unset/false, the first handler to return `"accept"` short-circuits the rest; when true, all handlers run and the request is accepted if any accepted. Handler exceptions are caught and logged, never thrown out of the loop.
+Advance handlers run in registration order. With `broadcastAdvanceRequests` unset/false, the first handler to return `"accept"` short-circuits the rest; when true, all handlers run and the request is accepted if any accepted.
+
+A handler exception never escapes the loop, but it does end the request: `NativeApp` emits the error as a report and rejects immediately, skipping the remaining handlers (reports survive a rejection, notices and vouchers do not). Handlers may be sync or async; the output methods (`createNotice`, `createReport`, `createVoucher`, `createDelegateCallVoucher`, `registerException`) are **synchronous**, mirroring the binding — `finish` pauses the whole guest, so there is no I/O for the event loop to interleave with.
 
 ## Commands
 
@@ -77,8 +79,8 @@ Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` curren
 
 ## Build specifics
 
-- Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`. `@deroll/core`'s build is a plain `tsup` — its types are hand-authored in `src/`, **not** generated (the previous OpenAPI/`openapi-typescript` codegen against `cartesi/openapi-interfaces` has been removed along with the HTTP transport).
-- `viem` is the shared toolkit for hex/ABI encoding throughout. Deposit parsing in `@deroll/wallet` relies on `@cartesi/codec` (`decodeDeposit`), the protocol's encode/decode library.
+- Each package builds with **tsup** to dual CJS + ESM (`dist/index.cjs` + `dist/index.js`) with `.d.ts`/`.d.cts` type declarations. Packages are `type: module`, `sideEffects: false`. `@deroll/core`'s build is a plain `tsup` — its types are hand-authored in `src/` (or re-exported from `@cartesi/rollup`), **not** generated (the previous OpenAPI/`openapi-typescript` codegen against `cartesi/openapi-interfaces` has been removed along with the HTTP transport).
+- `viem` is the shared toolkit for hex/ABI encoding throughout — except in `@deroll/core`, which is dependency-free apart from the `@cartesi/rollup` peer. Deposit parsing in `@deroll/wallet` relies on `@cartesi/codec` (`decodeDeposit`), the protocol's encode/decode library.
 
 ## Conventions
 

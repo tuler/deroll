@@ -2,15 +2,16 @@
 
 ## Overview
 
-Advance handlers are async function callbacks that receive the `metadata` and `payload` of an input, and must return either `"accept"` or `"reject"`.
-The following example defines a request handler that accepts all requests, but just logs the input metadata.
+Advance handlers are function callbacks that receive an input — its metadata and its `payload` — and must return either `"accept"` or `"reject"`.
+They may be `async`, but they do not have to be: the underlying rollup device is synchronous, since waiting on it pauses the whole machine.
+The following example defines a request handler that accepts all requests, but just logs the input.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
 import { AdvanceRequestHandler } from "@deroll/core";
 
-const handler: AdvanceRequestHandler = async ({ metadata, payload }) => {
-    console.log(metadata);
+const handler: AdvanceRequestHandler = ({ msgSender, payload }) => {
+    console.log(msgSender, payload);
 // @noErrors
     return "
 //          ^|
@@ -34,18 +35,18 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // ---cut---
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     console.log(data);
     return "accept";
 });
 
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     // this code is never executed, because the first handler always returns "accept" // [!code hl]
     return "accept";
 });
 ```
 
-If a handler returns `"reject"` or **raises an exception**, the next handler in the list is executed.
+If a handler returns `"reject"`, the next handler in the list is executed.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
@@ -54,18 +55,29 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // ---cut---
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     console.log(data);
     return "reject";
 });
 
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     // this code will execute // [!code hl]
     return "accept";
 });
 ```
 
 If no handler returns `"accept"` the input is rejected and the machine is reverted to the initial state by the Cartesi node.
+
+## Exceptions
+
+If a handler **raises an exception**, the input could not be processed, so the whole request is rejected right there: the remaining handlers are *not* executed.
+This keeps a later handler from writing state on top of a partially applied one.
+
+The exception is also emitted as a [report](./create-report), which is what makes the failure observable from outside the machine — a rejection reverts the machine state and discards notices and vouchers, but reports survive it.
+
+:::warning
+In earlier `2.0.0` alpha releases an exception was only logged to `stderr`, and the next handler ran anyway. If your application relied on throwing to fall through to another handler, return `"reject"` instead.
+:::
 
 ## Broadcast Mode
 
@@ -80,12 +92,12 @@ const app = createApp({
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 });
 
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     console.log(data);
     return "accept";
 });
 
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     // this code executes, even when the first handler returns "accept" // [!code hl]
     return "accept";
 });
