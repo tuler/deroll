@@ -21,10 +21,10 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-app.addAdvanceHandler(async ({ metadata, payload }) => {
+app.addAdvanceHandler(({ msgSender, payload }) => {
     const value = parseUnits("1", 18);
     const address = payload.toString();
-    wallet.transferERC20(token, metadata.msgSender, address, value); // [!code focus]
+    wallet.transferERC20(token, msgSender, address, value); // [!code focus]
     return "accept";
 });
 ```

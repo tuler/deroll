@@ -11,7 +11,7 @@ const abi = parseAbi([
 ]);
 
 // handle input encoded as ABI function call
-app.addAdvanceHandler(async ({ payload }) => {
+app.addAdvanceHandler(({ payload }) => {
     const { functionName, args } = decodeFunctionData({
         abi,
         data: toHex(payload),
@@ -29,6 +29,7 @@ app.addAdvanceHandler(async ({ payload }) => {
             return "accept";
         }
     }
+    return "reject";
 });
 
 // start app

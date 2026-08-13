@@ -20,12 +20,12 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-app.addAdvanceHandler(async ({ metadata }) => {
-    const user = metadata.msgSender;
+app.addAdvanceHandler(({ msgSender }) => {
+    const user = msgSender;
     const value = wallet.erc20BalanceOf(token, user);
     if (value > 0) {
         const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
-        await app.createVoucher(voucher);
+        app.createVoucher(voucher);
     }
     return "accept";
 });

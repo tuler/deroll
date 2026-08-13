@@ -5,15 +5,16 @@ import { toHex } from "viem";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async (data) => {
-    console.log(data.metadata);
-    console.log(data.payload.toString());
+app.addAdvanceHandler((request) => {
+    const { type, payload, ...metadata } = request;
+    console.log(metadata);
+    console.log(payload.toString());
     return "accept";
 });
 
 // log incoming inspect request
-app.addInspectHandler(async (data) => {
-    console.log(toHex(data.payload));
+app.addInspectHandler((request) => {
+    console.log(toHex(request.payload));
 });
 
 // start app

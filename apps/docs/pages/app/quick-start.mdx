@@ -50,13 +50,13 @@ import { createApp } from "@deroll/app";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload });
+app.addAdvanceHandler((request) => {
+    console.log(request);
     return "accept";
 });
 
 // log incoming inspect request
-app.addInspectHandler(async ({ payload }) => {
+app.addInspectHandler(({ payload }) => {
     console.log(payload);
 });
 
@@ -133,28 +133,27 @@ cartesi send
 
 ```bash [log]
 {
-  metadata: {
-    chainId: 31337n,
-    appContract: '0xa418ed392a99a1a0c08f96345e9a9b7514047ee2',
-    msgSender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-    blockNumber: 158n,
-    blockTimestamp: 1782243979n,
-    prevRandao: 50953495096857333910293917481377617449822294969307609189375131362321353489028n,
-    index: 0n
-  },
+  type: 'advance',
+  chainId: 31337n,
+  appContract: '0xa418ed392a99a1a0c08f96345e9a9b7514047ee2',
+  msgSender: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+  blockNumber: 158n,
+  blockTimestamp: 1782243979n,
+  prevRandao: 50953495096857333910293917481377617449822294969307609189375131362321353489028n,
+  index: 0n,
   payload: <Buffer 68 65 6c 6c 6f>
 }
 ```
 ```ts [src/index.ts]
 // log incoming advance request
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log({ metadata, payload }); // [!code focus]
+app.addAdvanceHandler((request) => {
+    console.log(request); // [!code focus]
     return "accept";
 });
 ```
 :::
 
-If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi rollups logs` log you will see the output above, which is the result of the `console.log(request)` of the application code.
 Notice that the `payload` is the hex encoding of the `hello` string. More on that on the [Data Encoding](/app/data-encoding) section.
 
 ### Send input using `cast`
@@ -212,7 +211,7 @@ $ curl -X POST -d "hello" http://127.0.0.1:6751/inspect/<application>
 ```
 ```ts [src/index.ts]
 // log incoming inspect request
-app.addInspectHandler(async (data) => {
+app.addInspectHandler((data) => {
     console.log(data); // [!code focus]
 });
 ```

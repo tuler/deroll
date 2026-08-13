@@ -26,22 +26,29 @@ The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used. The only re
 
 ### Input metadata
 
-The input metadata received in an advance handler has changed.
+The input metadata received in an advance handler has changed, and it is no longer nested under a `metadata` property — the request is a single flat object.
 
 ```diff
--chain_id: number;
--msg_sender: Address;
--epochIndex: bigint;
--input_index: number;
--block_number: number;
--timestamp: number;
-+chainId: bigint;
-+appContract: Address;
-+msgSender: Address;
-+index: bigint;
-+blockNumber: bigint;
-+blockTimestamp: bigint;
-+prevRandao: bigint;
+-{ metadata: { chain_id: number; msg_sender: Address; epochIndex: bigint;
+-              input_index: number; block_number: number; timestamp: number },
+-  payload: Hex }
++{ type: "advance"; chainId: bigint; appContract: Address; msgSender: Address;
++  index: bigint; blockNumber: bigint; blockTimestamp: bigint;
++  prevRandao: bigint; payload: Buffer }
+```
+
+```ts
+// v1
+app.addAdvanceHandler(async ({ metadata, payload }) => {
+    console.log(metadata.msg_sender);
+    return "accept";
+});
+
+// v2
+app.addAdvanceHandler(({ msgSender }) => {
+    console.log(msgSender);
+    return "accept";
+});
 ```
 
 ### Payload type
@@ -61,12 +68,12 @@ import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
     const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
     const amount = parseUnits("1", 18);
 
-    const id = await app.createVoucher({
+    const id = app.createVoucher({
         destination: token,
         payload: encodeFunctionData({
             abi: erc20Abi,
@@ -104,6 +111,46 @@ function validateOutput(bytes output, OutputValidityProof proof);
 ```
 
 This mainly affects the frontend or relayer code that executes vouchers, not the advance and inspect handlers you write with deroll.
+
+### Outputs are synchronous
+
+Emitting an output is a write to the rollup device, not I/O the event loop can interleave with, so the output methods are synchronous and no longer return promises.
+The notice and report payloads are also passed directly, rather than wrapped in an object.
+
+```diff
+-const id = await app.createNotice({ payload: stringToHex("hello") });
+-await app.createReport({ payload: stringToHex("hello") });
+-const id = await app.createVoucher({ destination, payload });
++const id = app.createNotice(stringToHex("hello"));
++app.createReport(stringToHex("hello"));
++const id = app.createVoucher({ destination, payload });
+```
+
+Vouchers keep their object argument, since they carry a `destination` and an optional `value` besides the payload.
+
+Handlers may still be `async` — they are awaited — but they no longer have to be.
+
+### registerException
+
+`registerException` is now part of the `App` interface, so it is reachable from the value returned by `createApp`.
+It signals that a request could not be processed at all, which halts the machine.
+
+### Handler exceptions
+
+An exception raised by an advance handler now rejects the input immediately instead of falling through to the next handler, and the error is emitted as a report.
+See [Advance Handlers](/app/advance-handlers#exceptions).
+
+### Protocol types come from @cartesi/rollup
+
+`@deroll/core` no longer declares its own copies of the rollup protocol types.
+It re-exports them from [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), the libcmt binding, so the two can never drift:
+
+- `AdvanceRequest`, `InspectRequest` and `RollupRequest` replace `AdvanceRequestData`, `InspectRequestData`, `AdvanceRequestMetadata` and the `RollupAdvanceRequest`/`RollupInspectRequest` pair.
+- `BytesLike` replaces `Payload`, and it is what the output methods accept.
+- `Voucher` and `DelegateCallVoucher` now come from the binding, so `destination` accepts a `Uint8Array` as well as a hex address, and a voucher `value` accepts a `number` or hex as well as a `bigint`.
+- The `Notice`, `Report` and `Exception` wrapper types are gone, along with the `NoticeResponse`/`ReportResponse`/`VoucherResponse` types left over from the HTTP transport.
+
+`@cartesi/rollup` is a peer dependency of `@deroll/core`, which keeps a single copy of the native binding in the dependency tree — the rollup device allows only one open handle per process.
 
 ### GraphQL service deprecated
 

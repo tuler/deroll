@@ -1,59 +1,39 @@
-import type { Address, Hex } from "viem";
+// The rollup protocol vocabulary — request shapes, output shapes and the byte
+// aliases — is owned by @cartesi/rollup, the libcmt binding. Deroll re-exports
+// it rather than restating it, so the two can never drift.
+export type {
+    AddressLike,
+    AdvanceRequest,
+    BytesLike,
+    DelegateCallVoucher,
+    Hex,
+    InspectRequest,
+    RollupRequest,
+    U256Like,
+    Voucher,
+} from "@cartesi/rollup";
 
-export type AdvanceRequestMetadata = {
-    chainId: bigint;
-    appContract: Address;
-    msgSender: Address;
-    blockNumber: bigint;
-    blockTimestamp: bigint;
-    prevRandao: bigint;
-    index: bigint;
-};
+import type { AdvanceRequest, InspectRequest } from "@cartesi/rollup";
 
-export type AdvanceRequestData = {
-    metadata: AdvanceRequestMetadata;
-    payload: Buffer;
-};
-
-export type InspectRequestData = {
-    payload: Buffer;
-};
-
-export type RollupAdvanceRequest = {
-    request_type: "advance_state";
-    data: AdvanceRequestData;
-};
-
-export type RollupInspectRequest = {
-    request_type: "inspect_state";
-    data: InspectRequestData;
-};
-export type RollupRequest = RollupAdvanceRequest | RollupInspectRequest;
-
-export type RequestType = RollupRequest["request_type"];
-export type RequestData = AdvanceRequestData | InspectRequestData;
-export type RequestMetadata = AdvanceRequestMetadata;
+/**
+ * Verdict an advance handler returns for an input. On `"reject"` the machine
+ * state is reverted and any notices/vouchers emitted for the input are
+ * discarded; reports survive.
+ */
 export type RequestHandlerResult = "accept" | "reject";
-export type Payload = Hex | Uint8Array;
-export type Notice = { payload: Payload };
-export type Report = { payload: Payload };
-export type Voucher = {
-    destination: Address;
-    value?: bigint;
-    payload?: Hex;
-};
-export type DelegateCallVoucher = {
-    destination: Address;
-    payload?: Hex;
-};
-export type Exception = { payload: Payload };
 
-export type NoticeResponse = { index: bigint };
-export type ReportResponse = Record<string, never>; // XXX: should probably be 204 (no content)
-export type VoucherResponse = { index: bigint };
-
-export type InspectRequestHandler = (data: InspectRequestData) => Promise<void>;
-
+/**
+ * Handles an advance (state-changing) request. May be synchronous — the
+ * underlying binding is, since `finish` pauses the whole guest.
+ */
 export type AdvanceRequestHandler = (
-    data: AdvanceRequestData,
-) => Promise<RequestHandlerResult>;
+    request: AdvanceRequest,
+) => RequestHandlerResult | Promise<RequestHandlerResult>;
+
+/**
+ * Handles an inspect (read-only) request. Produces reports; it cannot change
+ * state, so it returns no verdict.
+ */
+export type InspectRequestHandler = (
+    request: InspectRequest,
+) => void | Promise<void>;

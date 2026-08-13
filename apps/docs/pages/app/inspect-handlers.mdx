@@ -2,7 +2,8 @@
 
 ## Overview
 
-Inspect handlers are async function callbacks that receive the `payload` of an inspect request, and has no return value.
+Inspect handlers are function callbacks that receive the `payload` of an inspect request, and have no return value.
+They may be `async`, but they do not have to be.
 The following example defines an inspect handler that logs the payload, decode it as a string and add a report with the string uppercase value.
 
 ```ts twoslash
@@ -13,10 +14,10 @@ import { stringToHex, hexToString } from "viem";
 // create application
 const app = createApp();
 
-const handler: InspectRequestHandler = async ({ payload }) => {
+const handler: InspectRequestHandler = ({ payload }) => {
     console.log(payload);
     const str = payload.toString();
-    await app.createReport({ payload: stringToHex(str.toUpperCase()) });
+    app.createReport(stringToHex(str.toUpperCase()));
 }
 
 app.addInspectHandler(handler);

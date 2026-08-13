@@ -20,9 +20,9 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
-app.addAdvanceHandler(async ({ metadata, payload }) => {
+app.addAdvanceHandler(({ msgSender, payload }) => {
     const address = payload.toString();
-    wallet.transferERC721(token, metadata.msgSender, address, 1n); // [!code focus]
+    wallet.transferERC721(token, msgSender, address, 1n); // [!code focus]
     return "accept";
 });
 ```
