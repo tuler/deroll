@@ -32,7 +32,8 @@
         "dist/**"
     ],
     "dependencies": {
-        "@deroll/app": "workspace:*",
+        "@cartesi/rollup": "1.0.0-alpha.0",
+        "@deroll/core": "workspace:*",
         "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "viem": "^2.55.13"

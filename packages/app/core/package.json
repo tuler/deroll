@@ -29,7 +29,8 @@
         "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
         "dev": "tsup --watch",
         "lint": "biome check",
-        "prepack": "run-s build"
+        "prepack": "run-s build",
+        "test": "vitest run"
     },
     "peerDependencies": {
         "@cartesi/rollup": "1.0.0-alpha.0"

@@ -1,8 +1,0 @@
-{
-    "extends": "@deroll/tsconfig/base.json",
-    "compilerOptions": {
-        "noUncheckedIndexedAccess": true
-    },
-    "include": ["."],
-    "exclude": ["dist", "node_modules"]
-}

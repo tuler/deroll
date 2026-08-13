@@ -1,21 +1,21 @@
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { run } from "@deroll/core";
 
-// create application
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-// log incoming advance request
-app.addAdvanceHandler(({ payload }) => {
-    app.createNotice(payload);
-    return true;
-});
+run(rollup, {
+    // echo incoming advance request as a notice
+    advance: ({ payload }, rollup) => {
+        rollup.emitNotice(payload);
+        return true;
+    },
 
-// log incoming inspect request
-app.addInspectHandler(({ payload }) => {
-    app.createReport(payload);
-});
-
-// start app
-app.start().catch((e) => {
+    // echo incoming inspect request as a report
+    inspect: ({ payload }, rollup) => {
+        rollup.emitReport(payload);
+    },
+}).catch((e) => {
     console.error(e);
     process.exit(1);
 });

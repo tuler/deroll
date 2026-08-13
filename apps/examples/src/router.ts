@@ -1,20 +1,18 @@
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { run } from "@deroll/core";
 import { createRouter } from "@deroll/router";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create router
-const router = createRouter({ app });
+const router = createRouter();
 router.add<{ name: string }>(
     "hello/:name",
     ({ params: { name } }) => `Hello ${name}`,
 );
 
-app.addInspectHandler(router.handler);
-
-// start app
-app.start().catch((e) => {
+run(rollup, { inspect: router.handler }).catch((e) => {
     console.error(e);
     process.exit(1);
 });

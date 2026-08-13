@@ -1,24 +1,24 @@
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { run } from "@deroll/core";
 import { toHex } from "viem";
 
-// create application
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-// log incoming advance request
-app.addAdvanceHandler((request) => {
-    const { type, payload, ...metadata } = request;
-    console.log(metadata);
-    console.log(payload.toString());
-    return true;
-});
+run(rollup, {
+    // log incoming advance request
+    advance: (request) => {
+        const { type, payload, ...metadata } = request;
+        console.log(metadata);
+        console.log(payload.toString());
+        return true;
+    },
 
-// log incoming inspect request
-app.addInspectHandler((request) => {
-    console.log(toHex(request.payload));
-});
-
-// start app
-app.start().catch((e) => {
+    // log incoming inspect request
+    inspect: (request) => {
+        console.log(toHex(request.payload));
+    },
+}).catch((e) => {
     console.error(e);
     process.exit(1);
 });

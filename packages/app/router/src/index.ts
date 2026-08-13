@@ -1,4 +1,4 @@
-import type { App, InspectRequest } from "@deroll/core";
+import type { InspectRequest, RollupContext } from "@deroll/core";
 import {
     type MatchFunction,
     type MatchResult,
@@ -17,17 +17,11 @@ type Route<P extends object> = {
     handler: Handler<P>;
 };
 
-export type RouterOptions = {
-    app: App;
-};
-
 export class Router {
-    private options: RouterOptions;
     // biome-ignore lint/suspicious/noExplicitAny: router type
     private routes: Route<any>[];
 
-    constructor(options: RouterOptions) {
-        this.options = options;
+    constructor() {
         this.routes = [];
         this.handler = this.handler.bind(this);
     }
@@ -56,16 +50,16 @@ export class Router {
         return undefined;
     }
 
-    public handler(request: InspectRequest): void {
+    public handler(request: InspectRequest, rollup: RollupContext): void {
         const url = bytesToString(request.payload);
         const result = this.handle(url);
         if (result) {
             // create single report with handler result
-            this.options.app.createReport(stringToHex(result));
+            rollup.emitReport(stringToHex(result));
         }
     }
 }
 
-export const createRouter = (options: RouterOptions): Router => {
-    return new Router(options);
+export const createRouter = (): Router => {
+    return new Router();
 };
