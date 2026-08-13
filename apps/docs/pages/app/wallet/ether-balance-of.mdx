@@ -7,22 +7,23 @@ Returns the ETH (native base layer currency) balance of a user managed by a wall
 The following example creates an inspect request handler that assumes the `payload` is an user address and just prints the balance of that user to the console.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
-app.addInspectHandler(({ payload }) => { // [!code focus]
-    const address = payload.toString(); // [!code focus]
-    const balance = wallet.etherBalanceOf(address); // [!code focus]
-    console.log(balance); // [!code focus]
-}); // [!code focus]
+rollup.run({
+    advance: wallet.handler,
+    inspect: ({ payload }) => { // [!code focus]
+        const address = payload.toString(); // [!code focus]
+        const balance = wallet.etherBalanceOf(address); // [!code focus]
+        console.log(balance); // [!code focus]
+    }, // [!code focus]
+});
 ```
 
 ## Returns

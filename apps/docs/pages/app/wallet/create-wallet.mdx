@@ -7,16 +7,18 @@ Creates a wallet object that provides a handler to process asssets deposits and 
 The example below creates a new wallet management object, and attaches a handler to automatically process assets deposits.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet // [!code focus]
 const wallet = createWallet(); // [!code focus]
 
-app.addAdvanceHandler(wallet.handler); // [!code focus]
+rollup.run({
+    advance: wallet.handler, // [!code focus]
+});
 ```
 
 ## Returns

@@ -24,7 +24,7 @@ export default defineConfig({
             link: "/app/quick-start",
         },
         {
-            text: "Application",
+            text: "The Rollup Loop",
             link: "/app/application",
         },
         {
@@ -34,6 +34,10 @@ export default defineConfig({
         {
             text: "Inspect Handlers",
             link: "/app/inspect-handlers",
+        },
+        {
+            text: "Outputs",
+            link: "/app/outputs",
         },
         {
             text: "Data Encoding",
@@ -59,36 +63,16 @@ export default defineConfig({
             text: "API",
             items: [
                 {
-                    text: "App",
+                    text: "Core",
                     link: "/app/overview",
                     items: [
                         {
-                            text: "createApp",
-                            link: "/app/create-app",
+                            text: "chain",
+                            link: "/app/chain",
                         },
                         {
-                            text: "addAdvanceHandler",
-                            link: "/app/add-advance-handler",
-                        },
-                        {
-                            text: "addInspectHandler",
-                            link: "/app/add-inspect-handler",
-                        },
-                        {
-                            text: "createNotice",
-                            link: "/app/create-notice",
-                        },
-                        {
-                            text: "createReport",
-                            link: "/app/create-report",
-                        },
-                        {
-                            text: "createVoucher",
-                            link: "/app/create-voucher",
-                        },
-                        {
-                            text: "createDelegateCallVoucher",
-                            link: "/app/create-delegate-call-voucher",
+                            text: "broadcast",
+                            link: "/app/broadcast",
                         },
                     ],
                 },

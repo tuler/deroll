@@ -1,34 +1,35 @@
 # withdrawERC721
 
 Withdraw ERC-721 token from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+The voucher still needs to be emitted through an [emitVoucher](/app/outputs#vouchers) call.
 
 ## Usage
 
 The following example withdraws the token 1 of the user who is submitting an input to the application.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address
-app.addAdvanceHandler(({ msgSender, appContract }) => {
-    const user = msgSender;
-    const dapp = appContract;
-    const hasOne = wallet.erc721Has(token, user, 1n);
-    if (hasOne) {
-        const voucher = wallet.withdrawERC721(dapp, token, user, 1n); // [!code focus]
-        app.createVoucher(voucher);
-    }
-    return true;
+rollup.run({
+    advance: chain(wallet.handler, ({ msgSender, appContract }) => {
+        const user = msgSender;
+        const dapp = appContract;
+        const hasOne = wallet.erc721Has(token, user, 1n);
+        if (hasOne) {
+            const voucher = wallet.withdrawERC721(dapp, token, user, 1n); // [!code focus]
+            rollup.emitVoucher(voucher);
+        }
+        return true;
+    }),
 });
 ```
 

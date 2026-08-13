@@ -7,23 +7,24 @@ Returns an ERC-721 ownership of a token and user managed by a wallet module.
 The following example creates an inspect request handler that assumes the `payload` is an user address and just prints if he owns the NFT id 1 of token `0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B`.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // NFT address // [!code focus]
-app.addInspectHandler(({ payload }) => { // [!code focus]
-    const address = payload.toString(); // [!code focus]
-    const hasOne = wallet.erc721Has(token, address, 1n); // [!code focus]
-    console.log(hasOne); // [!code focus]
-}); // [!code focus]
+rollup.run({
+    advance: wallet.handler,
+    inspect: ({ payload }) => { // [!code focus]
+        const address = payload.toString(); // [!code focus]
+        const hasOne = wallet.erc721Has(token, address, 1n); // [!code focus]
+        console.log(hasOne); // [!code focus]
+    }, // [!code focus]
+});
 ```
 
 ## Returns

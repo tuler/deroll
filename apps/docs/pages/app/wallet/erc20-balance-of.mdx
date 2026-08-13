@@ -7,23 +7,24 @@ Returns an ERC-20 token balance of a token and user managed by a wallet module.
 The following example creates an inspect request handler that assumes the `payload` is an user address and just prints the balance of that user to the console.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
-app.addInspectHandler(({ payload }) => { // [!code focus]
-    const address = payload.toString(); // [!code focus]
-    const balance = wallet.erc20BalanceOf(token, address); // [!code focus]
-    console.log(balance); // [!code focus]
-}); // [!code focus]
+rollup.run({
+    advance: wallet.handler,
+    inspect: ({ payload }) => { // [!code focus]
+        const address = payload.toString(); // [!code focus]
+        const balance = wallet.erc20BalanceOf(token, address); // [!code focus]
+        console.log(balance); // [!code focus]
+    }, // [!code focus]
+});
 ```
 
 ## Returns

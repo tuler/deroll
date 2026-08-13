@@ -2,105 +2,106 @@
 
 ## Overview
 
-Advance handlers are function callbacks that receive an input — its metadata and its `payload` — and must return a boolean saying whether they handled it: `true` accepts the input, `false` declines it and passes it to the next handler.
+Advance handlers are function callbacks that receive a state-changing input — its metadata and its `payload` — and must return a boolean saying whether they handled it: `true` accepts the input, `false` declines it and passes it to the next handler.
+
 They may be `async`, but they do not have to be: the underlying rollup device is synchronous, since waiting on it pauses the whole machine.
-The following example defines a request handler that accepts all requests, but just logs the input.
+
+The handler also receives the rollup as a second argument, which is how it emits [outputs](/app/outputs).
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
-import { AdvanceRequestHandler } from "@deroll/core";
+/// <reference types="node" />
+// ---cut---
+import { Rollup } from "@cartesi/rollup";
+import type { AdvanceRequestHandler } from "@deroll/core";
 
-const handler: AdvanceRequestHandler = ({ msgSender, payload }) => {
+const handler: AdvanceRequestHandler = ({ msgSender, payload }, rollup) => {
     console.log(msgSender, payload);
+    rollup.emitNotice(payload);
     return true; // accept
 };
 
-// create application
-const app = createApp();
-app.addAdvanceHandler(handler);
+const rollup = new Rollup();
+rollup.run({ advance: handler });
 ```
 
-Returning `false` does not by itself reject the input — it only declines it, so the next handler gets a chance.
-The input is rejected only when no handler accepted it.
+Returning `false` does not by itself reject the input — it only declines it, so the next handler gets a chance. The input is rejected, and the machine reverted to its previous state by the Cartesi node, only when **no** handler accepted it.
+
 There is deliberately no `void` in the return type: a handler that falls off its end is a type error rather than a silent accept.
 
-## Handlers Execution
+## The input
 
-The application created with `createApp` holds a list of advance handlers that are executed in the order they were added.
+The request is a single flat object:
 
-By default, when a handler returns `true` the execution chain stops.
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | `"advance"` | Discriminates the request kind. |
+| `chainId` | `bigint` | Network chain id. |
+| `appContract` | `Address` | Application contract address. |
+| `msgSender` | `Address` | Who sent the input. |
+| `blockNumber` | `bigint` | Block the input was included in. |
+| `blockTimestamp` | `bigint` | Block timestamp, in UNIX epoch seconds. |
+| `prevRandao` | `bigint` | RANDAO mix of the previous block's post beacon state. |
+| `index` | `bigint` | Input index, across all inputs ever sent to the application. |
+| `payload` | `Buffer` | The input itself. |
+
+See [Data Encoding](/app/data-encoding) for how to interpret the payload.
+
+## Composing handlers
+
+`Rollup.run` takes a single advance handler. To run several, compose them with [chain](/app/chain), which presents the input to each in order until one accepts it:
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
 
-// create application
-const app = createApp();
-
+const rollup = new Rollup();
 // ---cut---
-app.addAdvanceHandler((data) => {
-    console.log(data);
-    return true;
-});
-
-app.addAdvanceHandler((data) => {
-    // this code is never executed, because the first handler always returns true // [!code hl]
-    return true;
+rollup.run({
+    advance: chain(
+        (request) => {
+            console.log(request);
+            return true;
+        },
+        () => {
+            // never runs: the previous handler always accepts // [!code hl]
+            return true;
+        },
+    ),
 });
 ```
 
-If a handler returns `false`, the next handler in the list is executed.
+When a handler declines, the next one gets the input:
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
 
-// create application
-const app = createApp();
-
+const rollup = new Rollup();
 // ---cut---
-app.addAdvanceHandler((data) => {
-    console.log(data);
-    return false;
-});
-
-app.addAdvanceHandler((data) => {
-    // this code will execute // [!code hl]
-    return true;
+rollup.run({
+    advance: chain(
+        (request) => {
+            console.log(request);
+            return false;
+        },
+        () => {
+            // this one runs // [!code hl]
+            return true;
+        },
+    ),
 });
 ```
 
-If no handler returns `true` the input is rejected and the machine is reverted to the initial state by the Cartesi node.
+Use [broadcast](/app/broadcast) instead when every handler should see the input even after one has accepted it.
 
 ## Exceptions
 
-If a handler **raises an exception**, the input could not be processed, so the whole request is rejected right there: the remaining handlers are *not* executed.
-This keeps a later handler from writing state on top of a partially applied one.
+If a handler **raises an exception**, the input could not be processed, so the whole request is rejected right there and the remaining handlers are *not* executed. This keeps a later handler from writing state on top of a partially applied one.
 
-The exception is also emitted as a [report](./create-report), which is what makes the failure observable from outside the machine — a rejection reverts the machine state and discards notices and vouchers, but reports survive it.
+The exception is also emitted as a [report](/app/outputs#reports), which is what makes the failure observable from outside the machine — a rejection reverts the machine state and discards notices and vouchers, but reports survive it.
 
 :::warning
-In earlier `2.0.0` alpha releases an exception was only logged to `stderr`, and the next handler ran anyway. If your application relied on throwing to fall through to another handler, return `false` instead.
+In deroll v1, and in earlier `2.0.0` alpha releases, an exception was only logged to `stderr` and the next handler ran anyway. If your application relied on throwing to fall through to another handler, return `false` instead.
 :::
-
-## Broadcast Mode
-
-If the application is created with the `broadcastAdvanceRequests` option set to `true`, then all handlers are executed regardless the return value of each handler.
-
-```ts twoslash
-import { createApp } from "@deroll/app";
-
-// create application
-const app = createApp({
-    broadcastAdvanceRequests: true
-//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-});
-
-app.addAdvanceHandler((data) => {
-    console.log(data);
-    return true;
-});
-
-app.addAdvanceHandler((data) => {
-    // this code executes, even when the first handler returns true // [!code hl]
-    return true;
-});
-```

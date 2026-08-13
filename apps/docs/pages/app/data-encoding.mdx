@@ -62,11 +62,11 @@ Notice how the `abi` is properly typed. Then on an advance handler you can decod
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { decodeFunctionData, parseAbi, toHex } from "viem";
 
-// create application
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // define application ABI
 const abi = parseAbi([
@@ -75,25 +75,24 @@ const abi = parseAbi([
 ]);
 
 // handle input encoded as ABI function call
-app.addAdvanceHandler(({ payload }) => {
-    const { functionName, args } = decodeFunctionData({ abi, data: toHex(payload) });
+rollup.run({
+    advance: ({ payload }) => {
+        const { functionName, args } = decodeFunctionData({ abi, data: toHex(payload) });
 
-    switch (functionName) {
-//          ^?
-        case "attackDragon":
+        switch (functionName) {
+    //          ^?
+            case "attackDragon":
             
-            // see how `args` is properly typed thanks to TypeScript inferring
-            const [dragonId, weapon] = args;
-//                                     ^?
-            console.log(`attacking dragon ${dragonId} with ${weapon}...`);
-            return true;
+                // see how `args` is properly typed thanks to TypeScript inferring
+                const [dragonId, weapon] = args;
+    //                                     ^?
+                console.log(`attacking dragon ${dragonId} with ${weapon}...`);
+                return true;
 
-        case "drinkPotion":
-            console.log(`drinking potion...`);
-            return true;
-    }
+            case "drinkPotion":
+                console.log(`drinking potion...`);
+                return true;
+        }
+    },
 });
-
-// start app
-app.start().catch((e) => process.exit(1));
 ```
