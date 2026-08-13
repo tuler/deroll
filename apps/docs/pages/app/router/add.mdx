@@ -7,23 +7,22 @@ Adds a new route to a router module.
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createRouter } from "@deroll/router";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create router
-const router = createRouter({ app });
+const router = createRouter();
 router.add<{ name: string }>( // [!code focus]
     "hello/:name", // [!code focus]
     ({ params: { name } }) => `Hello ${name}`, // [!code focus]
 ); // [!code focus]
 
-app.addInspectHandler(router.handler);
-
-// start app
-app.start().catch((e) => process.exit(1));
+rollup.run({
+    inspect: router.handler,
+});
 ```
 
 ## Returns

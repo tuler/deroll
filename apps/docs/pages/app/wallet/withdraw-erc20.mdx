@@ -1,33 +1,34 @@
 # withdrawERC20
 
 Withdraw ERC-20 tokens from one user and returns a `Voucher` to the recipient on L1.
-The voucher still need to be created through a [createVoucher](../create-voucher) call.
+The voucher still needs to be emitted through an [emitVoucher](/app/outputs#vouchers) call.
 
 ## Usage
 
 The following example withdraws the entire CTSI balance of the user who is submitting an input to the application.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
 import { createWallet } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
 const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-app.addAdvanceHandler(({ msgSender }) => {
-    const user = msgSender;
-    const value = wallet.erc20BalanceOf(token, user);
-    if (value > 0) {
-        const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
-        app.createVoucher(voucher);
-    }
-    return true;
+rollup.run({
+    advance: chain(wallet.handler, ({ msgSender }) => {
+        const user = msgSender;
+        const value = wallet.erc20BalanceOf(token, user);
+        if (value > 0) {
+            const voucher = wallet.withdrawERC20(token, user, value); // [!code focus]
+            rollup.emitVoucher(voucher);
+        }
+        return true;
+    }),
 });
 ```
 

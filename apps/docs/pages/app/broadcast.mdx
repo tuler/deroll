@@ -1,0 +1,45 @@
+# broadcast
+
+Composes several advance handlers into one, like [chain](/app/chain), except that every handler sees the input even after one has accepted it.
+
+## Usage
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { createWallet } from "@deroll/wallet";
+
+const rollup = new Rollup();
+const wallet = createWallet();
+const indexer = () => false;
+// ---cut---
+import { broadcast } from "@deroll/core";
+
+rollup.run({
+    advance: broadcast(wallet.handler, indexer), // [!code focus]
+});
+```
+
+## Returns
+
+Type: `AdvanceRequestHandler`
+
+A handler that runs every composed handler and accepts the input if any of them accepted.
+
+## Parameters
+
+### handlers
+
+Type: `AdvanceRequestHandler[]`
+
+The handlers, in the order they should see the input.
+
+## When to use it
+
+Reach for `broadcast` when handlers **observe** the same input for different reasons rather than **competing** to claim it — an indexer or an audit log alongside the handler that actually owns the input.
+
+If the handlers are alternatives, where exactly one should process a given input, use [chain](/app/chain) instead: it stops at the first handler that accepts, so the later ones cannot act on an input already handled.
+
+:::info
+In deroll v1 this was the `broadcastAdvanceRequests` option on `createApp`, which changed the behavior of every registered handler at once. As a composition function it is chosen per group, and the two can be nested: `chain(wallet.handler, broadcast(a, b))`.
+:::

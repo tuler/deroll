@@ -5,21 +5,20 @@ The `@deroll/router` modules provides a simple routing mechanism that can be use
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createRouter } from "@deroll/router";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create router
-const router = createRouter({ app });
+const router = createRouter();
 router.add<{ name: string }>(
     "hello/:name",
     ({ params: { name } }) => `Hello ${name}`,
 );
 
-app.addInspectHandler(router.handler);
-
-// start app
-app.start().catch((e) => process.exit(1));
+rollup.run({
+    inspect: router.handler,
+});
 ```

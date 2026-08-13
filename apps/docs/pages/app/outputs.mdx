@@ -1,0 +1,140 @@
+# Outputs
+
+While handling a request, an application can emit four kinds of output. They are emitted through the `Rollup` handle — either the one you constructed, or the one passed as the second argument to every handler.
+
+| Output | Method | Returns | Available in |
+| --- | --- | --- | --- |
+| Notice | `emitNotice(payload)` | output index | advance |
+| Report | `emitReport(payload)` | — | advance and inspect |
+| Voucher | `emitVoucher({ destination, value?, payload? })` | output index | advance |
+| Delegate-call voucher | `emitDelegateCallVoucher({ destination, payload? })` | output index | advance |
+
+Notices and vouchers are only meaningful while processing an advance request, because they are part of the outputs merkle tree and a rejected input discards them. Reports survive a rejection, which is what makes them useful for error reporting.
+
+Payloads accept a `0x`-prefixed hex string, a `Uint8Array` or a `Buffer`. All the emit methods are **synchronous**: emitting an output is a write to the rollup device, not I/O the event loop can interleave with.
+
+## Notices
+
+A notice is a provable event log. It is included in the outputs merkle tree, so it can be validated on the base layer against a proof.
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { stringToHex } from "viem";
+
+const rollup = new Rollup();
+// ---cut---
+rollup.run({
+    advance: (request, rollup) => {
+        const id = rollup.emitNotice(stringToHex("hello")); // [!code focus]
+        return true;
+    },
+});
+```
+
+## Reports
+
+A report is a stateless, non-provable log. It is not indexed and not part of the merkle tree, so nothing is returned. Reports are the only output an inspect handler can produce, and they are how an inspect query returns its answer.
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { stringToHex } from "viem";
+
+const rollup = new Rollup();
+// ---cut---
+rollup.run({
+    inspect: (request, rollup) => {
+        rollup.emitReport(stringToHex("hello")); // [!code focus]
+    },
+});
+```
+
+## Vouchers
+
+A voucher is an executable on-chain call: the application contract performs a `CALL` to `destination` with `payload` as calldata, optionally sending `value` wei. The canonical use is an asset withdrawal.
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
+
+const rollup = new Rollup();
+// ---cut---
+rollup.run({
+    advance: (request, rollup) => {
+        const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+        const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
+        const amount = parseUnits("1", 18);
+
+        const id = rollup.emitVoucher({ // [!code focus]
+            destination: token, // [!code focus]
+            payload: encodeFunctionData({ // [!code focus]
+                abi: erc20Abi, // [!code focus]
+                functionName: "transfer", // [!code focus]
+                args: [to, amount], // [!code focus]
+            }), // [!code focus]
+        }); // [!code focus]
+        return true;
+    },
+});
+```
+
+`value` is optional and defaults to zero, so a voucher can transfer the base layer's native token to `destination` without calling any function. `payload` is optional too — omit both and you have a plain transfer.
+
+See [Vouchers](/app/vouchers) for more on how they are executed, and the [wallet](/app/wallet) for ready-made withdrawal vouchers.
+
+## Delegate-call vouchers
+
+A delegate-call voucher is like a voucher, but the application contract executes the destination's code with `DELEGATECALL` instead of `CALL`. The code therefore runs in the application contract's own context — its storage, balance and address — rather than calling out to another contract. This is useful for executing library or batch-executor logic _as_ the application, for example performing several actions atomically in a single output.
+
+:::info
+Because the call runs in the application's own context, a delegate-call voucher cannot transfer Ether and has no `value` field — only `destination` and `payload`.
+:::
+
+```ts twoslash
+/// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { encodeFunctionData, erc20Abi, parseAbi, parseUnits } from "viem";
+
+const rollup = new Rollup();
+// ---cut---
+rollup.run({
+    advance: (request, rollup) => {
+        const executor = "0xcA11bde05977b3631167028862bE2a173976CA11"; // batch-executor address
+        const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+        const alice = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f";
+        const bob = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+
+        const id = rollup.emitDelegateCallVoucher({ // [!code focus]
+            destination: executor, // [!code focus]
+            payload: encodeFunctionData({ // [!code focus]
+                abi: parseAbi([ // [!code focus]
+                    "function executeBatch(address[] targets, bytes[] payloads)", // [!code focus]
+                ]), // [!code focus]
+                functionName: "executeBatch", // [!code focus]
+                args: [ // [!code focus]
+                    [token, token], // [!code focus]
+                    [ // [!code focus]
+                        encodeFunctionData({ // [!code focus]
+                            abi: erc20Abi, // [!code focus]
+                            functionName: "transfer", // [!code focus]
+                            args: [alice, parseUnits("1", 18)], // [!code focus]
+                        }), // [!code focus]
+                        encodeFunctionData({ // [!code focus]
+                            abi: erc20Abi, // [!code focus]
+                            functionName: "transfer", // [!code focus]
+                            args: [bob, parseUnits("2", 18)], // [!code focus]
+                        }), // [!code focus]
+                    ], // [!code focus]
+                ], // [!code focus]
+            }), // [!code focus]
+        }); // [!code focus]
+        return true;
+    },
+});
+```
+
+## Exceptions
+
+`emitException(payload)` signals that a request could not be processed at all. Unlike declining an input, which simply rejects it, an exception halts the machine.

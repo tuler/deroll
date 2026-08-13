@@ -1,46 +1,51 @@
-# App
+# Core
 
-The `@deroll/app` module provides the entry point of every deroll application: the `App`.
+The `@deroll/core` module provides the composition an application needs to share one rollup loop between several handlers.
 
-An `App` owns the main loop of a Cartesi application. It fetches [advance](./advance-handlers) and [inspect](./inspect-handlers) requests from the Cartesi Machine, dispatches them to the handlers you register, and exposes methods to produce the outputs a backend can emit.
-
-You create one with [`createApp`](./create-app) and start its loop with `app.start()`.
+[`Rollup.run`](/app/application) in the binding takes exactly **one** advance handler and **one** inspect handler. A real application usually has more than one concern per request kind — a wallet that claims portal deposits, then the application's own logic — so `@deroll/core` provides the functions that fold many handlers into one.
 
 ```ts twoslash
 /// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { createWallet } from "@deroll/wallet";
+import { createRouter } from "@deroll/router";
+
+const rollup = new Rollup();
+const wallet = createWallet();
+const router = createRouter();
+const application = () => true;
 // ---cut---
-import { createApp } from "@deroll/app";
+import { chain } from "@deroll/core";
 
-// create application
-const app = createApp();
-
-// handle advance requests (inputs)
-app.addAdvanceHandler((request) => {
-    console.log(request);
-    return true;
+rollup.run({
+    advance: chain(wallet.handler, application),
+    inspect: router.handler,
 });
-
-// handle inspect requests (read-only queries)
-app.addInspectHandler(({ payload }) => {
-    console.log(payload);
-});
-
-// start the main loop
-app.start().catch(() => process.exit(1));
 ```
 
-## Registering handlers
+That is the whole runtime surface:
 
-- [addAdvanceHandler](./add-advance-handler) — process state-changing inputs; handlers return `true` to accept an input or `false` to decline it.
-- [addInspectHandler](./add-inspect-handler) — answer read-only queries; handlers can only produce reports.
+- [chain](/app/chain) — present the input to each handler until one accepts it.
+- [broadcast](/app/broadcast) — present the input to every handler regardless.
 
-## Producing outputs
+## Types
 
-While handling a request, an `App` can emit four kinds of output:
+`@deroll/core` also owns the handler types, and re-exports the rollup protocol's vocabulary from `@cartesi/rollup` so that the two can never drift:
 
-- [createNotice](./create-notice) — a provable event log.
-- [createReport](./create-report) — a stateless, non-provable log (the only output available to inspect handlers).
-- [createVoucher](./create-voucher) — an executable on-chain call (`CALL`), for example an asset withdrawal.
-- [createDelegateCallVoucher](./create-delegate-call-voucher) — an executable on-chain call run with `DELEGATECALL`, in the application contract's own context.
+| Type | Description |
+| --- | --- |
+| `AdvanceRequestHandler` | Handles a state-changing input; returns a boolean. |
+| `InspectRequestHandler` | Handles a read-only query; returns nothing. |
+| `RollupContext` | The slice of the `Rollup` a handler is handed — the emit methods, `progress` and `gio`. |
+| `AdvanceRequest`, `InspectRequest` | The request shapes, re-exported. |
+| `Voucher`, `DelegateCallVoucher` | The output shapes, re-exported. |
+| `BytesLike`, `AddressLike`, `U256Like`, `Hex` | Byte and numeric aliases, re-exported. |
 
-Notices and vouchers are only available while processing an advance request, because they can change the application state. Reports can be produced from both advance and inspect handlers.
+`RollupContext` is deliberately narrower than `Rollup`: it omits `finish`, `run`, `close` and the merkle methods, which belong to whoever owns the loop. It is also a structural type rather than the class, so a handler's tests can pass a plain object instead of mocking the native binding.
+
+## Everything else
+
+The rest of deroll is libraries you plug in as handlers, and the outputs they help you build:
+
+- [wallet](/app/wallet) — an asset ledger that parses portal deposits and builds withdrawal vouchers.
+- [router](/app/router/overview) — URL-pattern dispatch for inspect queries.

@@ -7,23 +7,25 @@ Utility to create a `Voucher` to transfer ERC-721 from the application to a dest
 The example below shows how to create a `Voucher` to withdraw 1 CTSI to the `msgSender` of the an input.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createERC721TransferVoucher } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
 const token = "0xc6582A9b48F211Fa8c2B5b16CB615eC39bcA653B"; // ERC-721 address
-app.addAdvanceHandler(({ msgSender }) => {
-    const voucher = createERC721TransferVoucher( // [!code focus]
-        token, // [!code focus]
-        application, // [!code focus]
-        msgSender, // [!code focus]
-        1n, // [!code focus]
-    ); // [!code focus]
-    app.createVoucher(voucher);
-    return true;
+rollup.run({
+    advance: ({ msgSender }) => {
+        const voucher = createERC721TransferVoucher( // [!code focus]
+            token, // [!code focus]
+            application, // [!code focus]
+            msgSender, // [!code focus]
+            1n, // [!code focus]
+        ); // [!code focus]
+        rollup.emitVoucher(voucher);
+        return true;
+    },
 });
 ```
 

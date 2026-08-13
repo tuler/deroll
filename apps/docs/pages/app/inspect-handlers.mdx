@@ -3,25 +3,32 @@
 ## Overview
 
 Inspect handlers are function callbacks that receive the `payload` of an inspect request, and have no return value.
+They answer read-only queries, and the only output they can produce is a [report](/app/outputs#reports).
 They may be `async`, but they do not have to be.
 The following example defines an inspect handler that logs the payload, decode it as a string and add a report with the string uppercase value.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
-import { InspectRequestHandler } from "@deroll/core";
-import { stringToHex, hexToString } from "viem";
+/// <reference types="node" />
+// ---cut---
+import { Rollup } from "@cartesi/rollup";
+import type { InspectRequestHandler } from "@deroll/core";
+import { stringToHex } from "viem";
 
-// create application
-const app = createApp();
-
-const handler: InspectRequestHandler = ({ payload }) => {
+const handler: InspectRequestHandler = ({ payload }, rollup) => {
     console.log(payload);
     const str = payload.toString();
-    app.createReport(stringToHex(str.toUpperCase()));
-}
+    rollup.emitReport(stringToHex(str.toUpperCase()));
+};
 
-app.addInspectHandler(handler);
+// open the rollup device
+const rollup = new Rollup();
+rollup.run({ inspect: handler });
 ```
+
+The handler receives the rollup as a second argument, which is how it emits the
+report. To answer queries from several handlers, call them from one — there is
+no verdict to short-circuit on, so unlike [chain](/app/chain) there is nothing
+to compose.
 
 Reports are the only kind of output that inspect handlers can create.
 The state of the Cartesi machine as a whole is not modified on an inspect request, so you should only use this kind of request handler to return application state (and not modify the state).

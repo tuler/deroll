@@ -30,20 +30,18 @@ You start by creating a wallet object using the `createWallet` function, and the
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet"; // [!code ++]
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet // [!code ++]
 const wallet = createWallet(); // [!code ++]
 
-// wire wallet advance handler // [!code ++]
-app.addAdvanceHandler(wallet.handler); // [!code ++]
-
-// start app
-app.start().catch((e) => process.exit(1));
+rollup.run({
+    advance: wallet.handler, // [!code ++]
+});
 ```
 
 The `wallet.handler` will take care of intercepting the inputs sent from the Cartesi portals, decoding the information, and storing users assets information in an in-memory data structure.
@@ -53,29 +51,27 @@ You can then, as an example, query the CTSI balance in an inspect handler:
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 import { numberToHex, toHex } from "viem"; // [!code ++]
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
-app.addInspectHandler((data) => { // [!code ++]
-    const address = toHex(data.payload); // [!code ++]
-    const balance = wallet.erc20BalanceOf( // [!code ++]
-        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
-        address, // [!code ++]
-    ); // [!code ++]
-    app.createReport(numberToHex(balance)); // [!code ++]
-}); // [!code ++]
-
-// start app
-app.start().catch((e) => process.exit(1));
+rollup.run({
+    advance: wallet.handler,
+    inspect: (request, rollup) => { // [!code ++]
+        const address = toHex(request.payload); // [!code ++]
+        const balance = wallet.erc20BalanceOf( // [!code ++]
+            "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
+            address, // [!code ++]
+        ); // [!code ++]
+        rollup.emitReport(numberToHex(balance)); // [!code ++]
+    }, // [!code ++]
+});
 ```
 
 A complete API documentation is available in the [reference section](/app/wallet/overview).
@@ -87,44 +83,44 @@ Users can withdraw their deposited assets by creating vouchers that can be execu
 
 The `wallet` object provides several `withdraw` methods that creates vouchers that can be generated as output.
 The following example creates a voucher to withdraw 1 CTSI to the user that sent the input.
-If the user doesn't have enough balance an exception is raised, which makes the handler not `accept` the input.
+If the user doesn't have enough balance an exception is raised, which rejects the input and emits the error as a report.
 
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core"; // [!code ++]
 import { createWallet } from "@deroll/wallet";
 import { hexToBigInt, numberToHex, toHex } from "viem"; // [!code ++]
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-// create wallet and wire its handler
+// create wallet
 const wallet = createWallet();
-app.addAdvanceHandler(wallet.handler);
 
-app.addAdvanceHandler((data) => { // [!code ++]
-    const amount = hexToBigInt(toHex(data.payload)); // [!code ++]
-    const voucher = wallet.withdrawERC20( // [!code ++]
-        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
-        data.msgSender, // [!code ++]
-        amount, // [!code ++]
-    ); // [!code ++]
-    app.createVoucher(voucher); // [!code ++]
-    return true; // [!code ++]
-}); // [!code ++]
+rollup.run({
+    // the wallet claims portal deposits; anything else falls through // [!code ++]
+    advance: chain(wallet.handler, (request, rollup) => { // [!code ++]
+        const amount = hexToBigInt(toHex(request.payload)); // [!code ++]
+        const voucher = wallet.withdrawERC20( // [!code ++]
+            "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D", // [!code ++]
+            request.msgSender, // [!code ++]
+            amount, // [!code ++]
+        ); // [!code ++]
+        rollup.emitVoucher(voucher); // [!code ++]
+        return true; // [!code ++]
+    }), // [!code ++]
 
-app.addInspectHandler((data) => {
-    const address = toHex(data.payload);
-    const balance = wallet.erc20BalanceOf(
-        "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
-        address,
-    );
-    app.createReport(numberToHex(balance));
+    inspect: (request, rollup) => {
+        const address = toHex(request.payload);
+        const balance = wallet.erc20BalanceOf(
+            "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D",
+            address,
+        );
+        rollup.emitReport(numberToHex(balance));
+    },
 });
-
-// start app
-app.start().catch((e) => process.exit(1));
 ```
 
 ## Utility functions
@@ -137,28 +133,27 @@ The following code snippet handles ERC-20 deposits manually, and just creates a 
 /// <reference types="node" />
 // ---cut---
 import { decodeDeposit } from "@cartesi/codec";
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createERC20TransferVoucher } from "@deroll/wallet";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-app.addAdvanceHandler((data) => { // [!code focus]
-    const deposit = decodeDeposit({ // [!code focus]
-        msgSender: data.msgSender, // [!code focus]
-        payload: data.payload, // [!code focus]
-    }); // [!code focus]
-    if (deposit?.type === "Erc20Deposit") { // [!code focus]
-        const voucher = createERC20TransferVoucher( // [!code focus]
-            deposit.token, // [!code focus]
-            deposit.sender, // [!code focus]
-            deposit.value, // [!code focus]
-        ); // [!code focus]
-        app.createVoucher(voucher); // [!code focus]
-    } // [!code focus]
-    return true; // [!code focus]
-}); // [!code focus]
-
-// start app
-app.start().catch((e) => process.exit(1));
+rollup.run({
+    advance: (request, rollup) => { // [!code focus]
+        const deposit = decodeDeposit({ // [!code focus]
+            msgSender: request.msgSender, // [!code focus]
+            payload: request.payload, // [!code focus]
+        }); // [!code focus]
+        if (deposit?.type === "Erc20Deposit") { // [!code focus]
+            const voucher = createERC20TransferVoucher( // [!code focus]
+                deposit.token, // [!code focus]
+                deposit.sender, // [!code focus]
+                deposit.value, // [!code focus]
+            ); // [!code focus]
+            rollup.emitVoucher(voucher); // [!code focus]
+        } // [!code focus]
+        return true; // [!code focus]
+    }, // [!code focus]
+});
 ```

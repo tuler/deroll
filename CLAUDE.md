@@ -17,17 +17,16 @@ The four outputs a backend can emit: **notices** (verifiable event logs), **repo
 bun + Turborepo workspace. Workspaces are grouped by pillar: `packages/*/*` (glob) and `apps/*`. The three pillars are **App** (`packages/app/*`), **Bindings** (`packages/bindings/*`), and **Explorer** (`packages/explorer/*`). `apps/*` are private (docs + examples + the explorer site).
 
 App pillar — `packages/app/*`:
-- **`packages/app/core`** (`@deroll/core`) — the composition contract (`src/types.ts`, `src/index.ts`). Defines the `App` interface, `AppOptions`, `AdvanceRequestHandler`, `InspectRequestHandler` and `RequestHandlerResult`. It does **not** redeclare the rollup protocol vocabulary: the request and output shapes (`AdvanceRequest`, `InspectRequest`, `Voucher`, `DelegateCallVoucher`, `BytesLike`, …) are re-exported from `@cartesi/rollup`, which is a **peer dependency** — the native rollup device allows only one open handle per process, so the tree must hold a single copy. No runtime logic, no codegen; wallet and router depend on this rather than on `@deroll/app`.
-- **`packages/app/app`** (`@deroll/app`) — `createApp()`. The concrete `NativeApp` (in `src/app.ts`) wraps the native `Rollup` from `@cartesi/rollup`, drives the request loop via its blocking `finish()`, dispatches to advance/inspect handlers, and exposes `createNotice/createReport/createVoucher/...`. This is the entry point of every dApp.
+- **`packages/app/core`** (`@deroll/core`) — handler composition (`src/compose.ts`) and the handler types (`src/types.ts`). `chain()` folds several advance handlers into the single one `Rollup.run` accepts, presenting the input to each until one accepts; `broadcast()` is the same but without short-circuiting. That is the entire runtime surface — deroll does **not** wrap the rollup loop or the outputs. It also does not redeclare the protocol vocabulary: the request and output shapes (`AdvanceRequest`, `InspectRequest`, `Voucher`, `DelegateCallVoucher`, `BytesLike`, …) are re-exported from `@cartesi/rollup`, a **peer dependency** — the native rollup device allows only one open handle per process, so the tree must hold a single copy. `RollupContext` is a `Pick` of `Rollup` covering what a handler may call (the emit methods, `progress`, `gio`) and deliberately omitting `finish`/`run`/`close`/merkle; being structural rather than the class (which carries a `#private` brand), tests can pass a plain object.
 - **`packages/app/wallet`** (`@deroll/wallet`) — `createWallet()`. In-memory asset ledger (Ether, ERC-20, ERC-721, ERC-1155). Parses deposits coming from Cartesi portal contracts, tracks balances, supports internal transfers, and builds withdrawal vouchers. Largest/most complex package.
 - **`packages/app/router`** (`@deroll/router`) — `createRouter()`. URL-pattern dispatch (via `path-to-regexp`) for **inspect** requests; matched handlers return a string that becomes a report.
-- **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. Downloads templates and a Dockerfile from the remote `cartesi/application-templates` GitHub repo (via `got`); does not bundle templates locally.
+- **`packages/app/create-app`** (`@deroll/create-app`) — the `npm init @deroll/app` scaffolding CLI. It generates `package.json`, `tsconfig.json`, the esbuild script and the Dockerfile locally, and downloads the entry point from **this repo** — `apps/examples/src/<example>.ts` on the `prerelease/v2` branch (`src/index.ts:76`), chosen by the selected libraries. The examples *are* the templates, so changing them changes what `npm init` scaffolds.
 - **`packages/app/tsconfig`** (`@deroll/tsconfig`) — shared `base.json` TS config (strict, ES2022, ESM).
 
 Bindings pillar — `packages/bindings/*`:
 - **`packages/bindings/genext2fs`** (`@deroll/genext2fs`) — N-API binding for `xgenext2fs`, the ext2 image generator; the main entry point is `tarToExt2()`. Compiles the `genext2fs` and `libarchive` submodules straight into the addon (see its README for how the CLI is turned into a library). **GPL-2.0-only**, unlike the rest of the repo.
 
-The libcmt and Cartesi Machine emulator bindings used to live here as `@deroll/cmio` and `@deroll/cm`. They are now published from [`cartesi/rollups-ts`](https://github.com/cartesi/rollups-ts) as **`@cartesi/rollup`** and **`@cartesi/machine`**, and are consumed as ordinary external dependencies (`@deroll/app` depends on `@cartesi/rollup`).
+The libcmt and Cartesi Machine emulator bindings used to live here as `@deroll/cmio` and `@deroll/cm`. They are now published from [`cartesi/rollups-ts`](https://github.com/cartesi/rollups-ts) as **`@cartesi/rollup`** and **`@cartesi/machine`**, and are consumed as ordinary external dependencies (`@cartesi/rollup` is a peer dependency of `@deroll/core`, and a direct dependency of the scaffolded applications).
 
 Explorer pillar — `packages/explorer/*` (`@deroll/decoder`, `@deroll/json-decoder`, `@deroll/mock-server`): being migrated in from external repos (see the umbrella-monorepo-migration plan). Not all present yet.
 
@@ -35,21 +34,24 @@ Apps: `apps/docs` (Vocs documentation site), `apps/examples` (runnable backend e
 
 ### How the pieces compose
 
-`createApp` owns the loop and the rollup outputs. Wallet and Router are plugged in as handlers, not subclasses:
+`@cartesi/rollup` owns the loop and the outputs. Wallet and Router are plugged in as handlers, and `chain` is what lets more than one of them share the loop:
 
 ```ts
-const app = createApp();   // AppOptions: { broadcastAdvanceRequests?: boolean }
+const rollup = new Rollup();      // only one may be open per process (-EBUSY otherwise)
 const wallet = createWallet();
-const router = createRouter({ app });
+const router = createRouter();    // takes no app: handlers receive the rollup
 
-app.addAdvanceHandler(wallet.handler);   // wallet processes deposits on advance
-app.addInspectHandler(router.handler);   // router answers inspect queries
-app.start();
+rollup.run({
+    advance: chain(wallet.handler, application),  // wallet claims deposits, rest falls through
+    inspect: router.handler,                      // router answers inspect queries
+});
 ```
 
-Advance handlers run in registration order. With `broadcastAdvanceRequests` unset/false, the first handler to return `"accept"` short-circuits the rest; when true, all handlers run and the request is accepted if any accepted.
+An advance handler returns `true` to claim the input or `false` to pass it on; the input is rejected only when no handler accepted it. The return type is a strict `boolean` with no `void` on purpose — `Rollup.run` accepts a request unless a handler returns `false`, the opposite default, so a handler that falls off its end must be a type error rather than a silent accept.
 
-A handler exception never escapes the loop, but it does end the request: `NativeApp` emits the error as a report and rejects immediately, skipping the remaining handlers (reports survive a rejection, notices and vouchers do not). Handlers may be sync or async; the output methods (`createNotice`, `createReport`, `createVoucher`, `createDelegateCallVoucher`, `registerException`) are **synchronous**, mirroring the binding — `finish` pauses the whole guest, so there is no I/O for the event loop to interleave with.
+Handler exceptions are **not** caught by `chain`. They propagate to `Rollup.run`, which rejects the input and emits the error as a report (reports survive a rejection, notices and vouchers do not), skipping the remaining handlers. Handlers may be sync or async; the emit methods are **synchronous**, mirroring the binding — `finish` pauses the whole guest, so there is no I/O for the event loop to interleave with.
+
+Known rough edge: `Rollup.run` returns `Promise<never>` and its `finish` call sits outside the try, so on the host the exhaustion of `CMT_INPUTS` rejects rather than resolving, and every `dev:*` script exits non-zero. The libcmt mock also cannot revert, so any *rejected* request fails with `-ENOSYS`. Both belong to `@cartesi/rollup`, not here.
 
 ## Commands
 
@@ -75,7 +77,7 @@ cd packages/app/wallet && bunx vitest run __tests__/transfer.test.ts   # single 
 cd packages/app/wallet && bunx vitest run -t "withdraw"                # tests matching a name
 ```
 
-Tests use **Vitest** and live in `__tests__/` (only `wallet` and `router` currently have them). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
+Tests use **Vitest** and live in `__tests__/` (`core`, `wallet` and `router` have them). The wallet package has `@vitest/coverage-istanbul` and `@vitest/ui` available.
 
 ## Build specifics
 

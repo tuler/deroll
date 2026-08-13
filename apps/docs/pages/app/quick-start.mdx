@@ -44,24 +44,31 @@ If you select the default options (no wallet or router library, more on that lat
 ```ts twoslash [src/index.ts]
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { toHex } from "viem";
 
-// create application
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-// log incoming advance request
-app.addAdvanceHandler((request) => {
-    console.log(request);
-    return true;
-});
+rollup
+    .run({
+        // log incoming advance request
+        advance: (request) => {
+            const { type, payload, ...metadata } = request;
+            console.log(metadata);
+            console.log(payload.toString());
+            return true;
+        },
 
-// log incoming inspect request
-app.addInspectHandler(({ payload }) => {
-    console.log(payload);
-});
-
-// start app
-app.start().catch((e) => process.exit(1));
+        // log incoming inspect request
+        inspect: (request) => {
+            console.log(toHex(request.payload));
+        },
+    })
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });
 ```
 
 This application reads inputs (requests) from the Cartesi device inside the Cartesi machine, and only prints those inputs to the `console`.
@@ -84,7 +91,6 @@ $ cartesi build
        \    / CARTESI
         \ /   MACHINE
          '
-
 
 Manual yield rx-accepted (1) (0x000020 data)
 Cycles: 514075423
@@ -145,11 +151,13 @@ cartesi send
 }
 ```
 ```ts [src/index.ts]
-// log incoming advance request
-app.addAdvanceHandler((request) => {
-    console.log(request); // [!code focus]
-    return true;
-});
+        // log incoming advance request
+        advance: (request) => {
+            const { type, payload, ...metadata } = request; // [!code focus]
+            console.log(metadata); // [!code focus]
+            console.log(payload.toString()); // [!code focus]
+            return true;
+        },
 ```
 :::
 
@@ -210,14 +218,14 @@ $ curl -X POST -d "hello" http://127.0.0.1:6751/inspect/<application>
 { payload: <Buffer 68 65 6c 6c 6f> }
 ```
 ```ts [src/index.ts]
-// log incoming inspect request
-app.addInspectHandler((data) => {
-    console.log(data); // [!code focus]
-});
+        // log incoming inspect request
+        inspect: (request) => {
+            console.log(toHex(request.payload)); // [!code focus]
+        },
 ```
 :::
 
-If you check in the `cartesi logs` log you will see the output above, which is the result of the `console.log(data)` of the application code.
+If you check in the `cartesi logs` log you will see the output above, which is the result of the `console.log` in the inspect handler.
 Inspected state should be returned as report outputs, in this example no reports were produced.
 
 :::warning

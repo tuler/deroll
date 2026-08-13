@@ -15,14 +15,17 @@ Deroll v1 communicates with the Cartesi Machine through the **Rollup HTTP Server
 const app = createApp({ url: "http://127.0.0.1:5004" });
 ```
 
-Deroll v2 talks to the machine directly through a native Node.js binding instead of polling the HTTP server, so `createApp` no longer takes a `url`:
+Deroll v2 talks to the machine directly through [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), the native Node.js binding for libcmt. There is no `App` wrapper at all — you open the device and run its loop:
 
 ```ts
 // v2
-const app = createApp();
+import { Rollup } from "@cartesi/rollup";
+
+const rollup = new Rollup();
+rollup.run({ advance, inspect });
 ```
 
-The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used. The only remaining option is [`broadcastAdvanceRequests`](/app/create-app), which is unchanged.
+The `ROLLUP_HTTP_SERVER_URL` environment variable is no longer used, and `createApp` is gone along with `@deroll/app`. See [The Rollup Loop](/app/application).
 
 ### Input metadata
 
@@ -39,16 +42,8 @@ The input metadata received in an advance handler has changed, and it is no long
 
 ```ts
 // v1
-app.addAdvanceHandler(async ({ metadata, payload }) => {
-    console.log(metadata.msg_sender);
-    return true;
-});
 
 // v2
-app.addAdvanceHandler(({ msgSender }) => {
-    console.log(msgSender);
-    return true;
-});
 ```
 
 ### Payload type
@@ -61,28 +56,31 @@ Vouchers now have an optional bigint `value` field, which is the amount of nativ
 With this new property withdraw vouchers can now be much simpler.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+/// <reference types="node" />
+// ---cut---
+import { Rollup } from "@cartesi/rollup";
 import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
-// create application
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
-// log incoming advance request
-app.addAdvanceHandler((data) => {
-    const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
-    const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
-    const amount = parseUnits("1", 18);
+rollup.run({
+    advance: (request, rollup) => {
+        const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address
+        const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient
+        const amount = parseUnits("1", 18);
 
-    const id = app.createVoucher({
-        destination: token,
-        payload: encodeFunctionData({
-            abi: erc20Abi,
-            functionName: "transfer",
-            args: [to, amount],
-        }),
-        value: 1000000000000000000n, // [!code focus]
-    });
-    return true;
+        const id = rollup.emitVoucher({
+            destination: token,
+            payload: encodeFunctionData({
+                abi: erc20Abi,
+                functionName: "transfer",
+                args: [to, amount],
+            }),
+            value: 1000000000000000000n, // [!code focus]
+        });
+        return true;
+    },
 });
 ```
 
@@ -98,7 +96,7 @@ Now that the input metadata includes the application address there is no need to
 ### Delegate-call vouchers
 
 Cartesi Rollups v2 introduces a new output type, the **delegate-call voucher**, which the application contract executes with `DELEGATECALL` instead of `CALL`, running the target code in the application's own context.
-Deroll v2 exposes it through [`createDelegateCallVoucher`](/app/create-delegate-call-voucher).
+Deroll v2 exposes it through [`emitDelegateCallVoucher`](/app/outputs#delegate-call-vouchers).
 
 ### Executing outputs on the base layer
 
@@ -121,10 +119,13 @@ Those were the `status` field of the Rollup HTTP Server's `/finish` request body
 -app.addAdvanceHandler(async (data) => {
 -    if (!isMine(data)) return "reject";
 -    return "accept";
-+app.addAdvanceHandler((request) => {
-+    if (!isMine(request)) return false;
-+    return true;
- });
+-});
++rollup.run({
++    advance: (request) => {
++        if (!isMine(request)) return false;
++        return true;
++    },
++});
 ```
 
 `true` accepts the input; `false` declines it and passes it to the next handler, exactly as `"reject"` used to.
@@ -139,18 +140,42 @@ The notice and report payloads are also passed directly, rather than wrapped in 
 -const id = await app.createNotice({ payload: stringToHex("hello") });
 -await app.createReport({ payload: stringToHex("hello") });
 -const id = await app.createVoucher({ destination, payload });
-+const id = app.createNotice(stringToHex("hello"));
-+app.createReport(stringToHex("hello"));
-+const id = app.createVoucher({ destination, payload });
++const id = rollup.emitNotice(stringToHex("hello"));
++rollup.emitReport(stringToHex("hello"));
++const id = rollup.emitVoucher({ destination, payload });
 ```
 
-Vouchers keep their object argument, since they carry a `destination` and an optional `value` besides the payload.
+The rollup is handed to every handler as a second argument, so a handler does not need to close over anything to emit an output. Vouchers keep their object argument, since they carry a `destination` and an optional `value` besides the payload. See [Outputs](/app/outputs).
 
 Handlers may still be `async` — they are awaited — but they no longer have to be.
 
+### Registering several handlers
+
+`addAdvanceHandler` and `addInspectHandler` are gone: `Rollup.run` takes one handler of each kind. To run several advance handlers, compose them with [chain](/app/chain):
+
+```diff
+-app.addAdvanceHandler(wallet.handler);
+-app.addAdvanceHandler(application);
+-app.addInspectHandler(router.handler);
+-app.start();
++rollup.run({
++    advance: chain(wallet.handler, application),
++    inspect: router.handler,
++});
+```
+
+The `broadcastAdvanceRequests` option is now [broadcast](/app/broadcast), chosen per group of handlers rather than for the whole application.
+
+The [router](/app/router/overview) no longer takes an `app`, since it receives the rollup as a handler argument:
+
+```diff
+-const router = createRouter();
++const router = createRouter();
+```
+
 ### registerException
 
-`registerException` is now part of the `App` interface, so it is reachable from the value returned by `createApp`.
+`registerException` is now `rollup.emitException(payload)`.
 It signals that a request could not be processed at all, which halts the machine.
 
 ### Handler exceptions
@@ -168,7 +193,7 @@ It re-exports them from [`@cartesi/rollup`](https://github.com/cartesi/rollups-t
 - `Voucher` and `DelegateCallVoucher` now come from the binding, so `destination` accepts a `Uint8Array` as well as a hex address, and a voucher `value` accepts a `number` or hex as well as a `bigint`.
 - The `Notice`, `Report` and `Exception` wrapper types are gone, along with the `NoticeResponse`/`ReportResponse`/`VoucherResponse` types left over from the HTTP transport.
 
-`@cartesi/rollup` is a peer dependency of `@deroll/core`, which keeps a single copy of the native binding in the dependency tree — the rollup device allows only one open handle per process.
+`@cartesi/rollup` is a peer dependency of the deroll packages, which keeps a single copy of the native binding in the dependency tree — the rollup device allows only one open handle per process.
 
 ### GraphQL service deprecated
 

@@ -7,22 +7,24 @@ Utility to create a `Voucher` to withdraw ether to a destination address on the 
 The example below shows how to create a `Voucher` to withdraw 1 ether to the `msgSender` of the an input.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 import { createWithdrawEtherVoucher } from "@deroll/wallet";
 import { parseEther } from "viem";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
-app.addAdvanceHandler(({ msgSender }) => {
-    const value = parseEther("1");
-    const voucher = createWithdrawEtherVoucher( // [!code focus]
-        msgSender, // [!code focus]
-        value, // [!code focus]
-    ); // [!code focus]
-    app.createVoucher(voucher);
-    return true;
+rollup.run({
+    advance: ({ msgSender }) => {
+        const value = parseEther("1");
+        const voucher = createWithdrawEtherVoucher( // [!code focus]
+            msgSender, // [!code focus]
+            value, // [!code focus]
+        ); // [!code focus]
+        rollup.emitVoucher(voucher);
+        return true;
+    },
 });
 ```
 

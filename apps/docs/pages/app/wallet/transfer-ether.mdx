@@ -8,23 +8,24 @@ The following example is an advance handler that transfers 1 ETH from the sender
 If the sender does not have enough balance an exception is raised, which rejects the input and emits the error as a report.
 
 ```ts twoslash
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
 import { createWallet } from "@deroll/wallet";
 import { parseEther } from "viem";
 
-// create app
-const app = createApp();
+// open the rollup device
+const rollup = new Rollup();
 
 // create wallet
 const wallet = createWallet();
 
-app.addAdvanceHandler(wallet.handler);
-
-app.addAdvanceHandler(({ msgSender, payload }) => {
-    const value = parseEther("1");
-    const address = payload.toString();
-    wallet.transferEther(msgSender, address, value); // [!code focus]
-    return true;
+rollup.run({
+    advance: chain(wallet.handler, ({ msgSender, payload }) => {
+        const value = parseEther("1");
+        const address = payload.toString();
+        wallet.transferEther(msgSender, address, value); // [!code focus]
+        return true;
+    }),
 });
 ```
 

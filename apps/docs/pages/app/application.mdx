@@ -1,35 +1,63 @@
-# Application
+# The Rollup Loop
 
-A deroll `App` is responsible for the main loop of the Cartesi application.
-It fetches advance requests (inputs) sent to the application, handling them to [advance handlers](./advance-handlers), and inspect requests to [inspect handlers](./inspect-handlers).
+A Cartesi application backend is a long-running process that reads requests from inside the Cartesi Machine and produces outputs. That loop is owned by [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), the Node.js binding for libcmt — deroll does not wrap it.
 
-The source of these requests is the Cartesi device inside the Cartesi Machine, which fetches requests from the outside using Cartesi I/O primitives.
-
-You can construct an `App` that communicates with the device using the [createApp](./create-app) function.
+You open the rollup device by constructing a `Rollup`, and hand it your request handlers:
 
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { createApp } from "@deroll/app";
+import { Rollup } from "@cartesi/rollup";
 
-// create application
-const app = createApp(); // [!code focus]
+// open the rollup device // [!code focus]
+const rollup = new Rollup(); // [!code focus]
+
+rollup // [!code focus]
+    .run({ // [!code focus]
+        advance: (request) => { // [!code focus]
+            console.log(request); // [!code focus]
+            return true; // [!code focus]
+        }, // [!code focus]
+    }) // [!code focus]
+    .catch((e) => { // [!code focus]
+        console.error(e); // [!code focus]
+        process.exit(1); // [!code focus]
+    }); // [!code focus]
 ```
 
-You then call the `app.start()` method. That will enter in a continuous loop, fetching requests and handling them to the application request handlers.
+`run` enters a continuous loop, fetching requests and dispatching them to the handler for their kind. It never returns normally — inside a machine the loop is meant to run forever — so the rejection is what you handle.
+
+:::warning
+Only **one** `Rollup` may be open per process. The rollup device allows a single handle, so constructing a second one fails with `-EBUSY`. This is also why `@cartesi/rollup` is a peer dependency of the deroll packages: the dependency tree must resolve to a single copy.
+:::
+
+## Where deroll fits
+
+`run` takes exactly **one** advance handler and **one** inspect handler. A real application usually has several independently authored concerns — a wallet that claims portal deposits, then the application's own logic — so `@deroll/core` provides the composition that turns many handlers into one:
 
 ```ts twoslash
 /// <reference types="node" />
+import { Rollup } from "@cartesi/rollup";
+import { chain } from "@deroll/core";
+import { createWallet } from "@deroll/wallet";
+
+const rollup = new Rollup();
+const wallet = createWallet();
+const application = () => true;
 // ---cut---
-import { createApp } from "@deroll/app";
-
-// create application
-const app = createApp();
-
-// start app // [!code ++]
-app.start().catch((e) => process.exit(1)); // [!code ++]
+rollup.run({
+    advance: chain(wallet.handler, application), // [!code focus]
+});
 ```
 
-In the example above we are catching exceptions and exiting the application. Keep in mind that exiting a Cartesi rollups application means that the rollups is terminated forever.
+That is the whole of deroll's involvement in the loop — see [chain](/app/chain) and [broadcast](/app/broadcast). Everything else deroll offers is a library you plug in as a handler: the [wallet](/app/wallet) and the [router](/app/router/overview).
 
-To do anything useful the application must implement [AdvanceHandler's](./advance-handlers) and [InspectHandler's](./inspect-handlers), which is the subject of the following sections.
+## Requests and outputs
+
+The two kinds of request, and the outputs a handler may produce, are the rollup protocol's, not deroll's:
+
+- [Advance handlers](/app/advance-handlers) process state-changing inputs.
+- [Inspect handlers](/app/inspect-handlers) answer read-only queries.
+- [Outputs](/app/outputs) — notices, reports, vouchers and delegate-call vouchers — are emitted through the `Rollup` handle.
+
+For the full method reference (including `progress`, `gio` and the merkle-tree helpers), see the [`@cartesi/rollup` documentation](https://github.com/cartesi/rollups-ts).
