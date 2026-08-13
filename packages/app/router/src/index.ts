@@ -1,4 +1,4 @@
-import type { InspectRequest, RollupContext } from "@deroll/core";
+import type { InspectRequest, Rollup } from "@cartesi/rollup";
 import {
     type MatchFunction,
     type MatchResult,
@@ -50,13 +50,27 @@ export class Router {
         return undefined;
     }
 
-    public handler(request: InspectRequest, rollup: RollupContext): void {
+    /**
+     * Answers an inspect query, reporting the matched route's result.
+     *
+     * Returns whether a route matched, so the router composes with `chain`: an
+     * unmatched query falls through to the next handler. The rollup parameter
+     * is narrowed to what this actually uses, which keeps it satisfiable by a
+     * plain object in tests — `Rollup` itself carries a `#private` brand.
+     */
+    public handler(
+        request: InspectRequest,
+        rollup: Pick<Rollup, "emitReport">,
+    ): boolean {
         const url = bytesToString(request.payload);
         const result = this.handle(url);
-        if (result) {
-            // create single report with handler result
-            rollup.emitReport(stringToHex(result));
+        if (result === undefined) {
+            return false;
         }
+
+        // create single report with handler result
+        rollup.emitReport(stringToHex(result));
+        return true;
     }
 }
 

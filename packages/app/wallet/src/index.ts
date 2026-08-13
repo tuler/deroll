@@ -1,4 +1,4 @@
-import type { Voucher } from "@deroll/core";
+import type { Voucher } from "@cartesi/rollup";
 import type { Address, Hex } from "viem";
 import { encodeFunctionData, erc20Abi, erc721Abi, parseAbi } from "viem";
 

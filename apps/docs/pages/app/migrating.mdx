@@ -19,7 +19,7 @@ Deroll v2 talks to the machine directly through [`@cartesi/rollup`](https://gith
 
 ```ts
 // v2
-import { Rollup } from "@cartesi/rollup";
+import { Rollup, chain } from "@cartesi/rollup";
 
 const rollup = new Rollup();
 rollup.run({ advance, inspect });
@@ -58,7 +58,7 @@ With this new property withdraw vouchers can now be much simpler.
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { Rollup } from "@cartesi/rollup";
+import { Rollup, chain } from "@cartesi/rollup";
 import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 
 // open the rollup device
@@ -151,7 +151,7 @@ Handlers may still be `async` — they are awaited — but they no longer have t
 
 ### Registering several handlers
 
-`addAdvanceHandler` and `addInspectHandler` are gone: `Rollup.run` takes one handler of each kind. To run several advance handlers, compose them with [chain](/app/chain):
+`addAdvanceHandler` and `addInspectHandler` are gone: `Rollup.run` takes one handler of each kind. To run several advance handlers, compose them with `chain` from [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts):
 
 ```diff
 -app.addAdvanceHandler(wallet.handler);
@@ -164,7 +164,7 @@ Handlers may still be `async` — they are awaited — but they no longer have t
 +});
 ```
 
-The `broadcastAdvanceRequests` option is now [broadcast](/app/broadcast), chosen per group of handlers rather than for the whole application.
+The `broadcastAdvanceRequests` option is now `broadcast`, chosen per group of handlers rather than for the whole application, and the two nest (`chain(a, broadcast(b, c))`).
 
 The [router](/app/router/overview) no longer takes an `app`, since it receives the rollup as a handler argument:
 
@@ -185,8 +185,8 @@ See [Advance Handlers](/app/advance-handlers#exceptions).
 
 ### Protocol types come from @cartesi/rollup
 
-`@deroll/core` no longer declares its own copies of the rollup protocol types.
-It re-exports them from [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), the libcmt binding, so the two can never drift:
+deroll no longer declares its own copies of the rollup protocol types.
+They come straight from [`@cartesi/rollup`](https://github.com/cartesi/rollups-ts), the libcmt binding:
 
 - `AdvanceRequest`, `InspectRequest` and `RollupRequest` replace `AdvanceRequestData`, `InspectRequestData`, `AdvanceRequestMetadata` and the `RollupAdvanceRequest`/`RollupInspectRequest` pair.
 - `BytesLike` replaces `Payload`, and it is what the output methods accept.

@@ -1,5 +1,4 @@
-import { Rollup } from "@cartesi/rollup";
-import { type AdvanceRequestHandler, chain } from "@deroll/core";
+import { type AdvanceRequestHandler, Rollup, chain } from "@cartesi/rollup";
 import { createRouter } from "@deroll/router";
 import { createWallet } from "@deroll/wallet";
 

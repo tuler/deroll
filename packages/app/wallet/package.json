@@ -34,11 +34,11 @@
     },
     "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.1",
-        "@deroll/core": "workspace:*",
         "viem": "^2.55.13"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
+        "@cartesi/rollup": "1.0.0-alpha.1",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "@vitest/coverage-istanbul": "^4.1.9",
@@ -50,5 +50,8 @@
     },
     "publishConfig": {
         "access": "public"
+    },
+    "peerDependencies": {
+        "@cartesi/rollup": "1.0.0-alpha.1"
     }
 }

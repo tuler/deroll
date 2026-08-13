@@ -7,7 +7,7 @@ You open the rollup device by constructing a `Rollup`, and hand it your request 
 ```ts twoslash
 /// <reference types="node" />
 // ---cut---
-import { Rollup } from "@cartesi/rollup";
+import { Rollup, chain } from "@cartesi/rollup";
 
 // open the rollup device // [!code focus]
 const rollup = new Rollup(); // [!code focus]
@@ -33,12 +33,11 @@ Only **one** `Rollup` may be open per process. The rollup device allows a single
 
 ## Where deroll fits
 
-`run` takes exactly **one** advance handler and **one** inspect handler. A real application usually has several independently authored concerns — a wallet that claims portal deposits, then the application's own logic — so `@deroll/core` provides the composition that turns many handlers into one:
+`run` takes exactly **one** advance handler and **one** inspect handler. A real application usually has several independently authored concerns — a wallet that claims portal deposits, then the application's own logic — so `@cartesi/rollup` also ships the composition that turns many handlers into one:
 
 ```ts twoslash
 /// <reference types="node" />
-import { Rollup } from "@cartesi/rollup";
-import { chain } from "@deroll/core";
+import { Rollup, chain } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 
 const rollup = new Rollup();
@@ -50,7 +49,7 @@ rollup.run({
 });
 ```
 
-That is the whole of deroll's involvement in the loop — see [chain](/app/chain) and [broadcast](/app/broadcast). Everything else deroll offers is a library you plug in as a handler: the [wallet](/app/wallet) and the [router](/app/router/overview).
+deroll is not involved in the loop at all. What it offers is libraries you plug in as handlers: the [wallet](/app/wallet) and the [router](/app/router/overview).
 
 ## Requests and outputs
 

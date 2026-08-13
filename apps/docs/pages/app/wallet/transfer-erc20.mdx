@@ -8,8 +8,7 @@ The following example is an advance handler that transfers 1 CTSI from the sende
 If the sender does not have enough balance an exception is raised, and that handler is aborted.
 
 ```ts twoslash
-import { Rollup } from "@cartesi/rollup";
-import { chain } from "@deroll/core";
+import { Rollup, chain } from "@cartesi/rollup";
 import { createWallet } from "@deroll/wallet";
 import { parseUnits } from "viem";
 
