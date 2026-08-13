@@ -1,11 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
-import { all, broadcast, chain } from "../src/compose.js";
-import type {
-    AdvanceRequest,
-    InspectRequest,
-    RollupContext,
-} from "../src/types.js";
+import { broadcast, chain } from "../src/compose.js";
+import type { AdvanceRequest, RollupContext } from "../src/types.js";
 
 const advance: AdvanceRequest = {
     type: "advance",
@@ -17,11 +13,6 @@ const advance: AdvanceRequest = {
     prevRandao: 0n,
     index: 0n,
     payload: Buffer.from("deadbeef", "hex"),
-};
-
-const inspect: InspectRequest = {
-    type: "inspect",
-    payload: Buffer.from("query", "utf8"),
 };
 
 // RollupContext is a structural slice of Rollup, so a plain fake is assignable
@@ -101,20 +92,5 @@ describe("broadcast", () => {
                 () => false,
             )(advance, rollup()),
         ).toBe(false);
-    });
-});
-
-describe("all", () => {
-    test("runs every inspect handler in order", async () => {
-        const seen: number[] = [];
-        await all(
-            () => {
-                seen.push(1);
-            },
-            async () => {
-                seen.push(2);
-            },
-        )(inspect, rollup());
-        expect(seen).toEqual([1, 2]);
     });
 });

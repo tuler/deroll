@@ -1,5 +1,4 @@
 import { Rollup } from "@cartesi/rollup";
-import { run } from "@deroll/core";
 import { createRouter } from "@deroll/router";
 
 // open the rollup device
@@ -12,7 +11,7 @@ router.add<{ name: string }>(
     ({ params: { name } }) => `Hello ${name}`,
 );
 
-run(rollup, { inspect: router.handler }).catch((e) => {
+rollup.run({ inspect: router.handler }).catch((e) => {
     console.error(e);
     process.exit(1);
 });

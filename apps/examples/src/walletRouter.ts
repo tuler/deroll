@@ -1,5 +1,5 @@
 import { Rollup } from "@cartesi/rollup";
-import { run } from "@deroll/core";
+import { type AdvanceRequestHandler, chain } from "@deroll/core";
 import { createRouter } from "@deroll/router";
 import { createWallet } from "@deroll/wallet";
 
@@ -17,10 +17,19 @@ router.add<{ address: string }>("wallet/:address", ({ params: { address } }) =>
     ),
 );
 
-run(rollup, {
-    advance: wallet.handler,
-    inspect: router.handler,
-}).catch((e) => {
-    console.error(e);
-    process.exit(1);
-});
+// application logic, for inputs the wallet did not claim as a deposit
+const application: AdvanceRequestHandler = ({ msgSender, payload }) => {
+    console.log(`${msgSender} says ${payload.toString()}`);
+    return true;
+};
+
+rollup
+    .run({
+        // the wallet claims portal deposits; anything else falls through
+        advance: chain(wallet.handler, application),
+        inspect: router.handler,
+    })
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });
