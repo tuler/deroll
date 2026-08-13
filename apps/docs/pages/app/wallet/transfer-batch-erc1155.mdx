@@ -21,13 +21,13 @@ const wallet = createWallet();
 app.addAdvanceHandler(wallet.handler);
 
 const token = "0x04d724738873CB6a86328D2EbAEb2079D715e61e"; // ERC-1155 address
-app.addAdvanceHandler(async ({ metadata, payload }) => {
+app.addAdvanceHandler(({ msgSender, payload }) => {
     const value1 = parseUnits("1", 18);
     const value2 = parseUnits("1", 18);
     const address = payload.toString();
     wallet.transferBatchERC1155( // [!code focus]
         token, // [!code focus]
-        metadata.msgSender, // [!code focus]
+        msgSender, // [!code focus]
         address, // [!code focus]
         [1n, 2n], // [!code focus]
         [value1, value2], // [!code focus]

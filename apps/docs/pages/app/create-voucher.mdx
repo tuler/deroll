@@ -14,12 +14,12 @@ import { encodeFunctionData, erc20Abi, parseUnits } from "viem";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async (data) => {
+app.addAdvanceHandler((data) => {
     const token = "0x491604c0FDF08347Dd1fa4Ee062a822A5DD06B5D"; // CTSI address // [!code focus]
     const to = "0x8f7599fa6fDDF2845a3beBcDCb055C7Ba1793a1f"; // CTSI recipient // [!code focus]
     const amount = parseUnits("1", 18); // [!code focus]
 
-    const id = await app.createVoucher({ // [!code focus]
+    const id = app.createVoucher({ // [!code focus]
         destination: token, // [!code focus]
         payload: encodeFunctionData({ // [!code focus]
             abi: erc20Abi, // [!code focus]

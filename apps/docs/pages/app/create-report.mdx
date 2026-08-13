@@ -16,8 +16,8 @@ import { stringToHex } from "viem";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async (data) => {
-    await app.createReport({ payload: stringToHex("hello") }); // [!code focus]
+app.addAdvanceHandler((data) => {
+    app.createReport(stringToHex("hello")); // [!code focus]
     return "accept";
 });
 ```
@@ -32,6 +32,8 @@ Unlike notices and vouchers, reports are not indexed, so `createReport` does not
 
 ### payload
 
-Type: `Hex`
+Type: `BytesLike`
 
-Binary payload of the report, hex-encoded.
+Binary payload of the report, as a `0x`-prefixed hex string or a `Uint8Array`/`Buffer`.
+
+`createReport` takes the payload directly; it is not wrapped in an object.

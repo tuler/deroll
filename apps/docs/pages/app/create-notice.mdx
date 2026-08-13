@@ -14,8 +14,8 @@ import { stringToHex } from "viem";
 const app = createApp();
 
 // log incoming advance request
-app.addAdvanceHandler(async (data) => {
-    const id = await app.createNotice({ payload: stringToHex("hello") }); // [!code focus]
+app.addAdvanceHandler((data) => {
+    const id = app.createNotice(stringToHex("hello")); // [!code focus]
     return "accept";
 });
 ```
@@ -30,6 +30,8 @@ The id of the notice output.
 
 ### payload
 
-Type: `Hex`
+Type: `BytesLike`
 
-Binary payload of the notice, hex-encoded.
+Binary payload of the notice, as a `0x`-prefixed hex string or a `Uint8Array`/`Buffer`.
+
+`createNotice` takes the payload directly; it is not wrapped in an object.

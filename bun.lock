@@ -123,11 +123,9 @@
     "packages/app/core": {
       "name": "@deroll/core",
       "version": "2.0.0-alpha.5",
-      "dependencies": {
-        "viem": "^2.55.13",
-      },
       "devDependencies": {
         "@biomejs/biome": "catalog:",
+        "@cartesi/rollup": "1.0.0-alpha.0",
         "@deroll/tsconfig": "workspace:*",
         "@types/node": "^26",
         "npm-run-all": "^4",
@@ -135,6 +133,9 @@
         "tsx": "^4",
         "typescript": "^6.0.3",
         "vitest": "^4.1.9",
+      },
+      "peerDependencies": {
+        "@cartesi/rollup": "1.0.0-alpha.0",
       },
     },
     "packages/app/create-app": {

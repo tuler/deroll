@@ -1,11 +1,11 @@
-import type { App, InspectRequestData } from "@deroll/core";
+import type { App, InspectRequest } from "@deroll/core";
 import {
     type MatchFunction,
     type MatchResult,
     type Path,
     match,
 } from "path-to-regexp";
-import { bytesToString, stringToBytes, toBytes, toHex } from "viem";
+import { bytesToString, stringToHex } from "viem";
 
 export type Handler<P extends object = object> = (
     match: MatchResult<P>,
@@ -56,14 +56,12 @@ export class Router {
         return undefined;
     }
 
-    public async handler(data: InspectRequestData): Promise<void> {
-        const url = bytesToString(toBytes(data.payload));
+    public handler(request: InspectRequest): void {
+        const url = bytesToString(request.payload);
         const result = this.handle(url);
         if (result) {
             // create single report with handler result
-            await this.options.app.createReport({
-                payload: toHex(stringToBytes(result)),
-            });
+            this.options.app.createReport(stringToHex(result));
         }
     }
 }

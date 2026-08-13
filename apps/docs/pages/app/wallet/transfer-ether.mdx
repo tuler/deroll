@@ -5,7 +5,7 @@ Transfer L2 ETH (or base layer native token) from one user to another.
 ## Usage
 
 The following example is an advance handler that transfers 1 ETH from the sender of the input to a recipient specified in the input payload.
-If the sender does not have enough balance an exception is raised, and that handler is aborted.
+If the sender does not have enough balance an exception is raised, which rejects the input and emits the error as a report.
 
 ```ts twoslash
 import { createApp } from "@deroll/app";
@@ -20,10 +20,10 @@ const wallet = createWallet();
 
 app.addAdvanceHandler(wallet.handler);
 
-app.addAdvanceHandler(async ({ metadata, payload }) => {
+app.addAdvanceHandler(({ msgSender, payload }) => {
     const value = parseEther("1");
     const address = payload.toString();
-    wallet.transferEther(metadata.msgSender, address, value); // [!code focus]
+    wallet.transferEther(msgSender, address, value); // [!code focus]
     return "accept";
 });
 ```

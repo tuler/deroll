@@ -15,13 +15,13 @@ import { parseEther } from "viem";
 const app = createApp();
 
 const application = "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e";
-app.addAdvanceHandler(async ({ metadata }) => {
+app.addAdvanceHandler(({ msgSender }) => {
     const value = parseEther("1");
     const voucher = createWithdrawEtherVoucher( // [!code focus]
-        metadata.msgSender, // [!code focus]
+        msgSender, // [!code focus]
         value, // [!code focus]
     ); // [!code focus]
-    await app.createVoucher(voucher);
+    app.createVoucher(voucher);
     return "accept";
 });
 ```

@@ -1,14 +1,14 @@
 import { Rollup, RollupError } from "@cartesi/rollup";
 import { constants } from "node:os";
 import type {
+    AdvanceRequest,
     AdvanceRequestHandler,
     App,
     AppOptions,
+    BytesLike,
     DelegateCallVoucher,
-    Exception,
+    InspectRequest,
     InspectRequestHandler,
-    Notice,
-    Report,
     RequestHandlerResult,
     Voucher,
 } from "@deroll/core";
@@ -33,36 +33,54 @@ export class NativeApp implements App {
         this.rollup = new Rollup();
     }
 
-    public async createNotice(notice: Notice): Promise<bigint> {
-        return this.rollup.emitNotice(notice.payload);
+    public createNotice(payload: BytesLike): bigint {
+        return this.rollup.emitNotice(payload);
     }
 
-    public async createReport(report: Report): Promise<void> {
-        this.rollup.emitReport(report.payload);
+    public createReport(payload: BytesLike): void {
+        this.rollup.emitReport(payload);
     }
 
-    public async createVoucher(voucher: Voucher): Promise<bigint> {
+    public createVoucher(voucher: Voucher): bigint {
         return this.rollup.emitVoucher(voucher);
     }
 
-    public async createDelegateCallVoucher(
-        voucher: DelegateCallVoucher,
-    ): Promise<bigint> {
+    public createDelegateCallVoucher(voucher: DelegateCallVoucher): bigint {
         return this.rollup.emitDelegateCallVoucher(voucher);
     }
 
-    public async registerException(exception: Exception): Promise<void> {
-        this.rollup.emitException(exception.payload);
+    public registerException(payload: BytesLike): void {
+        this.rollup.emitException(payload);
     }
 
-    private handleAdvance: AdvanceRequestHandler = async (data) => {
+    /**
+     * A handler blew up, so the request could not be processed: report the
+     * failure and reject. Reports survive a rejection, so this is what makes
+     * the error observable from outside the machine — rather than only on
+     * stderr, inside a guest nobody is tailing.
+     */
+    private reportFailure(e: unknown): void {
+        console.error(e);
+        const message = e instanceof Error ? (e.stack ?? e.message) : String(e);
+        try {
+            this.rollup.emitReport(Buffer.from(message, "utf8"));
+        } catch (reportError) {
+            // emitting the report can itself fail (e.g. payload too large);
+            // never let that take down the request loop
+            console.error(reportError);
+        }
+    }
+
+    private handleAdvance = async (
+        request: AdvanceRequest,
+    ): Promise<RequestHandlerResult> => {
         // initialize final result as reject, which is the case if no handler accepts the request
         let finalResult: RequestHandlerResult = "reject";
 
         // present the input to all handlers
         for (const handler of this.advanceHandlers) {
             try {
-                const result = await handler(data);
+                const result = await handler(request);
                 if (result === "accept") {
                     if (!this.options.broadcastAdvanceRequests) {
                         // not broadcast, return accept immediately
@@ -74,23 +92,29 @@ export class NativeApp implements App {
                 }
                 // here result is "reject", just continue
             } catch (e) {
-                // one of the handlers raised an exception, just log it
-                // it will return "reject" if no handler accepts the request
-                console.error(e);
+                // a handler raised: the input is not processable, so reject the
+                // whole request rather than letting later handlers write state
+                // on top of a partially applied one
+                this.reportFailure(e);
+                return "reject";
             }
         }
         return finalResult;
     };
 
-    private handleInspect: InspectRequestHandler = async (data) => {
-        // present the input to all handlers
+    private handleInspect = async (
+        request: InspectRequest,
+    ): Promise<RequestHandlerResult> => {
+        // present the query to all handlers
         for (const handler of this.inspectHandlers) {
             try {
-                await handler(data);
+                await handler(request);
             } catch (e) {
-                console.error(e);
+                this.reportFailure(e);
+                return "reject";
             }
         }
+        return "accept";
     };
 
     public addAdvanceHandler(handler: AdvanceRequestHandler): void {
@@ -115,15 +139,11 @@ export class NativeApp implements App {
                 });
                 switch (request.type) {
                     case "advance": {
-                        const { payload, type, ...metadata } = request;
-                        status = await this.handleAdvance({
-                            metadata,
-                            payload,
-                        });
+                        status = await this.handleAdvance(request);
                         break;
                     }
                     case "inspect": {
-                        await this.handleInspect({ payload: request.payload });
+                        status = await this.handleInspect(request);
                         break;
                     }
                 }
