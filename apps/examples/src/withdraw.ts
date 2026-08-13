@@ -28,10 +28,10 @@ app.addAdvanceHandler(({ msgSender, payload }) => {
 
             // create voucher output
             app.createVoucher(voucher);
-            return "accept";
+            return true;
         }
     }
-    return "reject";
+    return false;
 });
 
 // start app

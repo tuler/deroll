@@ -21,15 +21,15 @@ app.addAdvanceHandler(({ payload }) => {
         case "attackDragon": {
             const [dragonId, weapon] = args;
             console.log(`attacking dragon ${dragonId} with ${weapon}...`);
-            return "accept";
+            return true;
         }
 
         case "drinkPotion": {
             console.log(`drinking potion...`);
-            return "accept";
+            return true;
         }
     }
-    return "reject";
+    return false;
 });
 
 // start app

@@ -16,11 +16,19 @@ export type {
 import type { AdvanceRequest, InspectRequest } from "@cartesi/rollup";
 
 /**
- * Verdict an advance handler returns for an input. On `"reject"` the machine
- * state is reverted and any notices/vouchers emitted for the input are
- * discarded; reports survive.
+ * Whether an advance handler handled the input: `true` accepts it, `false`
+ * declines and passes it to the next handler.
+ *
+ * Note that a single `false` does not reject the input — only an input no
+ * handler accepted is rejected, which reverts the machine state and discards
+ * the notices and vouchers emitted for it (reports survive).
+ *
+ * There is deliberately no `void` in this type. `Rollup.run` in the binding
+ * accepts a request unless a handler returns `false`; deroll is the opposite,
+ * rejecting unless a handler opts in, so a handler that falls off its end must
+ * be a type error rather than a silent accept.
  */
-export type RequestHandlerResult = "accept" | "reject";
+export type RequestHandlerResult = boolean;
 
 /**
  * Handles an advance (state-changing) request. May be synchronous — the

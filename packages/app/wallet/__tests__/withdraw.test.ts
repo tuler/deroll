@@ -59,7 +59,7 @@ describe("withdraw", () => {
         const response = await wallet.handler(
             advance(etherPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.etherBalanceOf(sender)).toEqual(value);
 
         const voucher = wallet.withdrawEther(sender, withdraw);
@@ -92,7 +92,7 @@ describe("withdraw", () => {
         const response = await wallet.handler(
             advance(erc20PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc20BalanceOf(token, sender)).toBe(value);
 
         const voucher = wallet.withdrawERC20(token, sender, withdraw);
@@ -135,7 +135,7 @@ describe("withdraw", () => {
         const response = await wallet.handler(
             advance(erc721PortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc721Has(token, sender, tokenId)).toBe(true);
 
         const voucher = wallet.withdrawERC721(dapp, token, sender, tokenId);
@@ -184,7 +184,7 @@ describe("withdraw", () => {
         const response = await wallet.handler(
             advance(erc1155SinglePortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, sender, tokenId)).toBe(value);
 
         const voucher = wallet.withdrawERC1155(
@@ -272,7 +272,7 @@ describe("withdraw", () => {
         const response = await wallet.handler(
             advance(erc1155BatchPortalAddress, payload),
         );
-        expect(response).toBeTruthy();
+        expect(response).toBe(true);
         expect(wallet.erc1155BalanceOf(token, sender, tokenIds[0])).toBe(
             values[0],
         );

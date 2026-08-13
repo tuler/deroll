@@ -29,6 +29,6 @@ describe("noop", () => {
             index: 0n,
             payload: Buffer.from("deadbeef", "hex"),
         });
-        expect(response).toBe("reject");
+        expect(response).toBe(false);
     });
 });

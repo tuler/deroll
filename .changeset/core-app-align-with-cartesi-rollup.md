@@ -13,6 +13,20 @@ Now that `@cartesi/rollup` owns the protocol vocabulary, `@deroll/core` keeps on
 
 Removed along the way: `RollupAdvanceRequest`, `RollupInspectRequest`, `RequestType`, `RequestData`, `RequestMetadata`, `NoticeResponse`, `ReportResponse` and `VoucherResponse` — leftovers of the Rollup HTTP Server transport, with no consumers since it was replaced.
 
+**Breaking: advance handlers return a boolean.** `"accept"`/`"reject"` were the `status` field of the Rollup HTTP Server's `/finish` request body, passed through verbatim by deroll v1 — the last piece of that transport's vocabulary left in the API. Handlers now return `true` to accept an input or `false` to decline it and pass it to the next handler, matching `finish({ accept })` in the binding. The words were also misleading in a handler chain: returning `"reject"` never rejected the input, it only declined it, and the input is rejected only when no handler accepted.
+
+`RequestHandlerResult` is now `boolean`, deliberately without `void`: `Rollup.run` in the binding accepts a request unless a handler returns `false`, whereas deroll rejects unless a handler opts in, so a handler that falls off its end must be a type error rather than a silent accept.
+
+```diff
+-app.addAdvanceHandler(async (data) => {
+-    if (!isMine(data)) return "reject";
+-    return "accept";
++app.addAdvanceHandler((request) => {
++    if (!isMine(request)) return false;
++    return true;
+ });
+```
+
 **Breaking: the advance request is flat.** `AdvanceRequestData`/`AdvanceRequestMetadata` are replaced by `AdvanceRequest`, which carries the metadata fields directly alongside `payload` and a `type: "advance"` discriminant. `InspectRequestData` becomes `InspectRequest`.
 
 ```diff

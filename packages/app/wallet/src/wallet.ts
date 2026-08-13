@@ -175,7 +175,7 @@ export class WalletAppImpl implements WalletApp {
                 wallet.ether += value;
 
                 this.wallets[sender] = wallet;
-                return "accept";
+                return true;
             }
             case "Erc20Deposit": {
                 const { token, sender, value } = deposit;
@@ -189,7 +189,7 @@ export class WalletAppImpl implements WalletApp {
                     : value;
 
                 this.wallets[sender] = wallet;
-                return "accept";
+                return true;
             }
             case "Erc721Deposit": {
                 const { sender, token, tokenId } = deposit;
@@ -202,7 +202,7 @@ export class WalletAppImpl implements WalletApp {
                 wallet.erc721[token].add(tokenId);
 
                 this.wallets[sender] = wallet;
-                return "accept";
+                return true;
             }
             case "Erc1155SingleDeposit": {
                 const { sender, token, tokenId, value } = deposit;
@@ -218,7 +218,7 @@ export class WalletAppImpl implements WalletApp {
                 );
 
                 this.wallets[sender] = wallet;
-                return "accept";
+                return true;
             }
             case "Erc1155BatchDeposit": {
                 const { sender, token, tokenIds, values } = deposit;
@@ -236,10 +236,10 @@ export class WalletAppImpl implements WalletApp {
                 });
 
                 this.wallets[sender] = wallet;
-                return "accept";
+                return true;
             }
         }
-        return "reject";
+        return false;
     };
 
     public transferEther(from: string, to: string, value: bigint): void {
