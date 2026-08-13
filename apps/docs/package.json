@@ -4,9 +4,9 @@
     "type": "module",
     "private": true,
     "scripts": {
-        "build": "node scripts/check-single-waku.mjs && vocs build",
+        "build": "vocs build",
         "clean": "vocs clean",
-        "dev": "node scripts/check-single-waku.mjs && vocs dev",
+        "dev": "vocs dev",
         "preview": "vocs preview"
     },
     "dependencies": {
