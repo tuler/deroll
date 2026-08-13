@@ -1,6 +1,4 @@
 ---
-"@deroll/app": patch
-"@deroll/core": patch
 "@deroll/create-app": patch
 "@deroll/decoder": patch
 "@deroll/genext2fs": patch

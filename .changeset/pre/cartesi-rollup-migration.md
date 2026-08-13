@@ -1,6 +1,4 @@
 ---
-"@deroll/core": minor
-"@deroll/app": minor
 "@deroll/create-app": minor
 ---
 
