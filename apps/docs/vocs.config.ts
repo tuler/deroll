@@ -153,21 +153,6 @@ export default defineConfig({
                         },
                     ],
                 },
-                {
-                    text: "Router",
-                    link: "/app/router/overview",
-                    collapsed: true,
-                    items: [
-                        {
-                            text: "createRouter",
-                            link: "/app/router/create-router",
-                        },
-                        {
-                            text: "add",
-                            link: "/app/router/add",
-                        },
-                    ],
-                },
             ],
         },
         ],

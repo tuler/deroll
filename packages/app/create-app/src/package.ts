@@ -11,10 +11,6 @@ export const packageJson = async (options: CreateAppOptions) => {
     const dependencies: Record<string, string> = {};
     const derollVersion = "alpha"; // or "latest"
 
-    if (options.libraries.includes("router")) {
-        dependencies["@deroll/router"] =
-            `^${await latestVersion("@deroll/router", { version: derollVersion })}`;
-    }
     if (options.libraries.includes("wallet")) {
         dependencies["@deroll/wallet"] =
             `^${await latestVersion("@deroll/wallet", { version: derollVersion })}`;
