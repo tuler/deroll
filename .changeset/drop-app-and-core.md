@@ -1,6 +1,5 @@
 ---
 "@deroll/create-app": minor
-"@deroll/router": minor
 "@deroll/wallet": minor
 ---
 

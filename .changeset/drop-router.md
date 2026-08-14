@@ -1,6 +1,5 @@
 ---
 "@deroll/create-app": minor
-"@deroll/router": major
 ---
 
 Remove `@deroll/router`. There is no v2 of the package; the published versions are deprecated on npm and stay installable, so v1 applications keep resolving.
