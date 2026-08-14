@@ -12,20 +12,18 @@
         "dev": "tsup --watch",
         "dev:abi": "CMT_INPUTS=\"0:0.bin\" tsx src/abi.ts",
         "dev:echo": "CMT_INPUTS=\"0:0.bin\" tsx src/echo.ts",
+        "dev:inspect": "CMT_INPUTS=\"0:0.bin\" tsx src/inspect.ts",
         "dev:minimal": "CMT_INPUTS=\"0:0.bin\" tsx src/minimal.ts",
-        "dev:router": "CMT_INPUTS=\"0:0.bin\" tsx src/router.ts",
         "dev:wallet": "CMT_INPUTS=\"0:0.bin\" tsx src/wallet.ts",
-        "dev:walletRouter": "CMT_INPUTS=\"0:0.bin\" tsx src/walletRouter.ts",
         "dev:withdraw": "CMT_INPUTS=\"0:0.bin\" tsx src/withdraw.ts",
         "lint": "biome check"
     },
     "bin": {
         "deroll-example-abi": "dist/abi.js",
         "deroll-example-echo": "dist/echo.js",
+        "deroll-example-inspect": "dist/inspect.js",
         "deroll-example-minimal": "dist/minimal.js",
-        "deroll-example-router": "dist/router.js",
         "deroll-example-wallet": "dist/wallet.js",
-        "deroll-example-wallet-router": "dist/walletRouter.js",
         "deroll-example-withdraw": "dist/withdraw.js"
     },
     "files": [
@@ -33,7 +31,6 @@
     ],
     "dependencies": {
         "@cartesi/rollup": "1.0.0-alpha.1",
-        "@deroll/router": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "viem": "^2.55.13"
     },

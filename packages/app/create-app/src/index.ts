@@ -16,7 +16,7 @@ import { bunfig } from "./bun.js";
 // Promisify the pipeline function for easier async/await usage
 const streamPipeline = promisify(pipeline);
 
-export type Library = "wallet" | "router";
+export type Library = "wallet";
 export type PackageManager = "npm" | "pnpm" | "bun";
 export type CreateAppOptions = {
     directory: string;
@@ -57,12 +57,8 @@ export const createApp = (options: CreateAppOptions): Task[] => {
 
     // choose one of the examples based on the selected libraries
     let example = "minimal";
-    if (libraries.includes("wallet") && libraries.includes("router")) {
-        example = "walletRouter";
-    } else if (libraries.includes("wallet")) {
+    if (libraries.includes("wallet")) {
         example = "wallet";
-    } else if (libraries.includes("router")) {
-        example = "router";
     }
 
     // allow to override the used branch, especialy for the alpha phase

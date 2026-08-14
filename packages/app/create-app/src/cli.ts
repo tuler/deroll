@@ -112,19 +112,15 @@ const getPackageName = async (options: {
 
 const getLibraries = async (options: {
     useWallet?: boolean;
-    useRouter?: boolean;
 }): Promise<Library[]> => {
-    const { useWallet, useRouter } = options;
+    const { useWallet } = options;
     const initialValues: Library[] = [];
-    if (options.useRouter) {
-        initialValues.push("router");
-    }
-    if (options.useWallet) {
+    if (useWallet) {
         initialValues.push("wallet");
     }
 
-    // don't show options if --use-wallet and --use-router are passed
-    if (useWallet !== undefined && useRouter !== undefined) {
+    // don't show options if --use-wallet is passed
+    if (useWallet !== undefined) {
         return initialValues;
     }
 
@@ -135,11 +131,6 @@ const getLibraries = async (options: {
                 value: "wallet",
                 label: "@deroll/wallet",
                 hint: "select if your application will handle assets",
-            },
-            {
-                value: "router",
-                label: "@deroll/router",
-                hint: "select if your application will use inspect requests using URLs",
             },
         ],
         initialValues,
@@ -156,7 +147,6 @@ const getLibraries = async (options: {
 
 program
     .argument("[path]")
-    .addOption(new Option("--use-router", "use router package"))
     .addOption(new Option("--use-wallet", "use wallet package"))
     .addOption(new Option("--package-name <package-name>", "npm package name"))
     .addOption(

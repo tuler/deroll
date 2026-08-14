@@ -31,8 +31,7 @@ report.
 
 Note the `return true`. `InspectRequestHandler` is the type of a handler meant to
 be *composed*, so it must say whether it answered the query — that is what lets
-`chain` fall through to the next handler when one declines, and it is what the
-[router](/app/router/overview) returns when no route matched. A handler passed
+`chain` fall through to the next handler when one declines. A handler passed
 straight to `rollup.run` without composing is free to return nothing, since it
 decides the request's fate alone:
 
@@ -88,3 +87,148 @@ TULER
 
 We'll leave as an exercise to the reader to use the `fetch` API, and the payload conversion APIs to implement inspect requests using TypeScript.
 More details about inspect requests check the [official documentation](https://docs.cartesi.io/cartesi-rollups/1.5/development/send-requests/#advance-and-inspect-requests).
+
+## Dispatching queries
+
+An application usually answers more than one kind of query, so an inspect handler
+needs to decide which one it got. There is no framework for this, because the
+routing key falls out of whichever [encoding](/app/data-encoding) the application
+chose for its payloads — the payload is an arbitrary buffer, and the dispatch is
+a `switch` over whatever that buffer decodes to.
+
+The three encodings below cover most applications. Pick the one that matches how
+your frontend builds the payload.
+
+### String paths
+
+If the payload is a UTF-8 string, dispatch on its first segment.
+This is the closest equivalent to a URL router, and a plain `split` handles it:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import type { InspectRequestHandler } from "@cartesi/rollup";
+import { stringToHex } from "viem";
+
+const handler: InspectRequestHandler = ({ payload }, rollup) => {
+    const [command, argument] = payload.toString().split("/");
+
+    switch (command) {
+        case "hello":
+            rollup.emitReport(stringToHex(`Hello ${argument}`));
+            return true;
+        default:
+            return false; // not ours: let `chain` try the next handler
+    }
+};
+```
+
+For patterns richer than a fixed number of segments, match them with
+[`path-to-regexp`](https://github.com/pillarjs/path-to-regexp) directly:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import type { InspectRequestHandler } from "@cartesi/rollup";
+import { match } from "path-to-regexp";
+import { stringToHex } from "viem";
+
+const hello = match<{ name: string }>("hello/:name");
+
+const handler: InspectRequestHandler = ({ payload }, rollup) => {
+    const url = payload.toString();
+
+    const matched = hello(url);
+    if (matched) {
+        rollup.emitReport(stringToHex(`Hello ${matched.params.name}`));
+        return true;
+    }
+
+    return false;
+};
+```
+
+Note that `match` runs against the *whole* string, so a query string like
+`hello/bob?loud=1` does not match `hello/:name`.
+If your queries carry options, split them off before matching, or use one of the
+structured encodings below.
+
+### JSON
+
+If the payload is JSON, dispatch on a field of the decoded object:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import type { InspectRequestHandler } from "@cartesi/rollup";
+import { stringToHex } from "viem";
+
+type Query =
+    | { method: "balanceOf"; owner: string }
+    | { method: "totalSupply" };
+
+const handler: InspectRequestHandler = ({ payload }, rollup) => {
+    const query: Query = JSON.parse(payload.toString());
+
+    switch (query.method) {
+        case "balanceOf":
+            rollup.emitReport(stringToHex(`balance of ${query.owner}`));
+            return true;
+        case "totalSupply":
+            rollup.emitReport(stringToHex("total supply"));
+            return true;
+        default:
+            return false;
+    }
+};
+```
+
+A malformed payload makes `JSON.parse` throw, which rejects the request and
+emits the error as a report.
+Wrap it in a `try`/`catch` if you would rather answer with an error of your own.
+
+### ABI
+
+If the payload is ABI-encoded — the natural choice when the same queries are
+also made from Solidity — decode it as a function call and dispatch on the
+function name:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import type { InspectRequestHandler } from "@cartesi/rollup";
+import { decodeFunctionData, parseAbi, stringToHex, toHex } from "viem";
+
+const abi = parseAbi([
+    "function balanceOf(address owner)",
+    "function totalSupply()",
+]);
+
+const handler: InspectRequestHandler = ({ payload }, rollup) => {
+    const { functionName, args } = decodeFunctionData({
+        abi,
+        data: toHex(payload),
+    });
+
+    switch (functionName) {
+        case "balanceOf":
+            rollup.emitReport(stringToHex(`balance of ${args[0]}`));
+            return true;
+        case "totalSupply":
+            rollup.emitReport(stringToHex("total supply"));
+            return true;
+        default:
+            return false;
+    }
+};
+```
+
+The four-byte selector `decodeFunctionData` reads is derived from the function
+signature, so the frontend can build the payload with viem's
+[`encodeFunctionData`](https://viem.sh/docs/contract/encodeFunctionData) against
+the same `abi`.
+
+:::info
+`@deroll/router` used to package the string-path case as a library.
+It was removed in `2.0.0` — see [Migrating from v1](/app/migrating#the-router-was-removed).
+:::

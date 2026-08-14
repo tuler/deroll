@@ -156,22 +156,50 @@ Handlers may still be `async` — they are awaited — but they no longer have t
 ```diff
 -app.addAdvanceHandler(wallet.handler);
 -app.addAdvanceHandler(application);
--app.addInspectHandler(router.handler);
+-app.addInspectHandler(inspect);
 -app.start();
 +rollup.run({
 +    advance: chain(wallet.handler, application),
-+    inspect: router.handler,
++    inspect,
 +});
 ```
 
 The `broadcastAdvanceRequests` option is now `broadcast`, chosen per group of handlers rather than for the whole application, and the two nest (`chain(a, broadcast(b, c))`).
 
-The [router](/app/router/overview) no longer takes an `app`, since it receives the rollup as a handler argument:
+### The router was removed
 
-```diff
--const router = createRouter();
-+const router = createRouter();
+`@deroll/router` is gone, and there is no v2 release of it.
+It matched inspect payloads against URL patterns, which made sense when an inspect request *was* an HTTP `GET` and the payload was the path it was made to.
+It is now an arbitrary buffer whose [encoding the application chooses](/app/data-encoding), and the routing key follows from that choice: a segment of a string, a field of a JSON object, or a function selector under ABI.
+Only the first of those looks like a URL, so the abstraction stopped paying for itself.
+
+Dispatch in the handler instead.
+`createRouter().add("hello/:name", …)` becomes:
+
+```ts twoslash
+/// <reference types="node" />
+// ---cut---
+import type { InspectRequestHandler } from "@cartesi/rollup";
+import { stringToHex } from "viem";
+
+const inspect: InspectRequestHandler = ({ payload }, rollup) => {
+    const [command, name] = payload.toString().split("/");
+
+    switch (command) {
+        case "hello":
+            rollup.emitReport(stringToHex(`Hello ${name}`));
+            return true;
+        default:
+            return false; // no match: `chain` moves on, as the router did
+    }
+};
 ```
+
+Returning `false` where no route matched preserves the router's behaviour, so a handler composed with `chain` still falls through.
+To keep pattern matching, depend on [`path-to-regexp`](https://github.com/pillarjs/path-to-regexp) directly — it is what the router used, and calling it yourself is a few lines.
+See [Dispatching queries](/app/inspect-handlers#dispatching-queries) for that and for the JSON and ABI equivalents.
+
+The published `@deroll/router` versions are deprecated but remain installable, so v1 applications keep resolving.
 
 ### registerException
 
