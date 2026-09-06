@@ -1,5 +1,11 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- 5f6ba6e: bump dependencies
+
 ## 2.0.0-alpha.9
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @deroll/decoder
 
+## 0.2.0-alpha.5
+
+### Patch Changes
+
+- 5f6ba6e: bump dependencies
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes
