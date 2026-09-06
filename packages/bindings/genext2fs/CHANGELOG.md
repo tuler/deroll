@@ -1,5 +1,11 @@
 # @deroll/genext2fs
 
+## 0.2.0-alpha.2
+
+### Patch Changes
+
+- 5f6ba6e: bump dependencies
+
 ## 0.2.0-alpha.1
 
 ### Patch Changes

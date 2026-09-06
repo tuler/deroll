@@ -1,5 +1,11 @@
 # @deroll/create-app
 
+## 2.0.0-alpha.16
+
+### Patch Changes
+
+- 5f6ba6e: bump dependencies
+
 ## 2.0.0-alpha.15
 
 ### Minor Changes
