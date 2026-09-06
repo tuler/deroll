@@ -18,7 +18,7 @@
         "path-to-regexp": "^8.4.2",
         "react": "^19",
         "react-dom": "^19",
-        "viem": "^2.55.13",
+        "viem": "^2.56.3",
         "vocs": "^2.8.5",
         "waku": "1.0.0-beta.8"
     },

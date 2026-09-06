@@ -23,6 +23,6 @@
     "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.0",
         "@cartesi/client": "2.0.0-alpha.34",
-        "viem": "^2.55.13"
+        "viem": "^2.56.3"
     }
 }

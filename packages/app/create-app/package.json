@@ -30,7 +30,7 @@
         "@types/validate-npm-package-name": "^4.0.2",
         "npm-run-all": "^4.1.5",
         "tsup": "^8.5.1",
-        "tsx": "^4",
+        "tsx": "^4.23.13",
         "typescript": "^6.0.3"
     },
     "dependencies": {
@@ -39,7 +39,7 @@
         "commander": "^15.0.0",
         "figlet": "^1.11.4",
         "fs-extra": "^11.3.5",
-        "got": "^15.0.6",
+        "got": "^16.0.0",
         "latest-version": "^9.0.0",
         "validate-npm-package-name": "^8.0.0"
     }
