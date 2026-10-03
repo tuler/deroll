@@ -89,8 +89,16 @@ export function EpochPage() {
                         ],
                         ["Machine hash", <Hex value={e.machineHash} full />],
                         [
-                            "Outputs merkle root",
-                            <Hex value={e.outputsMerkleRoot} full />,
+                            "TX buffer data block",
+                            <Hex value={e.txBufferDataBlock} full />,
+                        ],
+                        [
+                            "iflags.Y data block",
+                            <Hex value={e.iflagsYDataBlock} full />,
+                        ],
+                        [
+                            "HTIF tohost data block",
+                            <Hex value={e.htifTohostDataBlock} full />,
                         ],
                         ["Commitment", <Hex value={e.commitment} full />],
                         [
@@ -144,9 +152,19 @@ export function EpochPage() {
                     <HashList hashes={e.commitmentProof} />
                 </Collapsible>
                 <Collapsible
-                    label={`Outputs merkle proof (${e.outputsMerkleProof?.length ?? 0} hashes)`}
+                    label={`TX buffer proof (${e.txBufferProof?.length ?? 0} hashes)`}
                 >
-                    <HashList hashes={e.outputsMerkleProof} />
+                    <HashList hashes={e.txBufferProof} />
+                </Collapsible>
+                <Collapsible
+                    label={`iflags.Y proof (${e.iflagsYProof?.length ?? 0} hashes)`}
+                >
+                    <HashList hashes={e.iflagsYProof} />
+                </Collapsible>
+                <Collapsible
+                    label={`HTIF tohost proof (${e.htifTohostProof?.length ?? 0} hashes)`}
+                >
+                    <HashList hashes={e.htifTohostProof} />
                 </Collapsible>
                 <Collapsible label="Raw JSON">
                     <JsonView value={e} />

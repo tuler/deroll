@@ -1,7 +1,8 @@
 // biome-ignore-all lint/correctness/useJsxKeyInIterable: KV/Crumbs tuples pass JSX as slot content rendered by the component, not as sibling list items
-import type { Address } from "viem";
+import { type Address, formatEther } from "viem";
 import { Link, useParams } from "react-router-dom";
 import {
+    useBondEvents,
     useCommitments,
     useMatches,
     useTournament,
@@ -20,7 +21,13 @@ import {
     StatusBadge,
 } from "../components/ui";
 import { TxHash } from "../components/TxHash";
-import { formatDate, formatUint, shortHex, uintToDecimal } from "../lib/format";
+import {
+    formatDate,
+    formatUint,
+    formatWei,
+    shortHex,
+    uintToDecimal,
+} from "../lib/format";
 import { useApp } from "./AppLayout";
 
 export function TournamentPage() {
@@ -45,12 +52,18 @@ export function TournamentPage() {
         parentTournamentAddress: address as Address,
         limit: 100,
     });
+    const bondEvents = useBondEvents({
+        application: appParam,
+        tournamentAddress: address as Address,
+        limit: 100,
+    });
 
     if (tournament.isPending) return <Spinner />;
     if (tournament.isError) return <ErrorBox error={tournament.error} />;
     const t = tournament.data;
     const base = `/apps/${appParam}`;
-    const finished = t.finishedAtBlock !== 0n;
+    const snap = t.snapshot;
+    const finished = snap.finishedAtBlock !== 0n;
 
     return (
         <div className="space-y-4">
@@ -65,9 +78,7 @@ export function TournamentPage() {
                 title={
                     <span className="flex items-center gap-3">
                         Tournament <Hex value={t.address} full />
-                        <StatusBadge
-                            status={finished ? "FINISHED" : "IN_PROGRESS"}
-                        />
+                        <StatusBadge status={snap.standing} />
                     </span>
                 }
             >
@@ -82,6 +93,7 @@ export function TournamentPage() {
                                 {formatUint(t.epochIndex)}
                             </Link>,
                         ],
+                        ["Kind", <StatusBadge status={t.kind} />],
                         [
                             "Level",
                             `${formatUint(t.level)} of ${formatUint(t.maxLevel)}`,
@@ -104,22 +116,100 @@ export function TournamentPage() {
                                   <Hex value={t.parentMatchIdHash} full />,
                               ]
                             : null,
+                        ["Initial hash", <Hex value={t.initialHash} full />],
+                        ["Base cycle", formatUint(t.baseCycle)],
+                        ["Created at block", formatUint(t.startInstant)],
+                        t.creationEvent
+                            ? [
+                                  "Creation tx",
+                                  <TxHash
+                                      value={t.creationEvent.txHash}
+                                      full
+                                  />,
+                              ]
+                            : null,
                         [
-                            "Winner commitment",
-                            <Hex value={t.winnerCommitment} full />,
-                        ],
-                        [
-                            "Final state hash",
-                            <Hex value={t.finalStateHash} full />,
-                        ],
-                        [
-                            "Finished at block",
-                            finished
-                                ? formatUint(t.finishedAtBlock)
-                                : "in progress",
+                            "Clock allowance",
+                            `${formatUint(t.allowance)} blocks`,
                         ],
                         ["Created", formatDate(t.createdAt)],
                         ["Updated", formatDate(t.updatedAt)],
+                    ]}
+                />
+            </Section>
+
+            <Section
+                title={`Current state (as of block ${formatUint(snap.asOfBlock)})`}
+            >
+                <KV
+                    rows={[
+                        ["Standing", <StatusBadge status={snap.standing} />],
+                        ["Accepts joins", snap.acceptsJoins ? "yes" : "no"],
+                        ["Candidate", <Hex value={snap.candidate} full />],
+                        [
+                            "Winner commitment",
+                            <Hex value={snap.winnerCommitment} full />,
+                        ],
+                        [
+                            "Final state hash",
+                            <Hex value={snap.finalStateHash} full />,
+                        ],
+                        snap.parentCommitment
+                            ? [
+                                  "Parent commitment",
+                                  <Hex value={snap.parentCommitment} full />,
+                              ]
+                            : null,
+                        [
+                            "Finished at block",
+                            finished
+                                ? formatUint(snap.finishedAtBlock)
+                                : "in progress",
+                        ],
+                        snap.winnerExpiresAt !== 0n
+                            ? [
+                                  "Winner expires at block",
+                                  formatUint(snap.winnerExpiresAt),
+                              ]
+                            : null,
+                        snap.innerResult
+                            ? [
+                                  "Inner result",
+                                  <span className="inline-flex flex-wrap items-center gap-2">
+                                      <StatusBadge
+                                          status={snap.innerResult.disposition}
+                                      />
+                                      <Hex
+                                          value={
+                                              snap.innerResult.parentCommitment
+                                          }
+                                      />
+                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                          paused allowance{" "}
+                                          {formatUint(
+                                              snap.innerResult.pausedAllowance,
+                                          )}{" "}
+                                          blocks
+                                      </span>
+                                  </span>,
+                              ]
+                            : null,
+                        [
+                            "Bond recovery",
+                            <span className="inline-flex flex-wrap items-center gap-2">
+                                <StatusBadge
+                                    status={snap.bondRecovery.disposition}
+                                />
+                                {snap.bondRecovery.claimer && (
+                                    <Hex value={snap.bondRecovery.claimer} />
+                                )}
+                                {snap.bondRecovery.payment !== null && (
+                                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                                        {formatWei(snap.bondRecovery.payment)}
+                                    </span>
+                                )}
+                            </span>,
+                        ],
                     ]}
                 />
             </Section>
@@ -140,6 +230,17 @@ export function TournamentPage() {
                         {
                             header: "Submitter",
                             cell: (c) => <Hex value={c.submitterAddress} />,
+                        },
+                        {
+                            header: "Claimer",
+                            cell: (c) => <Hex value={c.snapshot.claimer} />,
+                        },
+                        {
+                            header: "Clock",
+                            cell: (c) =>
+                                c.snapshot.clockRunning
+                                    ? `running · deadline ${formatUint(c.snapshot.clockDeadline)}`
+                                    : `paused · ${formatUint(c.snapshot.clockAllowance)} blocks left`,
                         },
                         {
                             header: "Block",
@@ -175,6 +276,12 @@ export function TournamentPage() {
                         {
                             header: "Commitment 2",
                             cell: (m) => <Hex value={m.commitmentTwo} />,
+                        },
+                        {
+                            header: "Phase",
+                            cell: (m) => (
+                                <StatusBadge status={m.snapshot.phase} />
+                            ),
                         },
                         {
                             header: "Winner",
@@ -230,15 +337,16 @@ export function TournamentPage() {
                             cell: (c) => <Hex value={c.parentMatchIdHash} />,
                         },
                         {
+                            header: "Standing",
+                            cell: (c) => (
+                                <StatusBadge status={c.snapshot.standing} />
+                            ),
+                        },
+                        {
                             header: "Winner",
-                            cell: (c) =>
-                                c.winnerCommitment ? (
-                                    <Hex value={c.winnerCommitment} />
-                                ) : (
-                                    <span className="text-slate-400 dark:text-slate-500">
-                                        —
-                                    </span>
-                                ),
+                            cell: (c) => (
+                                <Hex value={c.snapshot.winnerCommitment} />
+                            ),
                         },
                     ]}
                     rows={children.data?.data}
@@ -247,6 +355,61 @@ export function TournamentPage() {
                     isLoading={children.isLoading}
                     error={children.error}
                     empty="No child tournaments spawned from this tournament."
+                />
+            </Section>
+
+            <Section
+                title={`Bond events (${bondEvents.data?.pagination.totalCount ?? "…"})`}
+            >
+                <DataTable
+                    columns={[
+                        {
+                            header: "Type",
+                            cell: (b) => <StatusBadge status={b.type} />,
+                        },
+                        {
+                            header: "Recipient / claimer",
+                            cell: (b) => (
+                                <Hex
+                                    value={
+                                        b.type === "PARTIAL_BOND_REFUND"
+                                            ? b.refund.recipient
+                                            : b.recovery.claimer
+                                    }
+                                />
+                            ),
+                        },
+                        {
+                            header: "Amount",
+                            align: "right",
+                            cell: (b) =>
+                                b.type === "PARTIAL_BOND_REFUND"
+                                    ? `${formatEther(b.refund.value)} ETH${b.refund.success ? "" : " (failed)"}`
+                                    : `${formatEther(b.recovery.payment)} ETH`,
+                        },
+                        {
+                            header: "Burned",
+                            align: "right",
+                            cell: (b) =>
+                                b.recovery
+                                    ? `${formatEther(b.recovery.burned)} ETH`
+                                    : "—",
+                        },
+                        {
+                            header: "Block",
+                            align: "right",
+                            cell: (b) => formatUint(b.blockNumber),
+                        },
+                        {
+                            header: "Tx",
+                            cell: (b) => <TxHash value={b.txHash} />,
+                        },
+                    ]}
+                    rows={bondEvents.data?.data}
+                    rowKey={(b) => `${b.txHash}-${b.logIndex}`}
+                    isLoading={bondEvents.isLoading}
+                    error={bondEvents.error}
+                    empty="No bond refunds or recoveries for this tournament."
                 />
             </Section>
 

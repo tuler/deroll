@@ -122,6 +122,8 @@ const STATUS_COLORS: Record<string, string> = {
     FAILED: RED,
     DIVERGED: RED,
     CORRUPTED: RED,
+    GUEST_EXCEPTION: RED,
+    MCYCLE_OVERFLOW: RED,
     ENABLED: GREEN,
     DISABLED: GRAY,
     // epoch
@@ -134,17 +136,16 @@ const STATUS_COLORS: Record<string, string> = {
     CLAIM_ACCEPTED: GREEN,
     CLAIM_REJECTED: RED,
     CLAIM_FORECLOSED: GRAY,
-    // input
+    // input (MACHINE_HALTED, UNEXPECTED_YIELD and INVALID_OUTPUTS_ROOT are
+    // also application statuses)
     NONE: GRAY,
     ACCEPTED: GREEN,
     REJECTED: RED,
     EXCEPTION: RED,
     MACHINE_HALTED: RED,
-    OUTPUTS_LIMIT_EXCEEDED: AMBER,
-    REPORTS_LIMIT_EXCEEDED: AMBER,
-    CYCLE_LIMIT_EXCEEDED: AMBER,
-    TIME_LIMIT_EXCEEDED: AMBER,
-    PAYLOAD_LENGTH_LIMIT_EXCEEDED: AMBER,
+    OVERFLOW: AMBER,
+    UNEXPECTED_YIELD: RED,
+    INVALID_OUTPUTS_ROOT: RED,
     // match winner / deletion
     ONE: GREEN,
     TWO: GREEN,
@@ -152,9 +153,40 @@ const STATUS_COLORS: Record<string, string> = {
     TIMEOUT: AMBER,
     CHILD_TOURNAMENT: INDIGO,
     NOT_DELETED: GRAY,
-    // tournament progress (UI-derived)
-    FINISHED: GREEN,
-    IN_PROGRESS: BLUE,
+    // match phase / timeout outcome
+    UNINITIALIZED: GRAY,
+    BISECTING: BLUE,
+    READY_TO_SEAL: AMBER,
+    SEALED: VIOLET,
+    ONE_WINS: GREEN,
+    TWO_WINS: GREEN,
+    ELIMINATE_BOTH: RED,
+    // tournament kind / standing
+    LEAF: VIOLET,
+    NON_LEAF: INDIGO,
+    MATCHES_ACTIVE: BLUE,
+    AWAITING_CLOSURE: AMBER,
+    ROOT_WINNER: GREEN,
+    ROOT_FAILED: RED,
+    INNER_WINNER: GREEN,
+    INNER_ELIMINABLE_NO_WINNER: RED,
+    INNER_ELIMINABLE_WINNER_EXPIRED: RED,
+    // inner tournament / bond disposition
+    UNSETTLED: BLUE,
+    WINNER: GREEN,
+    ELIMINABLE: RED,
+    TOURNAMENT_RUNNING: BLUE,
+    NO_WINNER: GRAY,
+    RECOVERABLE: AMBER,
+    RECOVERED: GREEN,
+    // bond event type
+    PARTIAL_BOND_REFUND: INDIGO,
+    BOND_RECOVERED: GREEN,
+    // node default block
+    FINALIZED: GREEN,
+    SAFE: BLUE,
+    LATEST: AMBER,
+    PENDING: GRAY,
 };
 
 /** Decoder tag colors → theme-aware pill styles; keyed by TagColor so the compiler flags drift. */

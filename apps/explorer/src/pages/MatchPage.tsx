@@ -51,6 +51,7 @@ export function MatchPage() {
     const m = match.data;
     const base = `/apps/${appParam}`;
     const deleted = m.deletionReason !== "NOT_DELETED";
+    const snap = m.snapshot;
 
     return (
         <div className="space-y-4">
@@ -105,6 +106,20 @@ export function MatchPage() {
                         ["Winner", <StatusBadge status={m.winnerCommitment} />],
                         ["Created at block", formatUint(m.blockNumber)],
                         ["Creation tx", <TxHash value={m.txHash} full />],
+                        ["Eliminable at block", formatUint(m.eliminableAt)],
+                        m.leafSeal
+                            ? [
+                                  "Leaf sealed at block",
+                                  <span className="inline-flex flex-wrap items-center gap-2">
+                                      {formatUint(m.leafSeal.blockNumber)}
+                                      <TxHash value={m.leafSeal.txHash} />
+                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                          eliminable at{" "}
+                                          {formatUint(m.leafSeal.eliminableAt)}
+                                      </span>
+                                  </span>,
+                              ]
+                            : null,
                         [
                             "Resolution",
                             <StatusBadge status={m.deletionReason} />,
@@ -130,6 +145,92 @@ export function MatchPage() {
             </Section>
 
             <Section
+                title={`Current state (as of block ${formatUint(snap.asOfBlock)})`}
+            >
+                <KV
+                    rows={[
+                        ["Phase", <StatusBadge status={snap.phase} />],
+                        [
+                            "Timeout outcome",
+                            <StatusBadge status={snap.timeoutOutcome} />,
+                        ],
+                        [
+                            "Deferred charge",
+                            `${formatUint(snap.deferredCharge)} blocks`,
+                        ],
+                        ...(snap.bisection
+                            ? ([
+                                  [
+                                      "Responder",
+                                      <StatusBadge
+                                          status={snap.bisection.responder}
+                                      />,
+                                  ],
+                                  [
+                                      "Current height",
+                                      formatUint(snap.bisection.currentHeight),
+                                  ],
+                                  [
+                                      "Revealing parent",
+                                      <Hex
+                                          value={snap.bisection.revealingParent}
+                                          full
+                                      />,
+                                  ],
+                                  [
+                                      "Waiting left",
+                                      <Hex
+                                          value={snap.bisection.waitingLeft}
+                                          full
+                                      />,
+                                  ],
+                                  [
+                                      "Waiting right",
+                                      <Hex
+                                          value={snap.bisection.waitingRight}
+                                          full
+                                      />,
+                                  ],
+                                  [
+                                      "Segment start (position / cycle)",
+                                      `${formatUint(snap.bisection.segmentStartPosition)} / ${formatUint(snap.bisection.segmentStartCycle)}`,
+                                  ],
+                              ] as [React.ReactNode, React.ReactNode][])
+                            : []),
+                        ...(snap.sealed
+                            ? ([
+                                  [
+                                      "Agree state",
+                                      <Hex
+                                          value={snap.sealed.agreeState}
+                                          full
+                                      />,
+                                  ],
+                                  [
+                                      "Divergence (position / cycle)",
+                                      `${formatUint(snap.sealed.divergencePosition)} / ${formatUint(snap.sealed.divergenceCycle)}`,
+                                  ],
+                                  [
+                                      "Final state one",
+                                      <Hex
+                                          value={snap.sealed.finalStateOne}
+                                          full
+                                      />,
+                                  ],
+                                  [
+                                      "Final state two",
+                                      <Hex
+                                          value={snap.sealed.finalStateTwo}
+                                          full
+                                      />,
+                                  ],
+                              ] as [React.ReactNode, React.ReactNode][])
+                            : []),
+                    ]}
+                />
+            </Section>
+
+            <Section
                 title={`Match advances (${advances.data?.pagination.totalCount ?? "…"})`}
             >
                 <DataTable
@@ -141,6 +242,16 @@ export function MatchPage() {
                         {
                             header: "Left node",
                             cell: (a) => <Hex value={a.leftNode} />,
+                        },
+                        {
+                            header: "Segment start",
+                            align: "right",
+                            cell: (a) => formatUint(a.segmentStartPosition),
+                        },
+                        {
+                            header: "Eliminable at",
+                            align: "right",
+                            cell: (a) => formatUint(a.eliminableAt),
                         },
                         {
                             header: "Block",
@@ -157,9 +268,7 @@ export function MatchPage() {
                         },
                     ]}
                     rows={advances.data?.data}
-                    rowKey={(a) =>
-                        `${a.otherParent}-${a.leftNode}-${a.blockNumber}`
-                    }
+                    rowKey={(a) => `${a.txHash}-${a.logIndex}`}
                     isLoading={advances.isLoading}
                     error={advances.error}
                     empty="No advances recorded for this match."
