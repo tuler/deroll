@@ -1,6 +1,8 @@
 // biome-ignore-all lint/correctness/useJsxKeyInIterable: KV/Crumbs tuples pass JSX as slot content rendered by the component, not as sibling list items
 import {
+    useExecutedOutputCount,
     useLastAcceptedEpochIndex,
+    usePendingExecutableOutputCount,
     useProcessedInputCount,
 } from "@cartesi/react";
 import { DecoderSettings } from "../components/DecoderSettings";
@@ -33,11 +35,15 @@ export function AppOverview() {
     const { appParam, application: app } = useApp();
     const processedCount = useProcessedInputCount({ application: appParam });
     const lastAccepted = useLastAcceptedEpochIndex({ application: appParam });
+    const executedOutputs = useExecutedOutputCount({ application: appParam });
+    const pendingOutputs = usePendingExecutableOutputCount({
+        application: appParam,
+    });
     const ep = app.executionParameters;
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
                 <StatCard
                     label="Processed inputs"
                     value={formatUint(processedCount.data)}
@@ -49,6 +55,14 @@ export function AppOverview() {
                             ? formatUint(lastAccepted.data)
                             : "—"
                     }
+                />
+                <StatCard
+                    label="Executed outputs"
+                    value={formatUint(executedOutputs.data)}
+                />
+                <StatCard
+                    label="Pending executable outputs"
+                    value={formatUint(pendingOutputs.data)}
                 />
                 <StatCard
                     label="Epoch length"
@@ -76,19 +90,6 @@ export function AppOverview() {
                             ["Consensus", <Hex value={app.consensusAddress} />],
                             ["Input box", <Hex value={app.inputBoxAddress} />],
                             ["Template hash", <Hex value={app.templateHash} />],
-                            [
-                                "Data availability",
-                                <span className="inline-flex items-center gap-2">
-                                    <StatusBadge
-                                        status={app.dataAvailability.type}
-                                    />
-                                    <Hex
-                                        value={
-                                            app.dataAvailability.inputBoxAddress
-                                        }
-                                    />
-                                </span>,
-                            ],
                             [
                                 "Input box deployed at block",
                                 formatUint(app.inputBoxBlock),

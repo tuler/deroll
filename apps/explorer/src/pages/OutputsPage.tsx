@@ -28,6 +28,7 @@ export function OutputsPage() {
     const input = searchParams.get("input") ?? "";
     const type = searchParams.get("type") ?? "";
     const voucher = searchParams.get("voucher") ?? "";
+    const executed = searchParams.get("executed") ?? "";
     const { appParam, application } = useApp();
 
     const outputs = useOutputs({
@@ -36,6 +37,7 @@ export function OutputsPage() {
         inputIndex: input ? BigInt(input) : undefined,
         outputType: (type || undefined) as OutputType | undefined,
         voucherAddress: (voucher || undefined) as Address | undefined,
+        executed: executed ? executed === "yes" : undefined,
         limit,
         offset,
         descending,
@@ -91,6 +93,19 @@ export function OutputsPage() {
                             placeholder="0x…"
                             className={`${filterInputClass} w-40`}
                         />
+                    </Filter>
+                    <Filter label="Executed">
+                        <select
+                            value={executed}
+                            onChange={(e) =>
+                                update({ executed: e.target.value })
+                            }
+                            className={filterInputClass}
+                        >
+                            <option value="">Any</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
                     </Filter>
                     <SortToggle
                         descending={descending}

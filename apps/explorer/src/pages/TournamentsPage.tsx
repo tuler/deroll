@@ -10,7 +10,7 @@ import {
     SortToggle,
     useListControls,
 } from "../components/table";
-import { Hex, Section } from "../components/ui";
+import { Hex, Section, StatusBadge } from "../components/ui";
 import { formatUint, uintToDecimal } from "../lib/format";
 import { useApp } from "./AppLayout";
 
@@ -124,15 +124,16 @@ export function TournamentsPage() {
                             ),
                     },
                     {
+                        header: "Standing",
+                        cell: (t) => (
+                            <StatusBadge status={t.snapshot.standing} />
+                        ),
+                    },
+                    {
                         header: "Winner",
-                        cell: (t) =>
-                            t.winnerCommitment ? (
-                                <Hex value={t.winnerCommitment} />
-                            ) : (
-                                <span className="text-slate-400 dark:text-slate-500">
-                                    —
-                                </span>
-                            ),
+                        cell: (t) => (
+                            <Hex value={t.snapshot.winnerCommitment} />
+                        ),
                     },
                 ]}
                 rows={tournaments.data?.data}

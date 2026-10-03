@@ -7,10 +7,6 @@ const hash = (seed: number) => '0x' + (seed + 1).toString(16).padStart(64, 'b')
 const utf8 = (text: string) => '0x' + Buffer.from(text, 'utf-8').toString('hex')
 const now = (offsetMin: number) => new Date(Date.now() - offsetMin * 60_000).toISOString()
 
-// data_availability is abi-encoded as a call to InputBox(address); the node's
-// client tooling decodes it, so it must be well-formed.
-const dataAvailability = '0xb12c9ede' + '0'.repeat(24) + addr(3).slice(2)
-
 const executionParameters = {
   snapshot_policy: 'EVERY_EPOCH',
   advance_inc_cycles: hex(4194304),
@@ -75,8 +71,8 @@ const cancelOrder = (orderId: number) => '0x04' + be(orderId, 8)
 // Deterministic Cartesi portal addresses (deposits arrive from these); must
 // match @cartesi/codec's portal addresses for the explorer's deposit
 // decoding (decodeDeposit) to kick in.
-const erc20Portal = '0x22E57511C30CcE6CDaa742E13CE3b774fDC663b1'
-const etherPortal = '0x8b53327575ac999bdfa8003f4b5134DFF9027516'
+const erc20Portal = '0x3332DE61a8BB9aC84893b2f552Fe81C9a6dC5419'
+const etherPortal = '0x035b11Be55656c6cfC822D1CaE568C1Af2e497b0'
 const collateralToken = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' // USDC (perp-dex collateral)
 const priceFeed = addr(50)
 const trader1 = addr(53)
@@ -126,8 +122,9 @@ const perpInputs = perpPayloads.map(([sender, payload], i) => ({
     payload,
   },
   status: i === 11 ? 'REJECTED' : 'ACCEPTED',
+  exception_data: null,
   machine_hash: hash(820 + i),
-  outputs_hash: hash(840 + i),
+  tx_buffer_data_block: hash(840 + i),
   transaction_hash: hash(860 + i),
   log_index: hex(i % 4),
   created_at: now(1400 - i * 100),
@@ -153,7 +150,6 @@ const apps = [
     last_foreclose_check_block: hex(5000),
     last_accounts_drive_proved_check_block: hex(5000),
     last_withdrawal_check_block: hex(5000),
-    data_availability: dataAvailability,
     consensus_type: 'AUTHORITY',
     enabled: true,
     status: 'OK',
@@ -191,7 +187,6 @@ const apps = [
     last_foreclose_check_block: hex(5000),
     last_accounts_drive_proved_check_block: hex(5000),
     last_withdrawal_check_block: hex(5000),
-    data_availability: dataAvailability,
     consensus_type: 'PRT',
     enabled: false,
     status: 'OK',
@@ -230,7 +225,6 @@ const apps = [
     last_foreclose_check_block: hex(5000),
     last_accounts_drive_proved_check_block: hex(5000),
     last_withdrawal_check_block: hex(5000),
-    data_availability: dataAvailability,
     consensus_type: 'AUTHORITY',
     enabled: true,
     status: 'OK',
@@ -268,19 +262,26 @@ const epochs = EPOCH_STATUSES.map((status, i) => ({
   input_index_lower_bound: hex(i * 8),
   input_index_upper_bound: hex(Math.min((i + 1) * 8, 42)),
   machine_hash: status === 'OPEN' ? null : hash(100 + i),
-  outputs_merkle_root: status === 'OPEN' ? null : hash(110 + i),
-  outputs_merkle_proof: status === 'OPEN' ? null : [hash(120 + i), hash(130 + i)],
+  tx_buffer_data_block: status === 'OPEN' ? null : hash(110 + i),
+  tx_buffer_proof: status === 'OPEN' ? null : [hash(120 + i), hash(130 + i)],
+  iflags_y_data_block: status === 'OPEN' ? null : hash(170 + i),
+  iflags_y_proof: status === 'OPEN' ? null : [hash(175 + i), hash(180 + i)],
+  htif_tohost_data_block: status === 'OPEN' ? null : hash(185 + i),
+  htif_tohost_proof: status === 'OPEN' ? null : [hash(190 + i), hash(195 + i)],
   commitment: status === 'OPEN' ? null : hash(140 + i),
   commitment_proof: status === 'OPEN' ? null : [hash(150 + i)],
   claim_transaction_hash: status.startsWith('CLAIM') ? hash(160 + i) : null,
   tournament_address: i === 2 ? addr(30) : null,
   status,
+  staged_at_block: null,
   virtual_index: hex(i),
   created_at: now(10000 - i * 1000),
   updated_at: now(100 - i * 10),
 }))
 
-const INPUT_STATUSES = ['ACCEPTED', 'ACCEPTED', 'REJECTED', 'ACCEPTED', 'EXCEPTION']
+const INPUT_STATUSES = ['ACCEPTED', 'ACCEPTED', 'REJECTED', 'ACCEPTED', 'EXCEPTION', 'ACCEPTED', 'OVERFLOW']
+
+const inputStatus = (i: number) => INPUT_STATUSES[i % INPUT_STATUSES.length]
 
 const inputs = Array.from({ length: 42 }, (_, i) => ({
   epoch_index: hex(Math.min(Math.floor(i / 8), 4)),
@@ -297,9 +298,12 @@ const inputs = Array.from({ length: 42 }, (_, i) => ({
     index: hex(i),
     payload: i % 4 === 0 ? utf8(`{"action":"transfer","amount":${i * 10}}`) : '0x' + 'fe'.repeat(20 + i),
   },
-  status: INPUT_STATUSES[i % INPUT_STATUSES.length],
+  status: inputStatus(i),
+  // raw guest-provided CMIO exception payload, only for EXCEPTION inputs
+  exception_data:
+    inputStatus(i) === 'EXCEPTION' ? utf8(`assertion failed: balance >= amount (input ${i})`) : null,
   machine_hash: hash(300 + i),
-  outputs_hash: hash(340 + i),
+  tx_buffer_data_block: hash(340 + i),
   transaction_hash: hash(400 + i),
   log_index: hex(i % 4),
   created_at: now(5000 - i * 100),
@@ -362,6 +366,8 @@ const withdrawals = Array.from({ length: 6 }, (_, i) => ({
   updated_at: now(100 - i * 5),
 }))
 
+const zeroAddr = '0x' + '0'.repeat(40)
+
 const tournaments = [
   {
     epoch_index: hex(2),
@@ -372,11 +378,27 @@ const tournaments = [
     level: hex(0),
     log2step: hex(44),
     height: hex(48),
-    winner_commitment: null,
-    final_state_hash: null,
-    finished_at_block: hex(0),
     created_at: now(900),
     updated_at: now(10),
+    initial_hash: hash(690),
+    base_cycle: hex(0),
+    kind: 'NON_LEAF',
+    start_instant: hex(5100),
+    allowance: hex(7200),
+    creation_event: { block_number: hex(5100), tx_hash: hash(691), log_index: hex(0) },
+    snapshot: {
+      as_of_block: hex(6000),
+      standing: 'MATCHES_ACTIVE',
+      accepts_joins: false,
+      candidate: null,
+      winner_commitment: null,
+      final_state_hash: null,
+      parent_commitment: null,
+      finished_at_block: hex(0),
+      winner_expires_at: hex(0),
+      inner_result: null,
+      bond_recovery: { disposition: 'TOURNAMENT_RUNNING', claimer: null, payment: null },
+    },
   },
   {
     epoch_index: hex(2),
@@ -387,11 +409,27 @@ const tournaments = [
     level: hex(1),
     log2step: hex(27),
     height: hex(17),
-    winner_commitment: hash(710),
-    final_state_hash: hash(711),
-    finished_at_block: hex(5500),
     created_at: now(800),
     updated_at: now(20),
+    initial_hash: hash(692),
+    base_cycle: hex(1n << 44n),
+    kind: 'LEAF',
+    start_instant: hex(5400),
+    allowance: hex(3600),
+    creation_event: { block_number: hex(5400), tx_hash: hash(752), log_index: hex(2) },
+    snapshot: {
+      as_of_block: hex(6000),
+      standing: 'INNER_WINNER',
+      accepts_joins: false,
+      candidate: hash(710),
+      winner_commitment: hash(710),
+      final_state_hash: hash(711),
+      parent_commitment: hash(720),
+      finished_at_block: hex(5500),
+      winner_expires_at: hex(5800),
+      inner_result: { disposition: 'WINNER', parent_commitment: hash(720), paused_allowance: hex(120) },
+      bond_recovery: { disposition: 'RECOVERABLE', claimer: addr(95), payment: hex(10n ** 16n) },
+    },
   },
 ]
 
@@ -405,7 +443,34 @@ const commitments = Array.from({ length: 3 }, (_, i) => ({
   tx_hash: hash(740 + i),
   created_at: now(850 - i * 10),
   updated_at: now(85 - i),
+  log_index: hex(i),
+  snapshot: {
+    as_of_block: hex(6000),
+    // the eliminated commitment loses its claimer
+    claimer: i === 1 ? zeroAddr : addr(95 + i),
+    clock_running: i === 2,
+    clock_deadline: i === 2 ? hex(6300) : hex(0),
+    clock_allowance: hex(i === 1 ? 0 : 3000 - i * 400),
+  },
 }))
+
+const notDeleted = {
+  winner_commitment: 'NONE',
+  deletion_reason: 'NOT_DELETED',
+  deletion_block_number: null,
+  deletion_tx_hash: null,
+  deletion_log_index: null,
+}
+
+// A deleted match is UNINITIALIZED and carries no phase payload.
+const deletedSnapshot = {
+  as_of_block: hex(6000),
+  timeout_outcome: 'NONE',
+  deferred_charge: hex(0),
+  phase: 'UNINITIALIZED',
+  bisection: null,
+  sealed: null,
+}
 
 const matches = [
   {
@@ -421,8 +486,13 @@ const matches = [
     deletion_reason: 'CHILD_TOURNAMENT',
     deletion_block_number: hex(5400),
     deletion_tx_hash: hash(752),
+    deletion_log_index: hex(1),
     created_at: now(840),
     updated_at: now(30),
+    log_index: hex(0),
+    eliminable_at: hex(8850),
+    leaf_seal: null,
+    snapshot: deletedSnapshot,
   },
   {
     epoch_index: hex(2),
@@ -437,8 +507,76 @@ const matches = [
     deletion_reason: 'TIMEOUT',
     deletion_block_number: hex(5450),
     deletion_tx_hash: hash(755),
+    deletion_log_index: hex(0),
     created_at: now(830),
     updated_at: now(25),
+    log_index: hex(1),
+    eliminable_at: hex(8860),
+    leaf_seal: null,
+    snapshot: deletedSnapshot,
+  },
+  {
+    epoch_index: hex(2),
+    tournament_address: addr(30),
+    id_hash: hash(702),
+    commitment_one: hash(720),
+    commitment_two: hash(722),
+    left_of_two: hash(756),
+    block_number: hex(5470),
+    tx_hash: hash(757),
+    ...notDeleted,
+    created_at: now(700),
+    updated_at: now(5),
+    log_index: hex(3),
+    eliminable_at: hex(9070),
+    leaf_seal: null,
+    snapshot: {
+      as_of_block: hex(6000),
+      timeout_outcome: 'NONE',
+      deferred_charge: hex(0),
+      phase: 'BISECTING',
+      bisection: {
+        revealing_parent: hash(758),
+        waiting_left: hash(759),
+        waiting_right: hash(760),
+        segment_start_position: hex(1n << 40n),
+        segment_start_cycle: hex(1n << 41n),
+        responder: 'TWO',
+        current_height: hex(31),
+      },
+      sealed: null,
+    },
+  },
+  {
+    epoch_index: hex(2),
+    tournament_address: addr(31),
+    id_hash: hash(703),
+    commitment_one: hash(710),
+    commitment_two: hash(712),
+    left_of_two: hash(761),
+    block_number: hex(5420),
+    tx_hash: hash(762),
+    ...notDeleted,
+    winner_commitment: 'ONE',
+    created_at: now(780),
+    updated_at: now(15),
+    log_index: hex(0),
+    eliminable_at: hex(9020),
+    leaf_seal: { eliminable_at: hex(5980), block_number: hex(5480), tx_hash: hash(763), log_index: hex(4) },
+    snapshot: {
+      as_of_block: hex(6000),
+      timeout_outcome: 'ONE_WINS',
+      deferred_charge: hex(12),
+      phase: 'SEALED',
+      bisection: null,
+      sealed: {
+        agree_state: hash(764),
+        divergence_position: hex(123456),
+        divergence_cycle: hex((1n << 44n) + 123456n),
+        final_state_one: hash(711),
+        final_state_two: hash(765),
+      },
+    },
   },
 ]
 
@@ -452,7 +590,37 @@ const matchAdvances = Array.from({ length: 6 }, (_, i) => ({
   tx_hash: hash(780 + i),
   created_at: now(820 - i * 5),
   updated_at: now(82 - i),
+  log_index: hex(i % 2),
+  segment_start_position: hex(BigInt(i) << 38n),
+  eliminable_at: hex(8900 + i * 5),
 }))
+
+const bondEvents = [
+  {
+    epoch_index: hex(2),
+    tournament_address: addr(31),
+    block_number: hex(5490),
+    tx_hash: hash(790),
+    log_index: hex(1),
+    created_at: now(760),
+    updated_at: now(760),
+    type: 'PARTIAL_BOND_REFUND',
+    refund: { recipient: addr(95), value: hex(2n * 10n ** 15n), success: true },
+    recovery: null,
+  },
+  {
+    epoch_index: hex(2),
+    tournament_address: addr(31),
+    block_number: hex(5520),
+    tx_hash: hash(791),
+    log_index: hex(0),
+    created_at: now(740),
+    updated_at: now(740),
+    type: 'BOND_RECOVERED',
+    refund: null,
+    recovery: { commitment: hash(710), claimer: addr(95), payment: hex(10n ** 16n), burned: hex(10n ** 15n) },
+  },
+]
 
 type Params = Record<string, any>
 
@@ -468,6 +636,15 @@ function paginate<T>(items: T[], params: Params) {
 
 const eq = (a?: string | null, b?: string | null) =>
   a != null && b != null && a.toLowerCase() === b.toLowerCase()
+
+// A filter is one value or a non-empty list of values (OR semantics).
+const anyOf = (value: string, filter?: string | string[]) =>
+  filter == null || (Array.isArray(filter) ? filter : [filter]).some((f) => eq(value, f))
+
+// Inclusive `from`/`to` index range of the listing methods.
+const inRange = (index: string, p: Params) =>
+  (p.from == null || BigInt(index) >= BigInt(p.from)) &&
+  (p.to == null || BigInt(index) <= BigInt(p.to))
 
 function requireApp(params: Params) {
   const app = findApp(params.application)
@@ -487,11 +664,17 @@ const methods: Record<string, (params: Params) => unknown> = {
   },
   cartesi_listEpochs: (p) => {
     requireApp(p)
-    return paginate(epochs.filter((e) => !p.status || e.status === p.status), p)
+    return paginate(epochs.filter((e) => anyOf(e.status, p.status) && inRange(e.index, p)), p)
   },
   cartesi_getEpoch: (p) => {
     requireApp(p)
     const epoch = epochs.find((e) => eq(e.index, p.epoch_index))
+    if (!epoch) throw { code: -32001, message: 'epoch not found' }
+    return { data: epoch }
+  },
+  cartesi_getEpochByVirtualIndex: (p) => {
+    requireApp(p)
+    const epoch = epochs.find((e) => eq(e.virtual_index, p.virtual_index))
     if (!epoch) throw { code: -32001, message: 'epoch not found' }
     return { data: epoch }
   },
@@ -501,7 +684,9 @@ const methods: Record<string, (params: Params) => unknown> = {
       appInputs(app).filter(
         (i) =>
           (p.epoch_index == null || eq(i.epoch_index, p.epoch_index)) &&
-          (p.sender == null || eq(i.decoded_data.sender, p.sender)),
+          (p.sender == null || eq(i.decoded_data.sender, p.sender)) &&
+          (p.transaction_hash == null || eq(i.transaction_hash, p.transaction_hash)) &&
+          inRange(i.index, p),
       ),
       p,
     )
@@ -519,11 +704,27 @@ const methods: Record<string, (params: Params) => unknown> = {
         (o) =>
           (p.epoch_index == null || eq(o.epoch_index, p.epoch_index)) &&
           (p.input_index == null || eq(o.input_index, p.input_index)) &&
-          (p.output_type == null || eq(o.raw_data.slice(0, 10), p.output_type)) &&
-          (p.voucher_address == null || eq(o.decoded_data.destination as string, p.voucher_address)),
+          anyOf(o.raw_data.slice(0, 10), p.output_type) &&
+          (p.voucher_address == null || eq(o.decoded_data.destination as string, p.voucher_address)) &&
+          (p.executed == null || (o.execution_transaction_hash !== null) === p.executed) &&
+          inRange(o.index, p),
       ),
       p,
     )
+  },
+  cartesi_getExecutedOutputCount: (p) => {
+    requireApp(p)
+    return { data: hex(outputs.filter((o) => o.execution_transaction_hash !== null).length) }
+  },
+  cartesi_getPendingExecutableOutputCount: (p) => {
+    requireApp(p)
+    return {
+      data: hex(
+        outputs.filter(
+          (o) => o.decoded_data.type !== 'Notice' && o.execution_transaction_hash === null,
+        ).length,
+      ),
+    }
   },
   cartesi_getOutput: (p) => {
     requireApp(p)
@@ -537,7 +738,8 @@ const methods: Record<string, (params: Params) => unknown> = {
       reports.filter(
         (r) =>
           (p.epoch_index == null || eq(r.epoch_index, p.epoch_index)) &&
-          (p.input_index == null || eq(r.input_index, p.input_index)),
+          (p.input_index == null || eq(r.input_index, p.input_index)) &&
+          inRange(r.index, p),
       ),
       p,
     )
@@ -627,14 +829,36 @@ const methods: Record<string, (params: Params) => unknown> = {
     requireApp(p)
     return paginate(matchAdvances.filter((a) => eq(a.id_hash, p.id_hash)), p)
   },
-  cartesi_getMatchAdvanced: (p) => {
+  cartesi_getMatchAdvance: (p) => {
     requireApp(p)
     const advance = matchAdvances.find(
-      (a) => eq(a.id_hash, p.id_hash) && eq(a.other_parent, p.parent),
+      (a) => eq(a.id_hash, p.id_hash) && eq(a.tx_hash, p.tx_hash) && eq(a.log_index, p.log_index),
     )
     if (!advance) throw { code: -32001, message: 'match advance not found' }
     return { data: advance }
   },
+  cartesi_listBondEvents: (p) => {
+    const app = requireApp(p)
+    const rows = app.consensus_type === 'PRT' ? bondEvents : []
+    return paginate(
+      rows.filter(
+        (b) =>
+          (p.epoch_index == null || eq(b.epoch_index, p.epoch_index)) &&
+          (p.tournament_address == null || eq(b.tournament_address, p.tournament_address)),
+      ),
+      p,
+    )
+  },
+  cartesi_getBondEvent: (p) => {
+    requireApp(p)
+    const event = bondEvents.find((b) => eq(b.tx_hash, p.tx_hash) && eq(b.log_index, p.log_index))
+    if (!event) throw { code: -32001, message: 'bond event not found' }
+    return { data: event }
+  },
+  cartesi_getNodeInfo: () => ({
+    data: { chain_id: hex(31337), version: '2.0.0-mock', default_block: 'FINALIZED' },
+  }),
+  // deprecated by the node in favor of cartesi_getNodeInfo
   cartesi_getChainId: () => ({ data: hex(31337) }),
   cartesi_getNodeVersion: () => ({ data: '2.0.0-mock' }),
 }

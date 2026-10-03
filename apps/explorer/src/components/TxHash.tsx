@@ -1,4 +1,4 @@
-import { useChainId } from "@cartesi/react";
+import { useNodeInfo } from "@cartesi/react";
 import { explorerFor, txExplorerUrl } from "../lib/explorer";
 import { Hex } from "./ui";
 
@@ -15,7 +15,7 @@ export function TxHash({
     value?: string | null;
     full?: boolean;
 }) {
-    const chainId = useChainId({}).data;
+    const chainId = useNodeInfo({}).data?.chainId;
     const explorer = explorerFor(chainId);
     return (
         <Hex

@@ -2,8 +2,8 @@ import { BaseError, HttpRequestError, RpcRequestError } from "viem";
 
 /**
  * True when the failure is a JSON-RPC error RESPONSE — proof the server is
- * answering (e.g. a node without an EVM reader errors on cartesi_getChainId
- * while serving everything else). Transport failures (network/CORS, non-200)
+ * answering (e.g. a node that does not implement cartesi_getNodeInfo while
+ * serving everything else). Transport failures (network/CORS, non-200)
  * are not.
  */
 export function isRpcResponseError(error: unknown): boolean {

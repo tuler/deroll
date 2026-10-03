@@ -69,7 +69,10 @@ export function InputPage() {
                         ["Status", <StatusBadge status={i.status} />],
                         ["Block number", formatUint(i.blockNumber)],
                         ["Machine hash", <Hex value={i.machineHash} full />],
-                        ["Outputs hash", <Hex value={i.outputsHash} full />],
+                        [
+                            "TX buffer data block",
+                            <Hex value={i.txBufferDataBlock} full />,
+                        ],
                         [
                             "Transaction reference",
                             <TxHash value={i.transactionHash} full />,
@@ -79,6 +82,12 @@ export function InputPage() {
                     ]}
                 />
             </Section>
+
+            {i.exceptionData !== null && (
+                <Section title="Exception data">
+                    <PayloadView value={i.exceptionData} />
+                </Section>
+            )}
 
             {decoded && (
                 <Section title="Decoded EvmAdvance">

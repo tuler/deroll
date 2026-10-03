@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { isRpcResponseError } from "../api/errors";
-import { useChainId, useNodeVersion } from "@cartesi/react";
+import { useNodeInfo } from "@cartesi/react";
 import { useServer } from "../server";
 import { useTheme } from "../theme";
 
@@ -10,17 +10,12 @@ function ServerBar() {
     const [draft, setDraft] = useState(server);
     useEffect(() => setDraft(server), [server]);
 
-    const chainId = useChainId({});
-    const version = useNodeVersion({});
+    const info = useNodeInfo({});
     // An RPC-level error still proves the server is answering — e.g. a node
-    // running without an EVM reader errors on cartesi_getChainId while serving
-    // everything else.
-    const connected =
-        chainId.isSuccess ||
-        version.isSuccess ||
-        isRpcResponseError(chainId.error) ||
-        isRpcResponseError(version.error);
-    const checking = (chainId.isLoading || version.isLoading) && !connected;
+    // that does not implement cartesi_getNodeInfo while serving everything
+    // else.
+    const connected = info.isSuccess || isRpcResponseError(info.error);
+    const checking = info.isLoading && !connected;
 
     return (
         <form
@@ -49,8 +44,15 @@ function ServerBar() {
                 />
                 {connected ? (
                     <span className="hidden sm:inline whitespace-nowrap">
-                        {chainId.isSuccess && <>chain {chainId.data} · </>}
-                        node v{version.data ?? "?"}
+                        {info.isSuccess ? (
+                            <span title="Block tag up to which the node reads chain state">
+                                chain {info.data.chainId} · node v
+                                {info.data.version} ·{" "}
+                                {info.data.defaultBlock.toLowerCase()}
+                            </span>
+                        ) : (
+                            "node v?"
+                        )}
                     </span>
                 ) : (
                     <span className="hidden sm:inline">

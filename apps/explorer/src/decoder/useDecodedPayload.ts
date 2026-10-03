@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Deposit, Input } from "@deroll/decoder";
-import { useChainId } from "@cartesi/react";
+import { useNodeInfo } from "@cartesi/react";
 import { loadDecoder } from "./loader";
 import { decodePortalInput, hasDepositAppData } from "./portals";
 import { useDecoderUrl } from "./registry";
@@ -53,7 +53,7 @@ export function useDecodedPayload(
     props?: DecodeProps,
 ): DecodedPayload {
     const url = useDecoderUrl(props?.application);
-    const chainId = useChainId({}).data;
+    const chainId = useNodeInfo({}).data?.chainId;
     const hasPayload = !!props && !!payload && payload !== "0x";
     // Inputs are always eligible (they may be a natively-decoded deposit);
     // every other payload needs a registered decoder.
