@@ -1,5 +1,12 @@
 # @deroll/wallet
 
+## 2.0.0-alpha.10
+
+### Patch Changes
+
+- c1f731d: bump dependencies: `@cartesi/rollup` 1.0.0-alpha.3, `@cartesi/codec` 1.0.0-alpha.5 and viem 2.57. The wallet now recognizes deposits from the portal addresses of the new rollups contracts (through `@cartesi/codec`'s `decodeDeposit`). Applications scaffolded by `@deroll/create-app` build on Node.js 24.20.0
+- 5f6ba6e: bump dependencies
+
 ## 2.0.0-alpha.9
 
 ### Minor Changes
