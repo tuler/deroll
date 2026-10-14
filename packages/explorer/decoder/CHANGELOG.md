@@ -1,5 +1,16 @@
 # @deroll/decoder
 
+## 0.2.0-alpha.5
+
+### Minor Changes
+
+- 76f9767: follow the rollups-node 2.0.0-alpha.13 JSON-RPC API: bump `@cartesi/client` to 2.0.0-alpha.38 and `@cartesi/codec` to 1.0.0-alpha.5 (new contract/portal addresses). The re-exported `Input` record replaces `outputsHash` with `txBufferDataBlock`, adds `exceptionData`, and its status drops the resource-limit values for OVERFLOW/UNEXPECTED_YIELD/INVALID_OUTPUTS_ROOT
+
+### Patch Changes
+
+- c1f731d: bump dependencies: `@cartesi/rollup` 1.0.0-alpha.3, `@cartesi/codec` 1.0.0-alpha.5 and viem 2.57. The wallet now recognizes deposits from the portal addresses of the new rollups contracts (through `@cartesi/codec`'s `decodeDeposit`). Applications scaffolded by `@deroll/create-app` build on Node.js 24.20.0
+- 5f6ba6e: bump dependencies
+
 ## 0.2.0-alpha.4
 
 ### Patch Changes
