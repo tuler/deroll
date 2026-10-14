@@ -30,17 +30,17 @@
         "dist/**"
     ],
     "dependencies": {
-        "@cartesi/rollup": "1.0.0-alpha.1",
+        "@cartesi/rollup": "1.0.0-alpha.3",
         "@deroll/wallet": "workspace:*",
-        "viem": "^2.56.3"
+        "viem": "^2.57.5"
     },
     "devDependencies": {
         "@biomejs/biome": "catalog:",
         "@deroll/tsconfig": "workspace:*",
-        "@types/node": "^26",
+        "@types/node": "^26.6.5",
         "tsup": "^8.5.1",
-        "tsx": "^4.23.13",
+        "tsx": "^4.23.15",
         "typescript": "^6.0.3",
-        "vitest": "^5.0.0"
+        "vitest": "^5.0.4"
     }
 }
