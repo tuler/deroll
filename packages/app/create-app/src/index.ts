@@ -135,7 +135,7 @@ export const createApp = (options: CreateAppOptions): Task[] => {
                 path.join(directory, "Dockerfile"),
                 dockerfile({
                     packageManager,
-                    nodeVersion: "24.17.0",
+                    nodeVersion: "24.20.0",
                 }),
             ),
         ),

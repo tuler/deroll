@@ -10,25 +10,25 @@
         "preview": "vocs preview"
     },
     "dependencies": {
-        "@cartesi/codec": "1.0.0-alpha.1",
-        "@cartesi/rollup": "1.0.0-alpha.1",
+        "@cartesi/codec": "1.0.0-alpha.5",
+        "@cartesi/rollup": "1.0.0-alpha.3",
         "@deroll/genext2fs": "workspace:*",
         "@deroll/wallet": "workspace:*",
         "@types/react": "^19",
         "path-to-regexp": "^8.4.2",
-        "react": "^19",
-        "react-dom": "^19",
-        "viem": "^2.56.3",
-        "vocs": "^2.8.5",
-        "waku": "1.0.0-beta.8"
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "viem": "^2.57.5",
+        "vocs": "^2.10.2",
+        "waku": "1.0.0-rc.3"
     },
     "devDependencies": {
-        "@types/node": "^26",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
-        "@vitejs/plugin-react": "^6",
-        "typescript": "^6",
-        "vite": "^8"
+        "@types/node": "^26.6.5",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@vitejs/plugin-react": "^6.1.2",
+        "typescript": "^6.0.3",
+        "vite": "^8.3.4"
     },
     "engines": {
         "node": "24.x"
