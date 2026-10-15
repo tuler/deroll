@@ -12,6 +12,7 @@ import {
 import type { Application } from "../api/types";
 import { Crumbs, ErrorBox, Hex, Spinner, StatusBadge } from "../components/ui";
 import { DecoderUrlSync } from "../decoder/registry";
+import { SubmitterUrlSync, useSubmitter } from "../sequencer/registry";
 
 export interface AppContext {
     /** Route param: application name or address, used in API calls and links. */
@@ -72,6 +73,7 @@ export function AppLayout() {
     const reports = useReports(peek);
     const withdrawals = useWithdrawals(peek);
     const tournaments = useTournaments(peek);
+    const submitter = useSubmitter(result.data?.applicationAddress);
 
     if (result.isPending)
         return <Spinner label={`Loading application ${app}…`} />;
@@ -125,6 +127,9 @@ export function AppLayout() {
                         label="Inputs"
                         count={inputs.data?.pagination.totalCount}
                     />
+                    {submitter && (
+                        <Tab to={`${base}/user-ops`} label="User ops" />
+                    )}
                     <Tab
                         to={`${base}/outputs`}
                         label="Outputs"
@@ -149,6 +154,7 @@ export function AppLayout() {
             </div>
 
             <DecoderUrlSync application={application.applicationAddress} />
+            <SubmitterUrlSync application={application.applicationAddress} />
 
             <Outlet
                 context={{ appParam: app, application } satisfies AppContext}

@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./index.css";
 import { DecoderProvider } from "./decoder/registry";
+import { SubmitterProvider } from "./sequencer/registry";
 import { ServerProvider, useServer } from "./server";
 
 const queryClient = new QueryClient({
@@ -27,18 +28,20 @@ createRoot(container).render(
     <StrictMode>
         <ServerProvider>
             <DecoderProvider>
-                <QueryClientProvider client={queryClient}>
-                    <CartesiNode>
-                        <BrowserRouter
-                            basename={import.meta.env.BASE_URL.replace(
-                                /\/$/,
-                                "",
-                            )}
-                        >
-                            <App />
-                        </BrowserRouter>
-                    </CartesiNode>
-                </QueryClientProvider>
+                <SubmitterProvider>
+                    <QueryClientProvider client={queryClient}>
+                        <CartesiNode>
+                            <BrowserRouter
+                                basename={import.meta.env.BASE_URL.replace(
+                                    /\/$/,
+                                    "",
+                                )}
+                            >
+                                <App />
+                            </BrowserRouter>
+                        </CartesiNode>
+                    </QueryClientProvider>
+                </SubmitterProvider>
             </DecoderProvider>
         </ServerProvider>
     </StrictMode>,

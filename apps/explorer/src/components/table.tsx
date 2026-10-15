@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { Pagination } from "../api/types";
 import { EmptyState, ErrorBox, Spinner } from "./ui";
@@ -126,6 +126,7 @@ export function DataTable<T>({
     rows,
     rowKey,
     rowLink,
+    expand,
     isLoading,
     error,
     empty,
@@ -134,11 +135,19 @@ export function DataTable<T>({
     rows?: T[];
     rowKey: (row: T) => string;
     rowLink?: (row: T) => string;
+    /**
+     * Rows that unfold: returns a render function for the content shown under
+     * the row while it is expanded, or null for a row that does not unfold.
+     * Called on every render to decide whether a row gets a toggle, so it must
+     * be cheap; the render function only runs for an expanded row.
+     */
+    expand?: (row: T) => (() => ReactNode) | null;
     isLoading?: boolean;
     error?: unknown;
     empty?: string;
 }) {
     const navigate = useNavigate();
+    const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
 
     if (error) return <ErrorBox error={error} />;
     if (isLoading && !rows) return <Spinner />;
@@ -149,6 +158,7 @@ export function DataTable<T>({
             <table className="w-full border-collapse text-sm">
                 <thead>
                     <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                        {expand && <th className="w-0" />}
                         {columns.map((col) => (
                             <th
                                 key={col.header}
@@ -160,40 +170,87 @@ export function DataTable<T>({
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row) => (
-                        <tr
-                            key={rowKey(row)}
-                            onClick={
-                                rowLink
-                                    ? () => navigate(rowLink(row))
-                                    : undefined
-                            }
-                            className={`border-b border-slate-100 dark:border-slate-800 ${
-                                rowLink
-                                    ? "cursor-pointer hover:bg-sky-50/60 dark:hover:bg-sky-950/30"
-                                    : ""
-                            }`}
-                        >
-                            {columns.map((col) => (
-                                <td
-                                    key={col.header}
-                                    className={`whitespace-nowrap px-3 py-2 align-middle ${
-                                        col.align === "right"
-                                            ? "text-right"
+                    {rows.map((row) => {
+                        const key = rowKey(row);
+                        const unfold = expand?.(row) ?? null;
+                        const isOpen = unfold !== null && expanded.has(key);
+                        return (
+                            <Fragment key={key}>
+                                <tr
+                                    onClick={
+                                        rowLink
+                                            ? () => navigate(rowLink(row))
+                                            : undefined
+                                    }
+                                    className={`border-b border-slate-100 dark:border-slate-800 ${
+                                        rowLink
+                                            ? "cursor-pointer hover:bg-sky-50/60 dark:hover:bg-sky-950/30"
                                             : ""
-                                    }${col.truncate ? " w-full max-w-0" : ""}`}
+                                    }`}
                                 >
-                                    {col.truncate ? (
-                                        <div className="truncate">
-                                            {col.cell(row)}
-                                        </div>
-                                    ) : (
-                                        col.cell(row)
+                                    {expand && (
+                                        <td className="w-0 py-2 pl-3 align-middle">
+                                            {unfold && (
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={isOpen}
+                                                    aria-label={
+                                                        isOpen
+                                                            ? "Collapse"
+                                                            : "Expand"
+                                                    }
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setExpanded((prev) => {
+                                                            const next =
+                                                                new Set(prev);
+                                                            if (next.has(key))
+                                                                next.delete(
+                                                                    key,
+                                                                );
+                                                            else next.add(key);
+                                                            return next;
+                                                        });
+                                                    }}
+                                                    className="cursor-pointer rounded px-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                                                >
+                                                    {isOpen ? "▾" : "▸"}
+                                                </button>
+                                            )}
+                                        </td>
                                     )}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                                    {columns.map((col) => (
+                                        <td
+                                            key={col.header}
+                                            className={`whitespace-nowrap px-3 py-2 align-middle ${
+                                                col.align === "right"
+                                                    ? "text-right"
+                                                    : ""
+                                            }${col.truncate ? " w-full max-w-0" : ""}`}
+                                        >
+                                            {col.truncate ? (
+                                                <div className="truncate">
+                                                    {col.cell(row)}
+                                                </div>
+                                            ) : (
+                                                col.cell(row)
+                                            )}
+                                        </td>
+                                    ))}
+                                </tr>
+                                {isOpen && unfold && (
+                                    <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40">
+                                        <td
+                                            colSpan={columns.length + 1}
+                                            className="max-w-0 py-2 pr-3 pl-8"
+                                        >
+                                            {unfold()}
+                                        </td>
+                                    </tr>
+                                )}
+                            </Fragment>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

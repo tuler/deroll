@@ -6,5 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "bun server.ts"
+  },
+  "dependencies": {
+    "viem": "^2.57.5"
   }
 }

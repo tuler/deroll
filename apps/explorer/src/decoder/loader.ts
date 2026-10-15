@@ -8,6 +8,7 @@ const DECODE_METHODS: DecodeMethodName[] = [
     "report",
     "withdrawalAccount",
     "withdrawalOutput",
+    "userOp",
 ];
 
 // One in-flight or resolved import per URL; failed loads are forgotten so a
