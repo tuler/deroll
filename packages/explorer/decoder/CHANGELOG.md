@@ -1,5 +1,11 @@
 # @deroll/decoder
 
+## 0.2.0-alpha.6
+
+### Minor Changes
+
+- bb6211b: Add the `userOp` decode method and the `UserOp` record: the payload of one user operation inside a Cartesi sequencer batch, with the batch envelope and the recovered signer already decoded by the explorer.
+
 ## 0.2.0-alpha.5
 
 ### Minor Changes
