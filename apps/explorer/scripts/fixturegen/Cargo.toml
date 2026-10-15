@@ -1,0 +1,17 @@
+[package]
+name = "fixturegen"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# Standalone: not part of any workspace.
+[workspace]
+
+[dependencies]
+# Keep the rev in step with SEQUENCER_REV in generate-fixtures.sh.
+sequencer-core = { git = "https://github.com/cartesi/sequencer", rev = "8a7c914fe32a81391f42252d8e81a93cb962d570" }
+alloy-primitives = { version = "1.6", features = ["serde", "k256"] }
+alloy-sol-types = "1.6"
+k256 = "0.13.4"
+serde_json = "1"
+ssz = { package = "ethereum_ssz", version = "0.10" }

@@ -1,6 +1,8 @@
 // Mock Cartesi Rollups Node JSON-RPC server for developing the explorer UI.
 // Run with: bun mock/server.ts   (serves http://localhost:10011/rpc with CORS enabled)
 
+import { privateKeyToAccount } from 'viem/accounts'
+
 const hex = (n: number | bigint) => '0x' + n.toString(16)
 const addr = (seed: number) => '0x' + (seed + 1).toString(16).padStart(40, 'a')
 const hash = (seed: number) => '0x' + (seed + 1).toString(16).padStart(64, 'b')
@@ -88,6 +90,68 @@ const feedAt = (m: number): FeedEntry[] => {
   ]
 }
 
+// ---- Sequencer batches (decoded natively by the explorer) ----
+//
+// The batch submitter posts SSZ-encoded batches of signed user operations.
+// Set the submitter below on the perp-dex Overview page to see them unfold.
+const batchSubmitter = addr(60)
+const perpApplication = addr(20)
+const perpChainId = 31337
+
+const le = (value: bigint | number, size: number) =>
+  Buffer.from(be(value, size), 'hex').reverse().toString('hex')
+const offset = (n: number) => le(n, 4)
+const bytes = (h: string) => h.slice(2)
+// An SSZ list of variable-size items: an offset table, then the items.
+const sszList = (items: string[]) => {
+  let at = items.length * 4
+  const table = items.map((item) => {
+    const o = offset(at)
+    at += item.length / 2
+    return o
+  })
+  return table.join('') + items.join('')
+}
+type WireOp = { nonce: number; maxFee: number; data: string; signature: string }
+const sszOp = (op: WireOp) =>
+  le(op.nonce, 4) + le(op.maxFee, 2) + offset(14) + offset(14 + bytes(op.data).length / 2) + bytes(op.data) + bytes(op.signature)
+const sszBatch = (nonce: number, frames: { ops: WireOp[]; safeBlock: number; feePrice: number }[]) =>
+  '0x' +
+  le(nonce, 8) +
+  offset(12) +
+  sszList(frames.map((f) => offset(14) + le(f.safeBlock, 8) + le(f.feePrice, 2) + sszList(f.ops.map(sszOp))))
+
+// Test-only keys for the two sequencer users.
+const alice = privateKeyToAccount(`0x${'11'.repeat(32)}`)
+const bob = privateKeyToAccount(`0x${'22'.repeat(32)}`)
+const signOp = async (
+  account: typeof alice,
+  nonce: number,
+  maxFee: number,
+  data: string,
+): Promise<WireOp> => ({
+  nonce,
+  maxFee,
+  data,
+  signature: await account.signTypedData({
+    domain: {
+      name: 'CartesiAppSequencer',
+      version: '1',
+      chainId: perpChainId,
+      verifyingContract: perpApplication as `0x${string}`,
+    },
+    types: {
+      UserOp: [
+        { name: 'nonce', type: 'uint32' },
+        { name: 'max_fee', type: 'uint16' },
+        { name: 'data', type: 'bytes' },
+      ],
+    },
+    primaryType: 'UserOp',
+    message: { nonce, max_fee: maxFee, data: data as `0x${string}` },
+  }),
+})
+
 // [sender, payload] per input, mixing portal deposits and app messages.
 const perpPayloads: [string, string][] = [
   [erc20Portal, erc20Deposit(collateralToken, trader1, 5_000_000_000n)], // 5,000 USDC (6 decimals)
@@ -104,6 +168,39 @@ const perpPayloads: [string, string][] = [
   [trader2, cancelOrder(1043)],
   [etherPortal, etherDeposit(trader1, 1_500_000_000_000_000_000n)], // 1.5 ETH (18 decimals)
   [erc20Portal, erc20Deposit(collateralToken, trader1, 2_000_000_000n)], // 2,000 USDC
+  [
+    batchSubmitter,
+    sszBatch(0, [
+      {
+        safeBlock: 1300,
+        feePrice: 700,
+        ops: [
+          await signOp(alice, 0, 900, placeOrder('BTC', [6510000, 2], [2, 1], 0, 0)),
+          await signOp(bob, 0, 800, placeOrder('ETH', [345900, 2], [1, 0], 1, 0, 1)),
+          await signOp(alice, 1, 900, cancelOrder(1044)),
+        ],
+      },
+      { safeBlock: 1301, feePrice: 700, ops: [] },
+      {
+        safeBlock: 1302,
+        feePrice: 710,
+        ops: [
+          await signOp(bob, 1, 750, withdraw(50000, 2)),
+          // A forged signature: decodes, but recovers no signer.
+          { nonce: 7, maxFee: 900, data: cancelOrder(1), signature: '0x' + '00'.repeat(65) },
+        ],
+      },
+    ]),
+  ],
+  [priceFeed, feedPrices(feedAt(13))],
+  [
+    batchSubmitter,
+    sszBatch(1, [
+      { safeBlock: 1390, feePrice: 705, ops: [await signOp(alice, 2, 900, placeOrder('SOL', [15100, 2], [4, 0], 1, 1))] },
+    ]),
+  ],
+  // The submitter's payload that is not a batch: the scheduler rejects it.
+  [batchSubmitter, '0x0200000000000000ff'],
 ]
 
 const perpInputs = perpPayloads.map(([sender, payload], i) => ({

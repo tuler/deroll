@@ -6,6 +6,7 @@ import {
     useProcessedInputCount,
 } from "@cartesi/react";
 import { DecoderSettings } from "../components/DecoderSettings";
+import { SubmitterSettings } from "../sequencer/SubmitterSettings";
 import { TxHash } from "../components/TxHash";
 import {
     Collapsible,
@@ -293,6 +294,11 @@ export function AppOverview() {
 
             <DecoderSettings
                 key={app.applicationAddress}
+                application={app.applicationAddress}
+            />
+
+            <SubmitterSettings
+                key={`submitter-${app.applicationAddress}`}
                 application={app.applicationAddress}
             />
 

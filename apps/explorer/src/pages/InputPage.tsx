@@ -21,6 +21,7 @@ import {
     uintToDecimal,
 } from "../lib/format";
 import { useApp } from "./AppLayout";
+import { BatchSection } from "../sequencer/BatchSection";
 
 export function InputPage() {
     const { appParam, application } = useApp();
@@ -131,6 +132,12 @@ export function InputPage() {
                     />
                 </Section>
             )}
+
+            <BatchSection
+                input={i}
+                appParam={appParam}
+                application={application.applicationAddress}
+            />
 
             <Section title="Produced by this input">
                 <div className="flex flex-wrap gap-2">

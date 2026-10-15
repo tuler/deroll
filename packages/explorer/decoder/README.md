@@ -8,16 +8,33 @@ The rollups node serves several **raw-bytes fields whose encoding is defined by 
 
 | method | record | bytes decoded |
 | --- | --- | --- |
-| `input` | `Input` | `input.decodedData.payload` — the advance payload sent by the user. Never called for portal deposits: the explorer decodes those itself |
+| `input` | `Input` | `input.decodedData.payload` — the advance payload sent by the user. Never called for portal deposits or sequencer batches: the explorer decodes those itself |
 | `deposit` | `Deposit` | the app-specific data attached to a portal deposit (`execLayerData`, and `baseLayerData` on the NFT portals; `"0x"` when absent). The deposit envelope — asset, amounts, sender — arrives already decoded |
 | `output` | `Output` | `output.decodedData.payload` — the payload of a Notice, Voucher or DelegateCallVoucher |
 | `report` | `Report` | `report.rawData` — the full report body (inspect responses, error messages, …) |
 | `withdrawalAccount` | `Withdrawal` | `withdrawal.account` — the account encoding produced by the app's `WithdrawalOutputBuilder` (opaque to the node) |
 | `withdrawalOutput` | `Withdrawal` | `withdrawal.output` — the raw output blob emitted for that account |
+| `userOp` | `UserOp` | `userOp.data` — the payload of one user operation inside a sequencer batch. The batch envelope — frames, nonces, fees, recovered signer — arrives already decoded |
 
 An exported method is also the capability signal: the explorer only calls what you export and falls back to its hex/UTF-8 view for everything else, so new payload sources added to the contract later are simply methods you don't have yet.
 
 Everything else the node serves (hashes, indices, proofs, tournament data, …) is protocol-defined and rendered by the explorer itself; decoders are never called for those. **That includes the portal deposit envelope**: deposits are identical across every application (`InputEncoding.sol` in rollups-contracts), so the explorer recognizes them by sender and renders summary, tags and the structured deposit natively — with or without a registered decoder. Your `deposit` method only decodes the app-specific bytes riding inside, and its result is shown alongside the native deposit view.
+
+## Sequencer user operations
+
+With a Cartesi sequencer, users sign operations off-chain and a batch submitter posts them to the InputBox in batches. The batch envelope is protocol-defined, so once the application's **batch submitter** address is set on its **Overview** page, the explorer recognizes batches by sender, decodes them, recovers each operation's signer and unfolds the operations under their input — `input` is never called for a batch. Each operation's `data` is application-defined, and that is what your `userOp` method decodes:
+
+```ts
+import type { UserOpDecoder } from "@deroll/decoder";
+
+export const userOp: UserOpDecoder = (op, context) => {
+    // op.signer is the recovered signer (null when unrecoverable), and
+    // op.nonce, op.maxFee, op.frameIndex, … describe the operation.
+    return { summary: `${op.signer ?? "unknown signer"} · ${op.data}` };
+};
+```
+
+A decoded operation was **submitted**, not necessarily executed: the scheduler may skip a whole batch or drop an operation (unrecoverable signature, fee or application validation), and none of that is visible in the batch bytes alone. Don't word a summary as if the operation took effect.
 
 ## What the kit gives you
 
@@ -81,7 +98,7 @@ export const deposit: DepositDecoder = (deposit, context) => {
 }
 ```
 
-Each method has a named type — `InputDecoder`, `DepositDecoder`, `OutputDecoder`, `ReportDecoder`, `WithdrawalAccountDecoder`, `WithdrawalOutputDecoder` — and the `Decoder` interface types a whole module.
+Each method has a named type — `InputDecoder`, `DepositDecoder`, `OutputDecoder`, `ReportDecoder`, `WithdrawalAccountDecoder`, `WithdrawalOutputDecoder`, `UserOpDecoder` — and the `Decoder` interface types a whole module.
 
 ## Loading from GitHub source (no publish)
 

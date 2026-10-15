@@ -14,6 +14,9 @@ import { PayloadPreview } from "../components/PayloadView";
 import { Hex, Section, StatusBadge } from "../components/ui";
 import { formatUint, uintToDecimal } from "../lib/format";
 import { useApp } from "./AppLayout";
+import { useSubmitter } from "../sequencer/registry";
+import { decodeBatchInput } from "../sequencer/userOps";
+import { BatchUserOps } from "../sequencer/UserOpsTable";
 
 export function InputsPage() {
     const { searchParams, limit, offset, descending, update } =
@@ -21,6 +24,7 @@ export function InputsPage() {
     const epoch = searchParams.get("epoch") ?? "";
     const sender = searchParams.get("sender") ?? "";
     const { appParam, application } = useApp();
+    const submitter = useSubmitter(application.applicationAddress);
 
     const inputs = useInputs({
         application: appParam,
@@ -121,6 +125,23 @@ export function InputsPage() {
                 rowKey={(i) => i.index.toString()}
                 rowLink={(i) =>
                     `/apps/${appParam}/inputs/${uintToDecimal(i.index)}`
+                }
+                expand={
+                    submitter
+                        ? (i) =>
+                              // A malformed batch carries no operations to unfold.
+                              decodeBatchInput(i, submitter)?.ok
+                                  ? () => (
+                                        <BatchUserOps
+                                            input={i}
+                                            appParam={appParam}
+                                            application={
+                                                application.applicationAddress
+                                            }
+                                        />
+                                    )
+                                  : null
+                        : undefined
                 }
                 isLoading={inputs.isLoading}
                 error={inputs.error}

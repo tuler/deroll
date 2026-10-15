@@ -19,6 +19,7 @@
 
 import type { Deposit } from "@cartesi/codec";
 import type { Input, Output, Report, Withdrawal } from "@cartesi/client";
+import type { Address, Hex } from "viem";
 
 // ---- API records (from @cartesi/client, re-exported for convenience) ----
 
@@ -64,6 +65,10 @@ export type { Address, Hash, Hex } from "viem";
 //   withdrawalOutput     Withdrawal     withdrawal.output — the raw output
 //                                       blob emitted for that account by the
 //                                       app's WithdrawalOutputBuilder.
+//   userOp               UserOp         userOp.data — the payload of one user
+//                                       operation inside a sequencer batch.
+//                                       The batch envelope (frames, nonces,
+//                                       fees, signer) arrives already decoded.
 //
 // Everything else the node serves (hashes, indices, proofs, tournament data,
 // …) is protocol-defined and rendered by the explorer itself — decoders are
@@ -90,6 +95,51 @@ export type {
     Erc1155SingleDeposit,
     Erc1155BatchDeposit,
 } from "@cartesi/codec";
+
+// ---- Sequencer user operations ----
+//
+// With a Cartesi sequencer, users sign operations off-chain and a batch
+// submitter posts them to the InputBox in batches. The batch envelope is
+// protocol-defined (the sequencer's SSZ `Batch`), so the explorer recognizes a
+// batch by its sender (the batch-submitter address configured for the
+// application), decodes it, recovers each operation's signer, and renders it
+// natively — the `input` method is never called for a batch. Each operation's
+// `data` is application-defined: that is what the `userOp` method decodes.
+//
+// A decoded operation was submitted, not necessarily executed: the scheduler
+// may skip a whole batch (stale, wrong batch nonce) or drop an operation
+// (unrecoverable signature, fee or application validation), and none of that
+// is visible in the batch bytes alone.
+
+/** One user operation, as carried in a sequencer batch. */
+export interface UserOp {
+    /** Index of the input (the batch) that carries this operation. */
+    inputIndex: bigint;
+    /** The batch nonce the scheduler orders batches by. */
+    batchNonce: bigint;
+    /** Position of the operation's frame within the batch. */
+    frameIndex: number;
+    /** Position of the operation within its frame. */
+    opIndex: number;
+    /** The frame's L1 safe block. */
+    safeBlock: bigint;
+    /** The frame's fee price, a log-space exponent (base 129/128). */
+    feePrice: number;
+    /**
+     * The signer the scheduler recovers (EIP-712 over `nonce`, `max_fee` and
+     * `data`, bound to the chain and the application), or null when the
+     * signature is unrecoverable — the scheduler drops such an operation.
+     */
+    signer: Address | null;
+    /** The signer's replay-protection nonce. */
+    nonce: number;
+    /** The fee cap, a log-space exponent (base 129/128). */
+    maxFee: number;
+    /** The application-defined payload, as signed. */
+    data: Hex;
+    /** The signature bytes as carried (65 bytes when recoverable). */
+    signature: Hex;
+}
 
 /** Context passed to every decode method. */
 export interface DecodeContext {
@@ -177,6 +227,11 @@ export type ReportDecoder = DecodeMethod<Report>;
 export type WithdrawalAccountDecoder = DecodeMethod<Withdrawal>;
 /** Decodes `withdrawal.output` — the app-defined withdrawal output blob. */
 export type WithdrawalOutputDecoder = DecodeMethod<Withdrawal>;
+/**
+ * Decodes `userOp.data` — the app-defined payload of one sequencer user
+ * operation. The batch envelope and the recovered signer arrive decoded.
+ */
+export type UserOpDecoder = DecodeMethod<UserOp>;
 
 /**
  * A payload decoder module. Export `version`, optionally `name`, and one
@@ -203,4 +258,5 @@ export interface Decoder {
     report?: ReportDecoder;
     withdrawalAccount?: WithdrawalAccountDecoder;
     withdrawalOutput?: WithdrawalOutputDecoder;
+    userOp?: UserOpDecoder;
 }

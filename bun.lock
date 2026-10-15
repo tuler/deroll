@@ -96,11 +96,12 @@
         "tailwindcss": "^4.3.3",
         "typescript": "^7.0.2",
         "vite": "^8.3.4",
+        "vitest": "^5.0.4",
       },
     },
     "packages/app/create-app": {
       "name": "@deroll/create-app",
-      "version": "2.0.0-alpha.15",
+      "version": "2.0.0-alpha.16",
       "bin": "dist/cli.js",
       "dependencies": {
         "@clack/prompts": "^1.8.1",
@@ -131,7 +132,7 @@
     },
     "packages/app/wallet": {
       "name": "@deroll/wallet",
-      "version": "2.0.0-alpha.9",
+      "version": "2.0.0-alpha.10",
       "dependencies": {
         "@cartesi/codec": "1.0.0-alpha.5",
         "viem": "^2.57.5",
@@ -154,7 +155,7 @@
     },
     "packages/bindings/genext2fs": {
       "name": "@deroll/genext2fs",
-      "version": "0.2.0-alpha.1",
+      "version": "0.2.0-alpha.2",
       "dependencies": {
         "node-addon-api": "^8.9.2",
         "node-gyp-build": "^4.8.4",
@@ -173,7 +174,7 @@
     },
     "packages/explorer/decoder": {
       "name": "@deroll/decoder",
-      "version": "0.2.0-alpha.4",
+      "version": "0.2.0-alpha.5",
       "dependencies": {
         "@cartesi/client": "2.0.0-alpha.38",
         "@cartesi/codec": "1.0.0-alpha.5",
@@ -187,6 +188,9 @@
     "packages/explorer/mock-server": {
       "name": "@deroll/mock-server",
       "version": "0.1.1-alpha.0",
+      "dependencies": {
+        "viem": "^2.57.5",
+      },
     },
   },
   "trustedDependencies": [

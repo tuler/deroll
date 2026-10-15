@@ -15,6 +15,8 @@ import { ReportPage } from "./pages/ReportPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { TournamentPage } from "./pages/TournamentPage";
 import { TournamentsPage } from "./pages/TournamentsPage";
+import { UserOpPage } from "./pages/UserOpPage";
+import { UserOpsPage } from "./pages/UserOpsPage";
 import { WithdrawalPage } from "./pages/WithdrawalPage";
 import { WithdrawalsPage } from "./pages/WithdrawalsPage";
 
@@ -37,6 +39,11 @@ export default function App() {
                             path="inputs/:inputIndex"
                             element={<InputPage />}
                         />
+                        <Route
+                            path="inputs/:inputIndex/ops/:frameIndex/:opIndex"
+                            element={<UserOpPage />}
+                        />
+                        <Route path="user-ops" element={<UserOpsPage />} />
                         <Route path="outputs" element={<OutputsPage />} />
                         <Route
                             path="outputs/:outputIndex"
