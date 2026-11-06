@@ -116,7 +116,7 @@ function ThemeToggle() {
 
 export function Layout() {
     return (
-        <div className="min-h-screen bg-white dark:bg-black">
+        <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950">
             <header className="bg-black text-white dark:border-b dark:border-neutral-800">
                 <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
                     <Link

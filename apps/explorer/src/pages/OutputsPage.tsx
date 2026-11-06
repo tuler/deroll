@@ -17,7 +17,7 @@ import {
     useListControls,
 } from "../components/table";
 import { PayloadPreview } from "../components/PayloadView";
-import { Hex, Section } from "../components/ui";
+import { Hex, linkClass, Section } from "../components/ui";
 import { formatUint, uintToDecimal } from "../lib/format";
 import { useApp } from "./AppLayout";
 
@@ -128,7 +128,7 @@ export function OutputsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(o.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                             >
                                 {formatUint(o.epochIndex)}
                             </Link>
@@ -141,7 +141,7 @@ export function OutputsPage() {
                             <Link
                                 to={`/apps/${appParam}/inputs/${uintToDecimal(o.inputIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                             >
                                 {formatUint(o.inputIndex)}
                             </Link>

@@ -9,6 +9,7 @@ import {
     Hex,
     JsonView,
     KV,
+    linkClass,
     Section,
     Spinner,
     StatusBadge,
@@ -61,7 +62,7 @@ export function InputPage() {
                         [
                             "Epoch",
                             <Link
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                                 to={`${base}/epochs/${uintToDecimal(i.epochIndex)}`}
                             >
                                 {formatUint(i.epochIndex)}

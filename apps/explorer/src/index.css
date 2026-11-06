@@ -18,8 +18,16 @@
     --font-display: var(--cartesi-font-headline);
     --color-cartesi-cyan: var(--cartesi-cyan);
     --color-cartesi-teal: var(--cartesi-teal);
-    /* the headline colour the Brand Kit pairs with each background */
-    --color-accent: light-dark(var(--cartesi-teal), var(--cartesi-cyan));
+    /*
+     * Teal on light, as the Brand Kit pairs it. On dark, the pure brand cyan
+     * glows against grey surfaces, so it is muted toward neutral-300: still
+     * recognisably cyan, without the neon. Brand-cyan fills (primary buttons)
+     * use --color-cartesi-cyan directly.
+     */
+    --color-accent: light-dark(
+        var(--cartesi-teal),
+        color-mix(in oklab, var(--cartesi-cyan) 55%, var(--color-neutral-300))
+    );
     --tracking-eyebrow: var(--cartesi-tracking-eyebrow);
 }
 

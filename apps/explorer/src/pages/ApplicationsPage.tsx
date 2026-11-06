@@ -6,7 +6,7 @@ import {
     SortToggle,
     useListControls,
 } from "../components/table";
-import { Hex, Section, StatusBadge } from "../components/ui";
+import { Hex, linkClass, Section, StatusBadge } from "../components/ui";
 import { formatDate, formatUint } from "../lib/format";
 
 export function ApplicationsPage() {
@@ -35,7 +35,7 @@ export function ApplicationsPage() {
                         {
                             header: "Name",
                             cell: (app) => (
-                                <span className="font-medium underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40">
+                                <span className={`font-medium ${linkClass}`}>
                                     {app.name}
                                 </span>
                             ),

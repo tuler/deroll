@@ -11,7 +11,7 @@ import {
     useListControls,
 } from "../components/table";
 import { PayloadPreview } from "../components/PayloadView";
-import { Hex, Section, StatusBadge } from "../components/ui";
+import { Hex, linkClass, Section, StatusBadge } from "../components/ui";
 import { formatUint, uintToDecimal } from "../lib/format";
 import { useApp } from "./AppLayout";
 import { useSubmitter } from "../sequencer/registry";
@@ -81,7 +81,7 @@ export function InputsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(i.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                             >
                                 {formatUint(i.epochIndex)}
                             </Link>

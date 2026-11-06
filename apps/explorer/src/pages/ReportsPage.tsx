@@ -10,7 +10,7 @@ import {
     useListControls,
 } from "../components/table";
 import { PayloadPreview } from "../components/PayloadView";
-import { Section } from "../components/ui";
+import { linkClass, Section } from "../components/ui";
 import { formatUint, hexByteLength, uintToDecimal } from "../lib/format";
 import { useApp } from "./AppLayout";
 
@@ -77,7 +77,7 @@ export function ReportsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(r.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                             >
                                 {formatUint(r.epochIndex)}
                             </Link>
@@ -90,7 +90,7 @@ export function ReportsPage() {
                             <Link
                                 to={`/apps/${appParam}/inputs/${uintToDecimal(r.inputIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                             >
                                 {formatUint(r.inputIndex)}
                             </Link>
