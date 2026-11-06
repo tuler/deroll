@@ -6,7 +6,7 @@ import { shortHex } from "../lib/format";
 import { useServer } from "../server";
 
 export const linkClass =
-    "underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40";
+    "underline decoration-accent underline-offset-2 hover:decoration-2 dark:text-neutral-100 dark:decoration-accent/60";
 
 /** Monospace hex value with middle truncation and click-to-copy. */
 export function Hex({
@@ -254,8 +254,8 @@ export function Section({
     children: ReactNode;
 }) {
     return (
-        <section className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
-            <header className="flex items-center justify-between border-b border-neutral-100 px-4 py-2.5 dark:border-neutral-800">
+        <section className="rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <header className="flex items-center justify-between rounded-t-lg border-b border-neutral-200 bg-neutral-50 px-4 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/50">
                 <h2 className="font-display text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                     {title}
                 </h2>

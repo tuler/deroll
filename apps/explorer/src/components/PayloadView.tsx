@@ -107,7 +107,7 @@ export function PayloadView({
                                 onClick={() => setChoice(m)}
                                 className={`px-2 py-0.5 cursor-pointer ${
                                     mode === m
-                                        ? "bg-cartesi-cyan text-black"
+                                        ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
                                         : "bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
                                 }`}
                             >

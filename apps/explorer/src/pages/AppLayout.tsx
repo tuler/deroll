@@ -100,7 +100,7 @@ export function AppLayout() {
                 ]}
             />
 
-            <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
+            <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <h1 className="font-display text-lg font-semibold text-neutral-800 dark:text-neutral-100">
                         {application.name}

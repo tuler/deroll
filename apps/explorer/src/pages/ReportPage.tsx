@@ -8,6 +8,7 @@ import {
     ErrorBox,
     JsonView,
     KV,
+    linkClass,
     Section,
     Spinner,
 } from "../components/ui";
@@ -48,7 +49,7 @@ export function ReportPage() {
                         [
                             "Epoch",
                             <Link
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                                 to={`${base}/epochs/${uintToDecimal(r.epochIndex)}`}
                             >
                                 {formatUint(r.epochIndex)}
@@ -57,7 +58,7 @@ export function ReportPage() {
                         [
                             "Input",
                             <Link
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                                 to={`${base}/inputs/${uintToDecimal(r.inputIndex)}`}
                             >
                                 {formatUint(r.inputIndex)}

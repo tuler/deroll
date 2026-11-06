@@ -9,6 +9,7 @@ import {
     Hex,
     JsonView,
     KV,
+    linkClass,
     Section,
     Spinner,
 } from "../components/ui";
@@ -63,7 +64,7 @@ export function OutputPage() {
                         [
                             "Epoch",
                             <Link
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                                 to={`${base}/epochs/${uintToDecimal(o.epochIndex)}`}
                             >
                                 {formatUint(o.epochIndex)}
@@ -72,7 +73,7 @@ export function OutputPage() {
                         [
                             "Input",
                             <Link
-                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
+                                className={linkClass}
                                 to={`${base}/inputs/${uintToDecimal(o.inputIndex)}`}
                             >
                                 {formatUint(o.inputIndex)}

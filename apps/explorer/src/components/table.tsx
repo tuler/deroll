@@ -157,7 +157,7 @@ export function DataTable<T>({
         <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
                 <thead>
-                    <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+                    <tr className="border-b border-neutral-200 bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-400">
                         {expand && <th className="w-0" />}
                         {columns.map((col) => (
                             <th
@@ -184,7 +184,7 @@ export function DataTable<T>({
                                     }
                                     className={`border-b border-neutral-100 dark:border-neutral-800 ${
                                         rowLink
-                                            ? "cursor-pointer hover:bg-cartesi-cyan/10"
+                                            ? "cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
                                             : ""
                                     }`}
                                 >
@@ -239,7 +239,7 @@ export function DataTable<T>({
                                     ))}
                                 </tr>
                                 {isOpen && unfold && (
-                                    <tr className="border-b border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/50">
+                                    <tr className="border-b border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-950/40">
                                         <td
                                             colSpan={columns.length + 1}
                                             className="max-w-0 py-2 pr-3 pl-8"

@@ -21,11 +21,11 @@ import { useApp } from "./AppLayout";
 
 function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
+        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
                 {label}
             </div>
-            <div className="mt-1 text-xl font-semibold text-neutral-800 dark:text-neutral-100">
+            <div className="mt-1 font-display text-xl font-semibold text-neutral-800 dark:text-neutral-100">
                 {value}
             </div>
         </div>
