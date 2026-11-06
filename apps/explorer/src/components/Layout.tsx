@@ -1,3 +1,4 @@
+import { cartesiLogoDarkDataUri } from "@cartesi/brand/logos";
 import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { isRpcResponseError } from "../api/errors";
@@ -25,7 +26,7 @@ function ServerBar() {
                 setServer(draft);
             }}
         >
-            <div className="flex items-center gap-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 text-xs text-neutral-300">
                 <span
                     className={`h-2.5 w-2.5 rounded-full ${
                         checking
@@ -67,7 +68,7 @@ function ServerBar() {
                 onBlur={() => setServer(draft)}
                 placeholder="http://localhost:10011/rpc"
                 spellCheck={false}
-                className="w-full max-w-xs rounded-md border border-slate-600 bg-slate-800 px-3 py-1.5 font-mono text-xs text-slate-100 placeholder:text-slate-500 focus:outline-2 focus:outline-sky-400 sm:max-w-sm"
+                className="w-full max-w-xs rounded-md border border-neutral-600 bg-neutral-800 px-3 py-1.5 font-mono text-xs text-neutral-100 placeholder:text-neutral-500 focus:outline-2 focus:outline-cartesi-cyan sm:max-w-sm"
                 aria-label="JSON-RPC server URL"
             />
         </form>
@@ -86,7 +87,7 @@ function ThemeToggle() {
                     : "Switch to dark mode"
             }
             aria-label="Toggle dark mode"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md text-neutral-300 hover:bg-neutral-800 hover:text-white cursor-pointer"
         >
             {theme === "dark" ? (
                 <svg
@@ -115,18 +116,22 @@ function ThemeToggle() {
 
 export function Layout() {
     return (
-        <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
-            <header className="bg-slate-900 text-white shadow dark:border-b dark:border-slate-800">
+        <div className="min-h-screen bg-white dark:bg-black">
+            <header className="bg-black text-white dark:border-b dark:border-neutral-800">
                 <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
                     <Link
                         to="/"
-                        className="flex items-center gap-2 whitespace-nowrap"
+                        className="flex items-center gap-3 whitespace-nowrap"
+                        aria-label="Cartesi Node Explorer"
                     >
-                        <span className="grid h-7 w-7 place-items-center rounded bg-sky-500 font-bold text-white">
-                            C
-                        </span>
-                        <span className="font-semibold tracking-tight">
-                            Cartesi Node Explorer
+                        {/* the header is black in both themes: the white lockup */}
+                        <img
+                            src={cartesiLogoDarkDataUri}
+                            alt=""
+                            className="h-6 w-auto"
+                        />
+                        <span className="border-l border-neutral-700 pl-3 font-display font-semibold">
+                            Node Explorer
                         </span>
                     </Link>
                     <ServerBar />
@@ -136,7 +141,7 @@ export function Layout() {
             <main className="mx-auto max-w-6xl px-4 py-6">
                 <Outlet />
             </main>
-            <footer className="mx-auto max-w-6xl px-4 pb-6 text-xs text-slate-400 dark:text-slate-600">
+            <footer className="mx-auto max-w-6xl px-4 pb-6 text-xs text-neutral-400 dark:text-neutral-600">
                 Cartesi Rollups Node JSON-RPC API v2.0.0 — read-only explorer
             </footer>
         </div>

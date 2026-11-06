@@ -77,7 +77,7 @@ export function ReportsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(r.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                             >
                                 {formatUint(r.epochIndex)}
                             </Link>
@@ -90,7 +90,7 @@ export function ReportsPage() {
                             <Link
                                 to={`/apps/${appParam}/inputs/${uintToDecimal(r.inputIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                             >
                                 {formatUint(r.inputIndex)}
                             </Link>

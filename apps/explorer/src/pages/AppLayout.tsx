@@ -42,14 +42,14 @@ function Tab({
             className={({ isActive }) =>
                 `flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap ${
                     isActive
-                        ? "border-sky-600 text-sky-700 dark:border-sky-400 dark:text-sky-400"
-                        : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                        ? "border-accent text-neutral-900 dark:text-white"
+                        : "border-transparent text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                 }`
             }
         >
             {label}
             {count !== undefined && (
-                <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-300">
+                <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-700/60 dark:text-neutral-300">
                     {count.toLocaleString()}
                 </span>
             )}
@@ -100,9 +100,9 @@ export function AppLayout() {
                 ]}
             />
 
-            <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                    <h1 className="font-display text-lg font-semibold text-neutral-800 dark:text-neutral-100">
                         {application.name}
                     </h1>
                     <StatusBadge status={application.status} />

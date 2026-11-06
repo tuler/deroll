@@ -21,7 +21,7 @@ export function ApplicationsPage() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                <h1 className="font-display text-2xl font-semibold text-accent">
                     Applications
                 </h1>
                 <SortToggle
@@ -35,7 +35,7 @@ export function ApplicationsPage() {
                         {
                             header: "Name",
                             cell: (app) => (
-                                <span className="font-medium text-sky-700 dark:text-sky-400">
+                                <span className="font-medium underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40">
                                     {app.name}
                                 </span>
                             ),

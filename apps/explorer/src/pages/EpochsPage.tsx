@@ -68,7 +68,7 @@ export function EpochsPage() {
                     {
                         header: "Blocks",
                         cell: (e) => (
-                            <span className="text-slate-600 dark:text-slate-300">
+                            <span className="text-neutral-600 dark:text-neutral-300">
                                 {formatUint(e.firstBlock)} –{" "}
                                 {formatUint(e.lastBlock)}
                             </span>
@@ -81,7 +81,7 @@ export function EpochsPage() {
                             const hi = e.inputIndexUpperBound;
                             if (hi <= lo)
                                 return (
-                                    <span className="text-slate-400 dark:text-slate-500">
+                                    <span className="text-neutral-400 dark:text-neutral-500">
                                         none
                                     </span>
                                 );

@@ -48,7 +48,7 @@ export function ReportPage() {
                         [
                             "Epoch",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/epochs/${uintToDecimal(r.epochIndex)}`}
                             >
                                 {formatUint(r.epochIndex)}
@@ -57,7 +57,7 @@ export function ReportPage() {
                         [
                             "Input",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/inputs/${uintToDecimal(r.inputIndex)}`}
                             >
                                 {formatUint(r.inputIndex)}

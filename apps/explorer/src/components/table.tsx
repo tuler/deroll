@@ -48,10 +48,10 @@ export function Pager({
     const to = Math.min(offset + limit, total);
 
     const controlClass =
-        "rounded-md border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200";
+        "rounded-md border border-neutral-300 bg-white dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200";
 
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm text-slate-600 dark:text-slate-300">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm text-neutral-600 dark:text-neutral-300">
             <span>
                 {from.toLocaleString()}–{to.toLocaleString()} of{" "}
                 {total.toLocaleString()}
@@ -76,7 +76,7 @@ export function Pager({
                     onClick={() =>
                         onChange({ offset: Math.max(0, offset - limit) })
                     }
-                    className={`${controlClass} px-3 py-1 disabled:opacity-40 enabled:hover:bg-slate-50 dark:enabled:hover:bg-slate-800 enabled:cursor-pointer`}
+                    className={`${controlClass} px-3 py-1 disabled:opacity-40 enabled:hover:bg-neutral-50 dark:enabled:hover:bg-neutral-800 enabled:cursor-pointer`}
                 >
                     ← Prev
                 </button>
@@ -84,7 +84,7 @@ export function Pager({
                     type="button"
                     disabled={offset + limit >= total}
                     onClick={() => onChange({ offset: offset + limit })}
-                    className={`${controlClass} px-3 py-1 disabled:opacity-40 enabled:hover:bg-slate-50 dark:enabled:hover:bg-slate-800 enabled:cursor-pointer`}
+                    className={`${controlClass} px-3 py-1 disabled:opacity-40 enabled:hover:bg-neutral-50 dark:enabled:hover:bg-neutral-800 enabled:cursor-pointer`}
                 >
                     Next →
                 </button>
@@ -104,7 +104,7 @@ export function SortToggle({
         <button
             type="button"
             onClick={() => onChange(!descending)}
-            className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-sm text-neutral-600 hover:bg-neutral-50 cursor-pointer dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
             title="Toggle sort order"
         >
             {descending ? "↓ Descending" : "↑ Ascending"}
@@ -157,7 +157,7 @@ export function DataTable<T>({
         <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
                 <thead>
-                    <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                    <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
                         {expand && <th className="w-0" />}
                         {columns.map((col) => (
                             <th
@@ -182,9 +182,9 @@ export function DataTable<T>({
                                             ? () => navigate(rowLink(row))
                                             : undefined
                                     }
-                                    className={`border-b border-slate-100 dark:border-slate-800 ${
+                                    className={`border-b border-neutral-100 dark:border-neutral-800 ${
                                         rowLink
-                                            ? "cursor-pointer hover:bg-sky-50/60 dark:hover:bg-sky-950/30"
+                                            ? "cursor-pointer hover:bg-cartesi-cyan/10"
                                             : ""
                                     }`}
                                 >
@@ -212,7 +212,7 @@ export function DataTable<T>({
                                                             return next;
                                                         });
                                                     }}
-                                                    className="cursor-pointer rounded px-1 text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                                                    className="cursor-pointer rounded px-1 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
                                                 >
                                                     {isOpen ? "▾" : "▸"}
                                                 </button>
@@ -239,7 +239,7 @@ export function DataTable<T>({
                                     ))}
                                 </tr>
                                 {isOpen && unfold && (
-                                    <tr className="border-b border-slate-100 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40">
+                                    <tr className="border-b border-neutral-100 bg-neutral-50/70 dark:border-neutral-800 dark:bg-neutral-900/50">
                                         <td
                                             colSpan={columns.length + 1}
                                             className="max-w-0 py-2 pr-3 pl-8"
@@ -267,7 +267,7 @@ export function Filter({
 }) {
     return (
         // biome-ignore lint/a11y/noLabelWithoutControl: the control is passed as children and rendered inside the label
-        <label className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+        <label className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-300">
             <span>{label}</span>
             {children}
         </label>
@@ -275,4 +275,4 @@ export function Filter({
 }
 
 export const filterInputClass =
-    "rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm font-mono placeholder:font-sans focus:outline-2 focus:outline-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500";
+    "rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm font-mono placeholder:font-sans focus:outline-2 focus:outline-accent dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500";

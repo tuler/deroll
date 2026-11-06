@@ -1,6 +1,14 @@
+import { cartesiTheme } from "@cartesi/vocs-theme";
 import { defineConfig } from "vocs/config";
 
 export default defineConfig({
+    // Cartesi brand: accent colour, colour scheme, logo, favicon and socials.
+    // Spread first so every key below wins over it.
+    ...cartesiTheme(),
+    // github-dark-dimmed, Vocs' default, reads grey on the theme's pure black page
+    codeHighlight: {
+        themes: { light: "github-light", dark: "github-dark-default" },
+    },
     baseUrl: "https://deroll.dev",
     srcDir: ".",
     editLink: {

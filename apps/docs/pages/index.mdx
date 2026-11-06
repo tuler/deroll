@@ -6,7 +6,8 @@ showSidebar: false
 import { HomePage } from 'vocs'
 
 <HomePage.Root>
-  <HomePage.Logo />
+  <p className="home-eyebrow">Built on Cartesi</p>
+  <h1 className="home-title">deroll</h1>
   <HomePage.Tagline>The TypeScript toolkit for Cartesi</HomePage.Tagline>
   <HomePage.Description>A collection of TypeScript libraries to build, run, and observe Cartesi applications.</HomePage.Description>
 </HomePage.Root>
@@ -30,6 +31,30 @@ import { HomePage } from 'vocs'
 </div>
 
 <style>{`
+  /* the Brand Kit's small, letter-spaced uppercase label above a headline */
+  .home-eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--cartesi-tracking-eyebrow);
+    color: var(--vocs-text-color-secondary);
+  }
+  /* headline: Plus Jakarta Sans 600, teal on white and cyan on black */
+  .home-title {
+    margin: 0;
+    font-family: var(--cartesi-font-headline);
+    font-weight: var(--cartesi-weight-headline);
+    font-size: 3.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: light-dark(var(--cartesi-teal), var(--cartesi-cyan));
+  }
+  @media (min-width: 768px) {
+    .home-title {
+      font-size: 4.5rem;
+    }
+  }
   .home-cards {
     display: grid;
     grid-template-columns: 1fr;
@@ -47,28 +72,28 @@ import { HomePage } from 'vocs'
     display: flex;
     flex-direction: column;
     padding: 24px;
-    border: 1px solid var(--vocs-color_border, rgba(125,125,125,0.25));
+    border: var(--cartesi-hairline) solid var(--vocs-border-color-primary);
     border-radius: 12px;
-    background-color: var(--vocs-color_background2, rgba(125,125,125,0.04));
+    background-color: var(--vocs-background-color-surface);
     text-decoration: none;
-    transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.15s ease, transform 0.15s ease;
   }
   .home-card:hover {
-    border-color: var(--vocs-color_textAccent, #ff6b35);
-    background-color: var(--vocs-color_background3, rgba(125,125,125,0.08));
+    border-color: light-dark(var(--cartesi-teal), var(--cartesi-cyan));
     transform: translateY(-2px);
   }
   .home-card h3 {
     margin: 0 0 8px;
+    font-family: var(--cartesi-font-headline);
+    font-weight: var(--cartesi-weight-headline);
     font-size: 1.2rem;
-    color: var(--vocs-color_heading, inherit);
+    color: var(--vocs-text-color-heading);
   }
   .home-card-packages {
     margin-top: auto;
     padding-top: 16px;
     font-size: 0.8rem;
-    color: var(--vocs-color_text3, var(--vocs-color_text2, #888));
-    opacity: 0.7;
+    color: var(--vocs-text-color-muted);
   }
   .home-card-packages code {
     font-size: 0.8rem;
@@ -80,6 +105,6 @@ import { HomePage } from 'vocs'
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.55;
-    color: var(--vocs-color_text3, var(--vocs-color_text2, #888));
+    color: var(--vocs-text-color-secondary);
   }
 `}</style>

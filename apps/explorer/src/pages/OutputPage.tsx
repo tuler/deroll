@@ -51,7 +51,7 @@ export function OutputPage() {
                 title={
                     <span className="flex items-center gap-3">
                         Output {formatUint(o.index)}
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                             {typeLabel}
                         </span>
                     </span>
@@ -63,7 +63,7 @@ export function OutputPage() {
                         [
                             "Epoch",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/epochs/${uintToDecimal(o.epochIndex)}`}
                             >
                                 {formatUint(o.epochIndex)}
@@ -72,7 +72,7 @@ export function OutputPage() {
                         [
                             "Input",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/inputs/${uintToDecimal(o.inputIndex)}`}
                             >
                                 {formatUint(o.inputIndex)}
@@ -133,7 +133,7 @@ export function OutputPage() {
                             {o.outputHashesSiblings.map((h, i) => (
                                 // biome-ignore lint/suspicious/noArrayIndexKey: sibling hashes are positional
                                 <li key={i} className="flex gap-2">
-                                    <span className="w-6 text-right text-slate-400 dark:text-slate-500">
+                                    <span className="w-6 text-right text-neutral-400 dark:text-neutral-500">
                                         {i}
                                     </span>
                                     <Hex value={h} full />
@@ -141,7 +141,7 @@ export function OutputPage() {
                             ))}
                         </ol>
                     ) : (
-                        <span className="text-sm text-slate-400 dark:text-slate-500">
+                        <span className="text-sm text-neutral-400 dark:text-neutral-500">
                             —
                         </span>
                     )}

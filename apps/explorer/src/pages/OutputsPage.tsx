@@ -128,7 +128,7 @@ export function OutputsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(o.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                             >
                                 {formatUint(o.epochIndex)}
                             </Link>
@@ -141,7 +141,7 @@ export function OutputsPage() {
                             <Link
                                 to={`/apps/${appParam}/inputs/${uintToDecimal(o.inputIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                             >
                                 {formatUint(o.inputIndex)}
                             </Link>
@@ -150,7 +150,7 @@ export function OutputsPage() {
                     {
                         header: "Type",
                         cell: (o) => (
-                            <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
                                 {outputTypeLabel(o.decodedData?.type)}
                             </span>
                         ),
@@ -183,7 +183,7 @@ export function OutputsPage() {
                                     ✓
                                 </span>
                             ) : (
-                                <span className="text-slate-300 dark:text-slate-600">
+                                <span className="text-neutral-300 dark:text-neutral-600">
                                     —
                                 </span>
                             ),

@@ -5,7 +5,8 @@ import type { TagColor } from "../decoder/types";
 import { shortHex } from "../lib/format";
 import { useServer } from "../server";
 
-export const linkClass = "text-sky-700 hover:underline dark:text-sky-400";
+export const linkClass =
+    "underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40";
 
 /** Monospace hex value with middle truncation and click-to-copy. */
 export function Hex({
@@ -28,7 +29,9 @@ export function Hex({
 }) {
     const [copied, setCopied] = useState(false);
     if (!value)
-        return <span className="text-slate-400 dark:text-slate-500">—</span>;
+        return (
+            <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        );
 
     const text = full ? value : shortHex(value, head, tail);
     const inner = to ? (
@@ -40,7 +43,7 @@ export function Hex({
     );
 
     const iconClass =
-        "text-slate-300 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-300 cursor-pointer";
+        "text-neutral-300 hover:text-neutral-600 dark:text-neutral-600 dark:hover:text-neutral-300 cursor-pointer";
 
     return (
         <span
@@ -107,7 +110,7 @@ const GREEN =
     "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300";
 const RED = "bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300";
 const GRAY =
-    "bg-slate-200 text-slate-700 dark:bg-slate-700/50 dark:text-slate-300";
+    "bg-neutral-200 text-neutral-700 dark:bg-neutral-700/50 dark:text-neutral-300";
 const BLUE = "bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300";
 const INDIGO =
     "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300";
@@ -228,7 +231,9 @@ export function Pill({
 
 export function StatusBadge({ status }: { status?: string | null }) {
     if (!status)
-        return <span className="text-slate-400 dark:text-slate-500">—</span>;
+        return (
+            <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        );
     const color = STATUS_COLORS[status] ?? GRAY;
     return (
         <span
@@ -249,9 +254,9 @@ export function Section({
     children: ReactNode;
 }) {
     return (
-        <section className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <header className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <section className="rounded-lg border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black">
+            <header className="flex items-center justify-between border-b border-neutral-100 px-4 py-2.5 dark:border-neutral-800">
+                <h2 className="font-display text-sm font-semibold text-neutral-700 dark:text-neutral-200">
                     {title}
                 </h2>
                 {actions}
@@ -270,10 +275,10 @@ export function KV({ rows }: { rows: Array<[ReactNode, ReactNode] | null> }) {
                 .map(([key, value], i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional and never reordered
                     <div key={i} className="contents">
-                        <dt className="text-sm text-slate-500 dark:text-slate-400">
+                        <dt className="text-sm text-neutral-500 dark:text-neutral-400">
                             {key}
                         </dt>
-                        <dd className="text-sm text-slate-900 min-w-0 dark:text-slate-100">
+                        <dd className="text-sm text-neutral-900 min-w-0 dark:text-neutral-100">
                             {value}
                         </dd>
                     </div>
@@ -308,7 +313,7 @@ export function Collapsible({
 
 export function JsonView({ value }: { value: unknown }) {
     return (
-        <pre className="overflow-x-auto rounded-md bg-slate-900 p-3 text-xs leading-relaxed text-slate-100 dark:bg-slate-950 dark:ring-1 dark:ring-slate-800">
+        <pre className="overflow-x-auto rounded-md bg-neutral-900 p-3 text-xs leading-relaxed text-neutral-100 dark:bg-neutral-950 dark:ring-1 dark:ring-neutral-800">
             {JSON.stringify(
                 value,
                 (_k, v) => (typeof v === "bigint" ? v.toString() : v),
@@ -320,8 +325,8 @@ export function JsonView({ value }: { value: unknown }) {
 
 export function Spinner({ label = "Loading…" }: { label?: string }) {
     return (
-        <div className="flex items-center gap-2 py-8 text-sm text-slate-500 dark:text-slate-400 justify-center">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-400" />
+        <div className="flex items-center gap-2 py-8 text-sm text-neutral-500 dark:text-neutral-400 justify-center">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-accent dark:border-neutral-700" />
             {label}
         </div>
     );
@@ -338,7 +343,7 @@ export function ErrorBox({ error }: { error: unknown }) {
 
 export function EmptyState({ label = "Nothing found." }: { label?: string }) {
     return (
-        <div className="py-8 text-center text-sm text-slate-400 dark:text-slate-500">
+        <div className="py-8 text-center text-sm text-neutral-400 dark:text-neutral-500">
             {label}
         </div>
     );
@@ -350,12 +355,12 @@ export function Crumbs({
     items: Array<{ label: ReactNode; to?: string }>;
 }) {
     return (
-        <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+        <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400">
             {items.map((item, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional and never reordered
                 <span key={i} className="flex items-center gap-1.5">
                     {i > 0 && (
-                        <span className="text-slate-300 dark:text-slate-600">
+                        <span className="text-neutral-300 dark:text-neutral-600">
                             /
                         </span>
                     )}
@@ -364,7 +369,7 @@ export function Crumbs({
                             {item.label}
                         </Link>
                     ) : (
-                        <span className="text-slate-700 font-medium dark:text-slate-200">
+                        <span className="text-neutral-700 font-medium dark:text-neutral-200">
                             {item.label}
                         </span>
                     )}

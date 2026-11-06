@@ -67,7 +67,7 @@ export function PayloadView({
 
     if (!value || value === "0x") {
         return (
-            <span className="text-sm text-slate-400 dark:text-slate-500">
+            <span className="text-sm text-neutral-400 dark:text-neutral-500">
                 empty (0 bytes)
             </span>
         );
@@ -96,10 +96,10 @@ export function PayloadView({
 
     return (
         <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <span>{size.toLocaleString()} bytes</span>
                 {modes.length > 1 && (
-                    <div className="flex overflow-hidden rounded-md border border-slate-300 dark:border-slate-700">
+                    <div className="flex overflow-hidden rounded-md border border-neutral-300 dark:border-neutral-700">
                         {modes.map((m) => (
                             <button
                                 key={m}
@@ -107,8 +107,8 @@ export function PayloadView({
                                 onClick={() => setChoice(m)}
                                 className={`px-2 py-0.5 cursor-pointer ${
                                     mode === m
-                                        ? "bg-sky-600 text-white"
-                                        : "bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                                        ? "bg-cartesi-cyan text-black"
+                                        : "bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
                                 }`}
                             >
                                 {MODE_LABELS[m]}
@@ -130,7 +130,7 @@ export function PayloadView({
                 result &&
                 (tags.length > 0 ||
                     (result.summary && result.data !== undefined)) && (
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-neutral-600 dark:text-neutral-300">
                         <TagPills tags={tags} />
                         {result.summary && result.data !== undefined && (
                             <span>{result.summary}</span>
@@ -142,7 +142,7 @@ export function PayloadView({
                     <JsonView value={json} />
                 </div>
             ) : (
-                <pre className="max-h-64 overflow-auto rounded-md bg-slate-50 border border-slate-200 p-3 text-xs leading-relaxed whitespace-pre-wrap break-all font-mono text-slate-800 dark:bg-slate-950 dark:border-slate-800 dark:text-slate-200">
+                <pre className="max-h-64 overflow-auto rounded-md bg-neutral-50 border border-neutral-200 p-3 text-xs leading-relaxed whitespace-pre-wrap break-all font-mono text-neutral-800 dark:bg-neutral-950 dark:border-neutral-800 dark:text-neutral-200">
                     {text}
                 </pre>
             )}
@@ -181,7 +181,9 @@ export function PayloadPreview({
 }) {
     const decoded = useDecodedPayload(value, decode);
     if (!value || value === "0x")
-        return <span className="text-slate-400 dark:text-slate-500">—</span>;
+        return (
+            <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        );
     if (decoded.status === "decoded" && decoded.result) {
         const tags = normalizeTags(decoded.result.tags);
         const full = decoded.result.summary ?? decodedToText(decoded.result);
@@ -191,7 +193,7 @@ export function PayloadPreview({
                     <TagPills tags={tags} />
                     {full && (
                         <span
-                            className="truncate text-slate-700 dark:text-slate-300"
+                            className="truncate text-neutral-700 dark:text-neutral-300"
                             title={full}
                         >
                             {full}
@@ -204,7 +206,10 @@ export function PayloadPreview({
     const utf8 = hexToUtf8(value);
     if (utf8 !== null) {
         return (
-            <span className="text-slate-700 dark:text-slate-300" title={utf8}>
+            <span
+                className="text-neutral-700 dark:text-neutral-300"
+                title={utf8}
+            >
                 “{utf8}”
             </span>
         );

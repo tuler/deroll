@@ -9,7 +9,7 @@ import { Fee, UserOpsTable } from "./UserOpsTable";
 /** What a decoded batch does and does not tell, stated once per batch view. */
 export function SubmittedNote() {
     return (
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
             Operations are shown as submitted. The scheduler skips a stale or
             out-of-sequence batch and drops operations that fail signature, fee
             or application validation; only the application's own outputs and
@@ -39,7 +39,7 @@ export function BatchSection({
                     <p className="rounded-md bg-red-50 px-3 py-2 text-red-800 dark:bg-red-950/50 dark:text-red-300">
                         Malformed batch: {batch.reason}
                     </p>
-                    <p className="text-slate-500 dark:text-slate-400">
+                    <p className="text-neutral-500 dark:text-neutral-400">
                         This input was sent by the batch submitter but does not
                         decode as a batch. The scheduler rejects it without
                         executing anything.
@@ -73,7 +73,7 @@ export function BatchSection({
                     frames.map((frame, frameIndex) => (
                         // biome-ignore lint/suspicious/noArrayIndexKey: frames are positional and never reordered
                         <div key={frameIndex} className="space-y-1">
-                            <h3 className="flex flex-wrap gap-x-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                            <h3 className="flex flex-wrap gap-x-4 font-display text-xs font-semibold text-neutral-600 dark:text-neutral-300">
                                 <span>Frame {frameIndex}</span>
                                 <span className="font-normal">
                                     safe block {formatUint(frame.safeBlock)}

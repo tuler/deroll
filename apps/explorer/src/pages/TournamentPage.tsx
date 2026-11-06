@@ -87,7 +87,7 @@ export function TournamentPage() {
                         [
                             "Epoch",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/epochs/${uintToDecimal(t.epochIndex)}`}
                             >
                                 {formatUint(t.epochIndex)}
@@ -184,7 +184,7 @@ export function TournamentPage() {
                                               snap.innerResult.parentCommitment
                                           }
                                       />
-                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
                                           paused allowance{" "}
                                           {formatUint(
                                               snap.innerResult.pausedAllowance,
@@ -204,7 +204,7 @@ export function TournamentPage() {
                                     <Hex value={snap.bondRecovery.claimer} />
                                 )}
                                 {snap.bondRecovery.payment !== null && (
-                                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
                                         {formatWei(snap.bondRecovery.payment)}
                                     </span>
                                 )}

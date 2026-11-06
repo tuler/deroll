@@ -1,11 +1,26 @@
 @import "tailwindcss";
+/* the Cartesi brand: colour tokens and the self-hosted Inter / Plus Jakarta Sans */
+@import "@cartesi/brand/styles.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans:
-        ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/*
+ * `inline` so utilities read the brand's custom properties directly. The
+ * `html.dark` class sets `color-scheme` below, which is what `light-dark()`
+ * resolves against, so the accent follows the theme toggle.
+ */
+@theme inline {
+    --font-sans: var(--cartesi-font-body);
+    --font-display: var(--cartesi-font-headline);
+    --color-cartesi-cyan: var(--cartesi-cyan);
+    --color-cartesi-teal: var(--cartesi-teal);
+    /* the headline colour the Brand Kit pairs with each background */
+    --color-accent: light-dark(var(--cartesi-teal), var(--cartesi-cyan));
+    --tracking-eyebrow: var(--cartesi-tracking-eyebrow);
 }
 
 html {

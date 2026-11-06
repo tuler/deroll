@@ -88,7 +88,7 @@ export function MatchPage() {
                         [
                             "Epoch",
                             <Link
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                                 to={`${base}/epochs/${uintToDecimal(m.epochIndex)}`}
                             >
                                 {formatUint(m.epochIndex)}
@@ -113,7 +113,7 @@ export function MatchPage() {
                                   <span className="inline-flex flex-wrap items-center gap-2">
                                       {formatUint(m.leafSeal.blockNumber)}
                                       <TxHash value={m.leafSeal.txHash} />
-                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
                                           eliminable at{" "}
                                           {formatUint(m.leafSeal.eliminableAt)}
                                       </span>

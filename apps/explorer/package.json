@@ -11,6 +11,7 @@
         "test": "vitest"
     },
     "dependencies": {
+        "@cartesi/brand": "0.1.0-alpha.0",
         "@cartesi/client": "2.0.0-alpha.38",
         "@cartesi/codec": "1.0.0-alpha.5",
         "@cartesi/react": "2.0.0-alpha.42",

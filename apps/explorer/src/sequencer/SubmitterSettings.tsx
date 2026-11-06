@@ -16,7 +16,7 @@ export function SubmitterSettings({ application }: { application: string }) {
     return (
         <Section title="Sequencer batch submitter">
             <div className="space-y-2">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                     If this application runs behind a Cartesi sequencer, the
                     address its batch submitter posts batches from. Inputs sent
                     by it are decoded as batches of signed user operations and
@@ -42,7 +42,7 @@ export function SubmitterSettings({ application }: { application: string }) {
                     <button
                         type="submit"
                         disabled={!valid || unchanged}
-                        className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-700 disabled:cursor-default disabled:opacity-50 cursor-pointer"
+                        className="rounded-full bg-cartesi-cyan px-4 py-1.5 text-xs font-semibold uppercase tracking-eyebrow text-black hover:bg-cartesi-cyan/80 disabled:cursor-default disabled:opacity-50 cursor-pointer"
                     >
                         {submitter ? "Update" : "Set"}
                     </button>
@@ -53,7 +53,7 @@ export function SubmitterSettings({ application }: { application: string }) {
                                 removeSubmitter(application);
                                 setDraft("");
                             }}
-                            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 cursor-pointer dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-full border border-neutral-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-eyebrow text-neutral-700 hover:border-accent cursor-pointer dark:border-neutral-600 dark:text-neutral-300"
                         >
                             Remove
                         </button>

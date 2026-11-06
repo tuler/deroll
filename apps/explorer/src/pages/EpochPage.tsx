@@ -19,7 +19,7 @@ import { useApp } from "./AppLayout";
 function HashList({ hashes }: { hashes: string[] | null }) {
     if (!hashes || hashes.length === 0)
         return (
-            <span className="text-sm text-slate-400 dark:text-slate-500">
+            <span className="text-sm text-neutral-400 dark:text-neutral-500">
                 —
             </span>
         );
@@ -28,7 +28,7 @@ function HashList({ hashes }: { hashes: string[] | null }) {
             {hashes.map((h, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: merkle proof entries are positional
                 <li key={i} className="flex gap-2">
-                    <span className="w-6 text-right text-slate-400 dark:text-slate-500">
+                    <span className="w-6 text-right text-neutral-400 dark:text-neutral-500">
                         {i}
                     </span>
                     <Hex value={h} full />
@@ -178,7 +178,7 @@ function QuickLink({ to, label }: { to: string; label: string }) {
     return (
         <Link
             to={to}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-sky-700 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-900 dark:text-sky-400 dark:hover:bg-slate-800"
+            className="rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-semibold uppercase tracking-eyebrow text-neutral-900 hover:border-accent dark:border-white dark:text-white"
         >
             {label} →
         </Link>

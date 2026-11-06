@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { cartesiIconDataUri } from "@cartesi/brand/logos";
 import pkg from "./package.json";
 
 // https://vite.dev/config/
@@ -47,6 +48,22 @@ export default defineConfig(({ mode }) => {
         plugins: [
             react(),
             tailwindcss(),
+            {
+                // The Cartesi icon on a cyan tile, inlined from @cartesi/brand
+                // so the favicon tracks the package instead of a copied file.
+                name: "cartesi-favicon",
+                transformIndexHtml: () => [
+                    {
+                        tag: "link",
+                        attrs: {
+                            rel: "icon",
+                            type: "image/svg+xml",
+                            href: cartesiIconDataUri,
+                        },
+                        injectTo: "head",
+                    },
+                ],
+            },
             {
                 name: "decoder-kit-import-map",
                 transformIndexHtml: () => [

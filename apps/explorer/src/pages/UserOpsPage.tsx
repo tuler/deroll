@@ -87,7 +87,7 @@ export function UserOpsPage() {
     if (!submitter) {
         return (
             <Section title="User operations">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-neutral-500 dark:text-neutral-400">
                     Set this application's sequencer batch submitter on its{" "}
                     <Link to={`/apps/${appParam}`} className={linkClass}>
                         Overview
@@ -149,7 +149,7 @@ export function UserOpsPage() {
                         }
                     />
                 )}
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600 dark:text-slate-300">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-neutral-600 dark:text-neutral-300">
                     <span>
                         {ops.length.toLocaleString()} operations from{" "}
                         {scanned.toLocaleString()} of {total.toLocaleString()}{" "}
@@ -162,7 +162,7 @@ export function UserOpsPage() {
                             type="button"
                             disabled={pages.isFetchingNextPage}
                             onClick={() => pages.fetchNextPage()}
-                            className="rounded-md border border-slate-300 bg-white px-3 py-1 disabled:opacity-40 enabled:cursor-pointer enabled:hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:enabled:hover:bg-slate-800"
+                            className="rounded-md border border-neutral-300 bg-white px-3 py-1 disabled:opacity-40 enabled:cursor-pointer enabled:hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:enabled:hover:bg-neutral-800"
                         >
                             {pages.isFetchingNextPage
                                 ? "Scanning…"

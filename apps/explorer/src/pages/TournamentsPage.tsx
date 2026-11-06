@@ -87,7 +87,7 @@ export function TournamentsPage() {
                             <Link
                                 to={`/apps/${appParam}/epochs/${uintToDecimal(t.epochIndex)}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-sky-700 hover:underline dark:text-sky-400"
+                                className="underline decoration-cartesi-teal underline-offset-2 hover:decoration-2 dark:text-cartesi-cyan dark:decoration-cartesi-cyan/40"
                             >
                                 {formatUint(t.epochIndex)}
                             </Link>
@@ -118,7 +118,7 @@ export function TournamentsPage() {
                                     to={`/apps/${appParam}/tournaments/${t.parentTournamentAddress}`}
                                 />
                             ) : (
-                                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
                                     root
                                 </span>
                             ),

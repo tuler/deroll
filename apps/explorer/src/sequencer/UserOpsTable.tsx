@@ -32,7 +32,7 @@ export function Fee({
     return (
         <span>
             {exponent.toLocaleString()}{" "}
-            <span className="text-slate-500 dark:text-slate-400">
+            <span className="text-neutral-500 dark:text-neutral-400">
                 ({linear})
             </span>
         </span>
