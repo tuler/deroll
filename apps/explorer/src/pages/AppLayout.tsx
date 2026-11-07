@@ -11,8 +11,7 @@ import {
 } from "@cartesi/react";
 import type { Application } from "../api/types";
 import { Crumbs, ErrorBox, Hex, Spinner, StatusBadge } from "../components/ui";
-import { DecoderUrlSync } from "../decoder/registry";
-import { SubmitterUrlSync, useSubmitter } from "../sequencer/registry";
+import { useSubmitter } from "../sequencer/registry";
 
 export interface AppContext {
     /** Route param: application name or address, used in API calls and links. */
@@ -152,9 +151,6 @@ export function AppLayout() {
                     />
                 </nav>
             </div>
-
-            <DecoderUrlSync application={application.applicationAddress} />
-            <SubmitterUrlSync application={application.applicationAddress} />
 
             <Outlet
                 context={{ appParam: app, application } satisfies AppContext}

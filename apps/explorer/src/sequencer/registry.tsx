@@ -2,16 +2,12 @@ import {
     createContext,
     useCallback,
     useContext,
-    useEffect,
-    useRef,
     useState,
     type ReactNode,
 } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import { getAddress, isAddress, type Address } from "viem";
 
 const STORAGE_KEY = "cartesi-explorer.submitters";
-const URL_PARAM = "submitter";
 
 /** Batch-submitter addresses keyed by lowercase application contract address. */
 type Submitters = Record<string, Address>;
@@ -102,79 +98,4 @@ export function useSubmitters() {
 export function useSubmitter(application?: string): Address | undefined {
     const { submitters } = useSubmitters();
     return application ? submitters[application.toLowerCase()] : undefined;
-}
-
-/**
- * Mirrors the application's batch submitter into a ?submitter= query param so
- * the address bar is a shareable link, and offers a submitter suggested by
- * such a link. A suggestion is never adopted silently: it decides which inputs
- * are shown as batches of signed user operations, so a banner asks first.
- * Must be mounted inside an application route.
- */
-export function SubmitterUrlSync({ application }: { application: string }) {
-    const { submitters, setSubmitter } = useSubmitters();
-    const registered = submitters[application.toLowerCase()];
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [dismissed, setDismissed] = useState<string | null>(null);
-
-    // The submitter this page last mirrored into the param; after a removal
-    // the param still carries it for one render, which must not be re-offered.
-    const mirrored = useRef(registered);
-    useEffect(() => {
-        mirrored.current = registered;
-    }, [registered]);
-
-    const raw = new URLSearchParams(location.search).get(URL_PARAM)?.trim();
-    const suggested = raw && isAddress(raw) ? getAddress(raw) : undefined;
-    const pending =
-        suggested &&
-        suggested !== registered &&
-        suggested !== dismissed &&
-        suggested !== mirrored.current
-            ? suggested
-            : null;
-
-    useEffect(() => {
-        if (pending) return; // keep the suggested param while the banner is up
-        const params = new URLSearchParams(location.search);
-        if ((params.get(URL_PARAM) ?? undefined) !== registered) {
-            if (registered) params.set(URL_PARAM, registered);
-            else params.delete(URL_PARAM);
-            navigate(
-                { pathname: location.pathname, search: params.toString() },
-                { replace: true },
-            );
-        }
-    }, [location, registered, pending, navigate]);
-
-    if (!pending) return null;
-
-    return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-            <span className="min-w-0">
-                This link suggests{" "}
-                <code className="font-mono break-all">{pending}</code> as this
-                application's sequencer batch submitter. Inputs it sent will be
-                shown as batches of user operations — only accept it if you know
-                it is the right address.
-            </span>
-            <span className="flex gap-2">
-                <button
-                    type="button"
-                    onClick={() => setSubmitter(application, pending)}
-                    className="rounded-md bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700 cursor-pointer"
-                >
-                    Set submitter
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setDismissed(pending)}
-                    className="rounded-md border border-amber-400 px-3 py-1 text-xs text-amber-800 hover:bg-amber-100 cursor-pointer dark:border-amber-600 dark:text-amber-200 dark:hover:bg-amber-900/40"
-                >
-                    Dismiss
-                </button>
-            </span>
-        </div>
-    );
 }

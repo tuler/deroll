@@ -1,8 +1,57 @@
-import { defineConfig, loadEnv } from "vite";
+import type { IncomingMessage, ServerResponse } from "node:http";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { cartesiIconDataUri } from "@cartesi/brand/logos";
 import pkg from "./package.json";
+import { handleShare, memoryStore } from "./src/share/handler.ts";
+
+/**
+ * Serves /api/share from the dev and preview servers with an in-memory store,
+ * so share links work locally without Vercel or Redis. Links last until the
+ * server restarts. On Vercel the same handler runs as api/share/*.
+ */
+function shareApi(): Plugin {
+    const store = memoryStore();
+    const middleware = async (
+        req: IncomingMessage,
+        res: ServerResponse,
+        next: (error?: unknown) => void,
+    ) => {
+        if (!req.url?.startsWith("/api/share")) return next();
+        try {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) chunks.push(chunk as Buffer);
+            const headers = new Headers();
+            for (const [name, value] of Object.entries(req.headers)) {
+                if (typeof value === "string") headers.set(name, value);
+            }
+            const response = await handleShare(
+                new Request(new URL(req.url, "http://localhost"), {
+                    method: req.method,
+                    headers,
+                    body: chunks.length ? Buffer.concat(chunks) : undefined,
+                }),
+                store,
+            );
+            res.statusCode = response.status;
+            for (const [name, value] of response.headers)
+                res.setHeader(name, value);
+            res.end(Buffer.from(await response.arrayBuffer()));
+        } catch (error) {
+            next(error);
+        }
+    };
+    return {
+        name: "share-api",
+        configureServer: (server) => {
+            server.middlewares.use(middleware);
+        },
+        configurePreviewServer: (server) => {
+            server.middlewares.use(middleware);
+        },
+    };
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -43,11 +92,10 @@ export default defineConfig(({ mode }) => {
     });
 
     return {
-        // BASE_PATH is set by the GitHub Pages workflow (e.g. /luke/); defaults to / for local dev.
-        base: process.env.BASE_PATH || "/",
         plugins: [
             react(),
             tailwindcss(),
+            shareApi(),
             {
                 // The Cartesi icon on a cyan tile, inlined from @cartesi/brand
                 // so the favicon tracks the package instead of a copied file.

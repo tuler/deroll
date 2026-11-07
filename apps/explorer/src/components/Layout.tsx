@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import { isRpcResponseError } from "../api/errors";
 import { useNodeInfo } from "@cartesi/react";
+import { DecoderSuggestions } from "../decoder/registry";
 import { useServer } from "../server";
+import { SharedConfig } from "../share/SharedConfig";
+import { ShareButton } from "../share/ShareButton";
 import { useTheme } from "../theme";
 
 function ServerBar() {
@@ -135,10 +138,13 @@ export function Layout() {
                         </span>
                     </Link>
                     <ServerBar />
+                    <ShareButton />
                     <ThemeToggle />
                 </div>
             </header>
             <main className="mx-auto max-w-6xl px-4 py-6">
+                <SharedConfig />
+                <DecoderSuggestions />
                 <Outlet />
             </main>
             <footer className="mx-auto max-w-6xl px-4 pb-6 text-xs text-neutral-400 dark:text-neutral-600">

@@ -17,6 +17,7 @@
         "@cartesi/react": "2.0.0-alpha.42",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.104.2",
+        "@upstash/redis": "^1.41.0",
         "react": "^19.3.0",
         "react-dom": "^19.3.0",
         "react-router-dom": "^7.18.4",
