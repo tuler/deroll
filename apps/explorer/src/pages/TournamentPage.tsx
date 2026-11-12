@@ -5,6 +5,7 @@ import {
     useBondEvents,
     useCommitments,
     useMatches,
+    useStandingChanges,
     useTournament,
     useTournaments,
 } from "@cartesi/react";
@@ -31,6 +32,10 @@ import {
 } from "../lib/format";
 import { useApp } from "./AppLayout";
 
+/** A standing change reports zero for an instant that does not apply. */
+const formatInstant = (value: bigint) =>
+    value === 0n ? "—" : formatUint(value);
+
 export function TournamentPage() {
     const { appParam } = useApp();
     const { address = "" } = useParams();
@@ -56,6 +61,17 @@ export function TournamentPage() {
     const bondEvents = useBondEvents({
         application: appParam,
         tournamentAddress: address as Address,
+        limit: 100,
+    });
+
+    // Standing changes are scoped by the tournament's epoch, which only the
+    // tournament record carries: the query stays idle until it has loaded.
+    // Latest first — the newest event is the tournament's current standing.
+    const standingChanges = useStandingChanges({
+        application: appParam,
+        epochIndex: tournament.data?.epochIndex,
+        tournamentAddress: address as Address,
+        descending: true,
         limit: 100,
     });
 
@@ -117,8 +133,23 @@ export function TournamentPage() {
                                   <Hex value={t.parentMatchIdHash} full />,
                               ]
                             : null,
+                        // the two final states contested in the parent match,
+                        // in commitment-side order; a root tournament has none
+                        t.contestedFinalStateOne
+                            ? [
+                                  "Contested final state one",
+                                  <Hex value={t.contestedFinalStateOne} full />,
+                              ]
+                            : null,
+                        t.contestedFinalStateTwo
+                            ? [
+                                  "Contested final state two",
+                                  <Hex value={t.contestedFinalStateTwo} full />,
+                              ]
+                            : null,
                         ["Initial hash", <Hex value={t.initialHash} full />],
                         ["Base cycle", formatUint(t.baseCycle)],
+                        ["Bond value", formatWei(t.bondValue)],
                         ["Created at block", formatUint(t.startInstant)],
                         t.creationEvent
                             ? [
@@ -356,6 +387,58 @@ export function TournamentPage() {
                     isLoading={children.isLoading}
                     error={children.error}
                     empty="No child tournaments spawned from this tournament."
+                />
+            </Section>
+
+            <Section
+                title={`Standing changes (${standingChanges.data?.pagination.totalCount ?? "…"})`}
+            >
+                <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">
+                    Emitted after every join and match deletion, latest first.
+                    The result and expiry blocks are prospective — when the
+                    tournament would finish, or its winner expire, with no match
+                    left live — not proof that it already has.
+                </p>
+                <DataTable
+                    columns={[
+                        {
+                            header: "Live matches",
+                            align: "right",
+                            cell: (s) => formatUint(s.matchCount),
+                        },
+                        {
+                            header: "Dangling commitment",
+                            cell: (s) => <Hex value={s.dangling} />,
+                        },
+                        {
+                            header: "Parent commitment",
+                            cell: (s) => <Hex value={s.parentCommitment} />,
+                        },
+                        {
+                            header: "Result at block",
+                            align: "right",
+                            cell: (s) => formatInstant(s.resultAt),
+                        },
+                        {
+                            header: "Winner expires at block",
+                            align: "right",
+                            cell: (s) => formatInstant(s.winnerExpiresAt),
+                        },
+                        {
+                            header: "Block",
+                            align: "right",
+                            cell: (s) => formatUint(s.blockNumber),
+                        },
+                        {
+                            header: "Tx",
+                            cell: (s) => <TxHash value={s.txHash} />,
+                        },
+                    ]}
+                    rows={standingChanges.data?.data}
+                    rowKey={(s) => `${s.txHash}-${s.logIndex}`}
+                    isLoading={standingChanges.isLoading}
+                    error={standingChanges.error}
+                    empty="No standing changes recorded for this tournament."
                 />
             </Section>
 

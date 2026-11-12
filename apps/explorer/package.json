@@ -12,9 +12,9 @@
     },
     "dependencies": {
         "@cartesi/brand": "0.1.0-alpha.0",
-        "@cartesi/client": "2.0.0-alpha.38",
+        "@cartesi/client": "2.0.0-alpha.41",
         "@cartesi/codec": "1.0.0-alpha.5",
-        "@cartesi/react": "2.0.0-alpha.42",
+        "@cartesi/react": "2.0.0-alpha.45",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.104.2",
         "@upstash/redis": "^1.41.0",

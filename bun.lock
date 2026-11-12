@@ -78,9 +78,9 @@
       "version": "0.2.0-alpha.4",
       "dependencies": {
         "@cartesi/brand": "0.1.0-alpha.0",
-        "@cartesi/client": "2.0.0-alpha.38",
+        "@cartesi/client": "2.0.0-alpha.41",
         "@cartesi/codec": "1.0.0-alpha.5",
-        "@cartesi/react": "2.0.0-alpha.42",
+        "@cartesi/react": "2.0.0-alpha.45",
         "@deroll/decoder": "workspace:*",
         "@tanstack/react-query": "^5.104.2",
         "@upstash/redis": "^1.41.0",
@@ -179,7 +179,7 @@
       "name": "@deroll/decoder",
       "version": "0.2.0-alpha.6",
       "dependencies": {
-        "@cartesi/client": "2.0.0-alpha.38",
+        "@cartesi/client": "2.0.0-alpha.41",
         "@cartesi/codec": "1.0.0-alpha.5",
         "viem": "^2.57.5",
       },
@@ -268,15 +268,15 @@
 
     "@cartesi/brand": ["@cartesi/brand@0.1.0-alpha.0", "", { "dependencies": { "@fontsource/inter": "^5.3.0", "@fontsource/plus-jakarta-sans": "^5.3.0" } }, "sha512-jaq0M5DT1vDKRBN3HxFuV4btLro6e0C4SyI/oioW05nEcrEc4AFOEvXicdjwe2+EentBLj4iHnqxYLB5Mp4GAQ=="],
 
-    "@cartesi/client": ["@cartesi/client@2.0.0-alpha.38", "", { "dependencies": { "@cartesi/rpc": "2.0.0-alpha.27", "abitype": "^1.3.0", "p-retry": "^8.0.1" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-XtYPLIKDvJClbl8Sb9/Mx2yK4Q7FJD8CPG3Gq2FCdNkgVZ0si7K8LhIFetnukiVIU1KF4aYJEtiIjgLizmnzRQ=="],
+    "@cartesi/client": ["@cartesi/client@2.0.0-alpha.41", "", { "dependencies": { "@cartesi/rpc": "2.0.0-alpha.30", "abitype": "^1.3.0", "p-retry": "^8.0.1" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-DellqUph2yKdmCV4YxQSIupXqdoYSpetdGC0LQfvswGZurpAiTpPjuMs+OPm2r3lCqW/ZmMv3s+vygs4cFs42A=="],
 
     "@cartesi/codec": ["@cartesi/codec@1.0.0-alpha.5", "", { "dependencies": { "abitype": "^1.3.0" }, "peerDependencies": { "viem": "^2.0.0" } }, "sha512-OJbIexh+T9XNj8XMrp/QZih9hnhPNAfmb20iRfTWDs6KJq+1X2YNPf96rl6scUTt2tYwtplo9i+fakPAXOxq5A=="],
 
-    "@cartesi/react": ["@cartesi/react@2.0.0-alpha.42", "", { "dependencies": { "@cartesi/client": "2.0.0-alpha.38" }, "peerDependencies": { "@tanstack/react-query": "^5.0.0", "react": "^19.0.0", "viem": "^2.0.0", "wagmi": "^3.0.0" } }, "sha512-8A2VVOyoTysqNtfixDiORUyYcdC3zkj/zOIBgK0uhI2mtbToThiEMZ3qWo0VoagfBRl0Ky5Za2R3l1CtSfAH9g=="],
+    "@cartesi/react": ["@cartesi/react@2.0.0-alpha.45", "", { "dependencies": { "@cartesi/client": "2.0.0-alpha.41" }, "peerDependencies": { "@tanstack/react-query": "^5.0.0", "react": "^19.0.0", "viem": "^2.0.0", "wagmi": "^3.0.0" } }, "sha512-ODFQ5pMwx1Hf0OTWnCn/ETp71iyEJdIQlHrRLldnOuxqdinoqveCz02sYd/9wNKfPuPIJLuKGos3FPlr0x+r5A=="],
 
     "@cartesi/rollup": ["@cartesi/rollup@1.0.0-alpha.3", "", { "dependencies": { "node-addon-api": "^8.9.2", "node-gyp-build": "^4.8.4" } }, "sha512-iklL54TzfnMmh4ePfAQMSGbXfgb6ngKnPJby1adkQm7VmG139ErKujPGsy5hFtFLEhBntPA48TnpaiqVGtYX+Q=="],
 
-    "@cartesi/rpc": ["@cartesi/rpc@2.0.0-alpha.27", "", { "dependencies": { "json-rpc-2.0": "^1.8.0" } }, "sha512-mkZIELszlnulJYZglMuANuMel71uWcENnAl/LnNdpwaU6o8hq0o7f9y3JaBTwwjWOo73s2gOpyhc3cU1Kq/m+w=="],
+    "@cartesi/rpc": ["@cartesi/rpc@2.0.0-alpha.30", "", { "dependencies": { "json-rpc-2.0": "^1.8.1" } }, "sha512-jClFxoOCsK3fHDYXrhI+yvmL37KXIE6a2B1yNLVK4u+YJ5JC3tu1DCv5krA4sIZErGVmU8C77CFDm5nwBstjbQ=="],
 
     "@cartesi/vocs-theme": ["@cartesi/vocs-theme@0.1.0-alpha.0", "", { "dependencies": { "@cartesi/brand": "0.1.0-alpha.0" }, "peerDependencies": { "react": "^19.0.0", "vocs": "^2.11.0" } }, "sha512-2GWCg/O08fe2W0bUTOOhg8imqko9EWvoJLG+IGynhxVv9i7asfkEPyKC3nTIgjovQOrB1nuLw+vj63XTvslUng=="],
 

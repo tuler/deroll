@@ -108,26 +108,17 @@ export function MatchPage() {
                         ["Created at block", formatUint(m.blockNumber)],
                         ["Creation tx", <TxHash value={m.txHash} full />],
                         ["Eliminable at block", formatUint(m.eliminableAt)],
-                        m.leafSeal
-                            ? [
-                                  "Leaf sealed at block",
-                                  <span className="inline-flex flex-wrap items-center gap-2">
-                                      {formatUint(m.leafSeal.blockNumber)}
-                                      <TxHash value={m.leafSeal.txHash} />
-                                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                                          eliminable at{" "}
-                                          {formatUint(m.leafSeal.eliminableAt)}
-                                      </span>
-                                  </span>,
-                              ]
-                            : null,
+                        // the MatchCreated schedule: a later advance or seal
+                        // supersedes it (see the advances and the leaf seal)
+                        [
+                            "Initial responder deadline block",
+                            formatUint(m.responderDeadline),
+                        ],
                         [
                             "Resolution",
                             <StatusBadge status={m.deletionReason} />,
                         ],
-                        deleted &&
-                        m.deletionBlockNumber !== null &&
-                        m.deletionBlockNumber !== 0n
+                        deleted && m.deletionBlockNumber !== 0n
                             ? [
                                   "Resolved at block",
                                   formatUint(m.deletionBlockNumber),
@@ -231,6 +222,49 @@ export function MatchPage() {
                 />
             </Section>
 
+            {/* The durable LeafMatchSealed record: unlike the snapshot's sealed
+                state above, it stays once the match is deleted. */}
+            {m.leafSeal && (
+                <Section title="Leaf seal">
+                    <KV
+                        rows={[
+                            [
+                                "Sealed at block",
+                                formatUint(m.leafSeal.blockNumber),
+                            ],
+                            [
+                                "Seal tx",
+                                <TxHash value={m.leafSeal.txHash} full />,
+                            ],
+                            [
+                                "Agree state",
+                                <Hex value={m.leafSeal.agreeState} full />,
+                            ],
+                            [
+                                "Divergence position",
+                                formatUint(m.leafSeal.divergencePosition),
+                            ],
+                            [
+                                "Final state one",
+                                <Hex value={m.leafSeal.finalStateOne} full />,
+                            ],
+                            [
+                                "Final state two",
+                                <Hex value={m.leafSeal.finalStateTwo} full />,
+                            ],
+                            [
+                                "Deadline block (one / two)",
+                                `${formatUint(m.leafSeal.deadlineOne)} / ${formatUint(m.leafSeal.deadlineTwo)}`,
+                            ],
+                            [
+                                "Eliminable at block",
+                                formatUint(m.leafSeal.eliminableAt),
+                            ],
+                        ]}
+                    />
+                </Section>
+            )}
+
             <Section
                 title={`Match advances (${advances.data?.pagination.totalCount ?? "…"})`}
             >
@@ -250,6 +284,16 @@ export function MatchPage() {
                             cell: (a) => formatUint(a.segmentStartPosition),
                         },
                         {
+                            header: "Height",
+                            align: "right",
+                            cell: (a) => formatUint(a.currentHeight),
+                        },
+                        {
+                            header: "Responder deadline",
+                            align: "right",
+                            cell: (a) => formatUint(a.responderDeadline),
+                        },
+                        {
                             header: "Eliminable at",
                             align: "right",
                             cell: (a) => formatUint(a.eliminableAt),
@@ -262,10 +306,6 @@ export function MatchPage() {
                         {
                             header: "Tx",
                             cell: (a) => <TxHash value={a.txHash} />,
-                        },
-                        {
-                            header: "Observed",
-                            cell: (a) => formatDate(a.createdAt),
                         },
                     ]}
                     rows={advances.data?.data}

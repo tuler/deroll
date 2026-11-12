@@ -483,6 +483,10 @@ const tournaments = [
     start_instant: hex(5100),
     allowance: hex(7200),
     creation_event: { block_number: hex(5100), tx_hash: hash(691), log_index: hex(0) },
+    bond_value: hex(2n * 10n ** 16n),
+    // a root tournament contests no parent match
+    contested_final_state_one: null,
+    contested_final_state_two: null,
     snapshot: {
       as_of_block: hex(6000),
       standing: 'MATCHES_ACTIVE',
@@ -514,6 +518,10 @@ const tournaments = [
     start_instant: hex(5400),
     allowance: hex(3600),
     creation_event: { block_number: hex(5400), tx_hash: hash(752), log_index: hex(2) },
+    bond_value: hex(10n ** 16n),
+    // the final states of the parent match's two commitments, in side order
+    contested_final_state_one: hash(730),
+    contested_final_state_two: hash(731),
     snapshot: {
       as_of_block: hex(6000),
       standing: 'INNER_WINNER',
@@ -554,7 +562,8 @@ const commitments = Array.from({ length: 3 }, (_, i) => ({
 const notDeleted = {
   winner_commitment: 'NONE',
   deletion_reason: 'NOT_DELETED',
-  deletion_block_number: null,
+  // zero, not null, while the match is not deleted
+  deletion_block_number: hex(0),
   deletion_tx_hash: null,
   deletion_log_index: null,
 }
@@ -588,6 +597,7 @@ const matches = [
     updated_at: now(30),
     log_index: hex(0),
     eliminable_at: hex(8850),
+    responder_deadline: hex(5850),
     leaf_seal: null,
     snapshot: deletedSnapshot,
   },
@@ -609,6 +619,7 @@ const matches = [
     updated_at: now(25),
     log_index: hex(1),
     eliminable_at: hex(8860),
+    responder_deadline: hex(5860),
     leaf_seal: null,
     snapshot: deletedSnapshot,
   },
@@ -626,6 +637,7 @@ const matches = [
     updated_at: now(5),
     log_index: hex(3),
     eliminable_at: hex(9070),
+    responder_deadline: hex(6070),
     leaf_seal: null,
     snapshot: {
       as_of_block: hex(6000),
@@ -659,7 +671,20 @@ const matches = [
     updated_at: now(15),
     log_index: hex(0),
     eliminable_at: hex(9020),
-    leaf_seal: { eliminable_at: hex(5980), block_number: hex(5480), tx_hash: hash(763), log_index: hex(4) },
+    responder_deadline: hex(5720),
+    // durable LeafMatchSealed record: it outlives the snapshot's sealed state
+    leaf_seal: {
+      eliminable_at: hex(5980),
+      block_number: hex(5480),
+      tx_hash: hash(763),
+      log_index: hex(4),
+      agree_state: hash(764),
+      divergence_position: hex(123456),
+      final_state_one: hash(711),
+      final_state_two: hash(765),
+      deadline_one: hex(5780),
+      deadline_two: hex(5880),
+    },
     snapshot: {
       as_of_block: hex(6000),
       timeout_outcome: 'ONE_WINS',
@@ -690,6 +715,9 @@ const matchAdvances = Array.from({ length: 6 }, (_, i) => ({
   log_index: hex(i % 2),
   segment_start_position: hex(BigInt(i) << 38n),
   eliminable_at: hex(8900 + i * 5),
+  // each advance bisects one level down from the tournament height
+  current_height: hex(47 - i),
+  responder_deadline: hex(5900 + i * 5),
 }))
 
 const bondEvents = [
@@ -717,6 +745,62 @@ const bondEvents = [
     refund: null,
     recovery: { commitment: hash(710), claimer: addr(95), payment: hex(10n ** 16n), burned: hex(10n ** 15n) },
   },
+]
+
+// StandingChanged is emitted after every join and match deletion; the latest
+// one in log order is the tournament's standing. result_at/winner_expires_at
+// are prospective instants, zero while a match is live.
+const standingChange = (
+  tournament: string,
+  block: number,
+  txHash: string,
+  logIndex: number,
+  rest: {
+    match_count: number
+    dangling: string | null
+    parent_commitment?: string | null
+    result_at?: number
+    winner_expires_at?: number
+  },
+) => ({
+  epoch_index: hex(2),
+  tournament_address: tournament,
+  match_count: hex(rest.match_count),
+  dangling: rest.dangling,
+  parent_commitment: rest.parent_commitment ?? null,
+  result_at: hex(rest.result_at ?? 0),
+  winner_expires_at: hex(rest.winner_expires_at ?? 0),
+  block_number: hex(block),
+  tx_hash: txHash,
+  log_index: hex(logIndex),
+  created_at: now(6100 - block),
+  updated_at: now(6100 - block),
+})
+
+// kept in log order (block number, log index, tx hash), as the node lists them
+const standingChanges = [
+  // root tournament: the three joins, then the two match deletions
+  standingChange(addr(30), 5200, hash(740), 0, { match_count: 0, dangling: hash(720), result_at: 12400 }),
+  standingChange(addr(30), 5210, hash(741), 1, { match_count: 1, dangling: null }),
+  standingChange(addr(30), 5220, hash(742), 2, { match_count: 1, dangling: hash(722) }),
+  standingChange(addr(30), 5400, hash(752), 1, { match_count: 1, dangling: null }),
+  standingChange(addr(30), 5450, hash(755), 0, { match_count: 1, dangling: hash(721) }),
+  // child tournament: two joins, then its match resolves for the inner winner
+  standingChange(addr(31), 5410, hash(766), 0, {
+    match_count: 0,
+    dangling: hash(710),
+    parent_commitment: hash(720),
+    result_at: 9010,
+    winner_expires_at: 9310,
+  }),
+  standingChange(addr(31), 5420, hash(762), 0, { match_count: 1, dangling: null }),
+  standingChange(addr(31), 5500, hash(767), 3, {
+    match_count: 0,
+    dangling: hash(710),
+    parent_commitment: hash(720),
+    result_at: 5500,
+    winner_expires_at: 5800,
+  }),
 ]
 
 type Params = Record<string, any>
@@ -951,6 +1035,28 @@ const methods: Record<string, (params: Params) => unknown> = {
     const event = bondEvents.find((b) => eq(b.tx_hash, p.tx_hash) && eq(b.log_index, p.log_index))
     if (!event) throw { code: -32001, message: 'bond event not found' }
     return { data: event }
+  },
+  // both are scoped to one tournament of one epoch (all three params required)
+  cartesi_listStandingChanges: (p) => {
+    requireApp(p)
+    return paginate(
+      standingChanges.filter(
+        (s) => eq(s.epoch_index, p.epoch_index) && eq(s.tournament_address, p.tournament_address),
+      ),
+      p,
+    )
+  },
+  cartesi_getStandingChange: (p) => {
+    requireApp(p)
+    const change = standingChanges.find(
+      (s) =>
+        eq(s.epoch_index, p.epoch_index) &&
+        eq(s.tournament_address, p.tournament_address) &&
+        eq(s.tx_hash, p.tx_hash) &&
+        eq(s.log_index, p.log_index),
+    )
+    if (!change) throw { code: -32001, message: 'standing change not found' }
+    return { data: change }
   },
   cartesi_getNodeInfo: () => ({
     data: { chain_id: hex(31337), version: '2.0.0-mock', default_block: 'FINALIZED' },
